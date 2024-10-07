@@ -16,12 +16,11 @@ datasource db {
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
-  password  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   name      String
   dob       DateTime
-  gender    String
+  gender    Gender
   image     String?
 
   addressId String
@@ -31,6 +30,12 @@ model User {
   bookings  Booking[]
   reviews   Review[]
   favorites Favorite[]
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHERS
 }
 
 model Address {

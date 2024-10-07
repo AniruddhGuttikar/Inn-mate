@@ -9,7 +9,7 @@ const UserProperties = async () => {
     <>
       <AddProperty />
       <div>UserProperties</div>
-      {user.given_name}
+      {user?.given_name}
     </>
   );
 };

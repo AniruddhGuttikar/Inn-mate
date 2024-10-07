@@ -24,24 +24,32 @@ export const AmenityTypeEnum = z.enum([
 ]);
 export const GenderTypeEnum = z.enum(["MALE", "FEMALE", "OTHERS"]);
 
-// User Schema
-export const userSchema = z.object({
-  id: z.string().cuid(),
-  email: z.string().email(),
-  password: z.string().min(8, "password must be atleast 8 characters"),
-  name: z.string(),
-  dob: z.coerce.date(),
-  gender: GenderTypeEnum,
-  image: z.string().url().optional(),
-  addressId: z.string().cuid(),
-});
-
 // Address Schema
 export const addressSchema = z.object({
-  id: z.string().cuid(),
-  city: z.string(),
-  state: z.string(),
-  country: z.string(),
+  id: z.string().cuid().optional(),
+  city: z.string().min(1, "City is required"),
+  state: z.string().min(1, "State is required"),
+  country: z.string().min(1, "Country is required"),
+});
+
+// User Schema
+export const userSchema = z.object({
+  id: z.string().cuid().optional(),
+  email: z.string().email("Invalid email address"),
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  dob: z.coerce.date(),
+  gender: GenderTypeEnum,
+  image: z.string().url().nullable().optional(),
+  address: addressSchema.optional(),
+});
+export const kindeUserSchema = z.object({
+  id: z.string(),
+  email: z.string().email(),
+  family_name: z.string().optional().nullable(),
+  given_name: z.string(),
+  picture: z.string().url().optional().nullable(),
+  username: z.string().optional().nullable(),
+  phone_number: z.string().optional().nullable(),
 });
 
 // Property Schema
@@ -132,6 +140,7 @@ export const checkInCheckOutSchema = z.object({
 
 // Export types
 export type TUser = z.infer<typeof userSchema>;
+export type TKindeUser = z.infer<typeof kindeUserSchema>;
 export type TAddress = z.infer<typeof addressSchema>;
 export type TProperty = z.infer<typeof propertySchema>;
 export type TImage = z.infer<typeof imageSchema>;

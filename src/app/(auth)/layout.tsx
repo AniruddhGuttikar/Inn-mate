@@ -8,8 +8,7 @@ export default function AuthLayout({
   return (
     <html lang="en">
       <body className="antialiased">
-        {/* No navbar here */}
-        <main>{children}</main>
+        <div>{children}</div>
       </body>
     </html>
   );
