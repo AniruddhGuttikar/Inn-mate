@@ -17,12 +17,12 @@ export default function AuthPage() {
             Your stay, your way—find your perfect escape with Innmate!
           </p>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 flex flex-col">
           <LoginLink>
-            <Button className="w-full">Sign in</Button>
+            <Button className="w-full py-6">Sign in</Button>
           </LoginLink>
           <RegisterLink>
-            <Button variant="outline" className="w-full">
+            <Button variant="outline" className="py-6 w-full">
               Sign up
             </Button>
           </RegisterLink>
