@@ -110,8 +110,8 @@ export const locationSchema = z.object({
   city: z.string(),
   state: z.string().optional(),
   country: z.string(),
-  latitude: z.number(),
-  longitude: z.number(),
+  latitude: z.number().optional(),
+  longitude: z.number().optional(),
 });
 
 // Payment Schema
@@ -131,15 +131,15 @@ export const checkInCheckOutSchema = z.object({
 });
 
 // Export types
-export type User = z.infer<typeof userSchema>;
-export type Address = z.infer<typeof addressSchema>;
-export type Property = z.infer<typeof propertySchema>;
-export type Image = z.infer<typeof imageSchema>;
-export type Booking = z.infer<typeof bookingSchema>;
-export type Review = z.infer<typeof reviewSchema>;
-export type Favorite = z.infer<typeof favoriteSchema>;
-export type Listing = z.infer<typeof listingSchema>;
-export type Amenity = z.infer<typeof amenitySchema>;
-export type Location = z.infer<typeof locationSchema>;
-export type Payment = z.infer<typeof paymentSchema>;
-export type CheckInCheckOut = z.infer<typeof checkInCheckOutSchema>;
+export type TUser = z.infer<typeof userSchema>;
+export type TAddress = z.infer<typeof addressSchema>;
+export type TProperty = z.infer<typeof propertySchema>;
+export type TImage = z.infer<typeof imageSchema>;
+export type TBooking = z.infer<typeof bookingSchema>;
+export type TReview = z.infer<typeof reviewSchema>;
+export type TFavorite = z.infer<typeof favoriteSchema>;
+export type TListing = z.infer<typeof listingSchema>;
+export type TAmenity = z.infer<typeof amenitySchema>;
+export type TLocation = z.infer<typeof locationSchema>;
+export type TPayment = z.infer<typeof paymentSchema>;
+export type TCheckInCheckOut = z.infer<typeof checkInCheckOutSchema>;

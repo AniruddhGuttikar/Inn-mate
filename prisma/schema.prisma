@@ -171,8 +171,8 @@ model Location {
   city      String
   state     String?
   country   String
-  latitude  Float
-  longitude Float
+  latitude  Float?
+  longitude Float?
 
   properties Property[]
 }
