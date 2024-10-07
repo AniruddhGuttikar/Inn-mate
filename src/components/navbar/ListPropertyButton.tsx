@@ -2,7 +2,7 @@ import React from "react";
 import { Button } from "../ui/button";
 
 const ListPropertyButton = () => {
-  return <Button />;
+  return <Button>List your property</Button>;
 };
 
 export default ListPropertyButton;

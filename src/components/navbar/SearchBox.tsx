@@ -23,7 +23,7 @@ export default function SearchBox() {
   const [ischeckOutPopOverOpen, setCheckOutPopOverOpen] = useState(false);
 
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-center w-full max-w-4xl mx-auto bg-white rounded-full shadow-lg">
+    <div className="flex flex-col mx-auto sm:flex-row items-center justify-center w-full max-w-3xl bg-white rounded-full shadow-lg">
       <Popover
         open={isDestinationPopOverOpen}
         onOpenChange={setDestinationPopOverOpen}

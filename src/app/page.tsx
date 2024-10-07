@@ -1,4 +1,4 @@
-import PropertyCard from "@/components/navbar/Property";
+import PropertyCard from "@/components/property/Property";
 import Image from "next/image";
 
 let property: [] = [];

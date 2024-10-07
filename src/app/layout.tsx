@@ -30,6 +30,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <PropertyBookingDashboard />
+        <hr className="w-screen border-t border-secondary-foreground/20 m-0" />
         {children}
       </body>
     </html>
