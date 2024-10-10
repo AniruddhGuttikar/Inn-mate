@@ -57,17 +57,32 @@ model Property {
   updatedAt           DateTime     @updatedAt
   propertyType        PropertyType
   propertyDescription String?
+  isHotel             Boolean      @default(false)
 
   images Image[]
 
   locationId String
   location   Location @relation(fields: [locationId], references: [id])
 
+  rooms     Room[]
   listings  Listing[]
   bookings  Booking[]
   reviews   Review[]
   favorites Favorite[]
   amenities Amenity[]
+}
+
+model Room {
+  id            String @id @default(cuid())
+  name          String
+  description   String
+  capacity      Int
+  pricePerNight Float
+
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id])
+
+  bookings Booking[]
 }
 
 model Image {
@@ -101,6 +116,9 @@ model Booking {
 
   propertyId String
   property   Property @relation(fields: [propertyId], references: [id])
+
+  roomId String?
+  room   Room?   @relation(fields: [roomId], references: [id])
 
   status BookingStatus
 

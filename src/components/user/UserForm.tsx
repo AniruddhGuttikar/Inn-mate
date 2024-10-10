@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
 import { addressSchema, TUser, userSchema } from "@/lib/definitions";
+import { createUser } from "@/actions/userActions";
 
 export default function ProfileCompletionForm({ user }: { user: TUser }) {
   const form = useForm<TUser>({
@@ -34,9 +35,7 @@ export default function ProfileCompletionForm({ user }: { user: TUser }) {
 
   async function onSubmit(data: TUser) {
     try {
-      // Simulating an API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      console.log(data);
+      createUser(data);
       toast({
         title: "Profile updated",
         description: "Your profile has been successfully updated.",

@@ -40,8 +40,10 @@ export const userSchema = z.object({
   dob: z.coerce.date(),
   gender: GenderTypeEnum,
   image: z.string().url().nullable().optional(),
-  address: addressSchema.optional(),
+  address: addressSchema,
 });
+
+// Kinde User Schema
 export const kindeUserSchema = z.object({
   id: z.string(),
   email: z.string().email(),

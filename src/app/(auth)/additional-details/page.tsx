@@ -15,7 +15,9 @@ const AdditionalDetails = async () => {
       <ProfileCompletionForm user={user} />
     </>
   ) : (
-    <></>
+    <>
+      <h1>Sorry there was a problem creating the user</h1>
+    </>
   );
 };
 

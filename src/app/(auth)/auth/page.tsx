@@ -18,10 +18,10 @@ export default function AuthPage() {
           </p>
         </CardHeader>
         <CardContent className="space-y-4 flex flex-col">
-          <LoginLink>
+          <LoginLink postLoginRedirectURL="/">
             <Button className="w-full py-6">Sign in</Button>
           </LoginLink>
-          <RegisterLink>
+          <RegisterLink postLoginRedirectURL="/additional-details">
             <Button variant="outline" className="py-6 w-full">
               Sign up
             </Button>

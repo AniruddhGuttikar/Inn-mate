@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "../globals.css";
 import PropertyBookingDashboard from "@/components/navbar/Navbar";
+import { Toaster } from "@/components/ui/toaster";
 
 const geistSans = localFont({
   src: "../fonts/GeistVF.woff",
@@ -31,7 +32,8 @@ export default function RootLayout({
       >
         <PropertyBookingDashboard />
         <hr className="w-screen border-t border-secondary-foreground/20 m-0" />
-        {children}
+        <main>{children}</main>
+        <Toaster />
       </body>
     </html>
   );

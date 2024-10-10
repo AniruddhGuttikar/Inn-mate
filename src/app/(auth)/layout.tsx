@@ -1,4 +1,5 @@
 import "@/app/globals.css";
+import { Toaster } from "@/components/ui/toaster";
 
 export default function AuthLayout({
   children,
@@ -8,7 +9,8 @@ export default function AuthLayout({
   return (
     <html lang="en">
       <body className="antialiased">
-        <div>{children}</div>
+        <main>{children}</main>
+        <Toaster />
       </body>
     </html>
   );
