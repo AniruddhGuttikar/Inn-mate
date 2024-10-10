@@ -55,4 +55,6 @@ export function updateUser() {
   console.log("test");
 }
 
-export function deleteUser() {}
+export function deleteUser() {
+  console.log("hi");
+}
