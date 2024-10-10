@@ -10,6 +10,8 @@ export async function createUser(user: TUser): Promise<TUser | null> {
       throw new Error("Couldn't validate the user");
     }
     const { name, email, dob, gender, address } = validatedUser.data;
+
+    // add the address and user to our database
     const newAddress = await prisma.address.create({
       data: {
         city: address.city,
@@ -17,6 +19,7 @@ export async function createUser(user: TUser): Promise<TUser | null> {
         country: address.country,
       },
     });
+
     const newUser = await prisma.user.create({
       data: {
         name,
@@ -29,30 +32,79 @@ export async function createUser(user: TUser): Promise<TUser | null> {
         address: true,
       },
     });
-    const userResult: TUser = {
-      id: newUser.id,
-      name: newUser.name,
-      email: newUser.email,
-      dob: newUser.dob,
-      gender: newUser.gender,
-      image: newUser.image,
-      address: {
-        id: newUser.address.id,
-        city: newUser.address.city,
-        state: newUser.address.state,
-        country: newUser.address.country,
-      },
-    };
-
-    return userResult;
+    console.log(newUser, `was successfuly created`);
+    return newUser as TUser;
   } catch (error) {
     console.error("Error creating user:", error);
     return null;
   }
 }
 
-export function updateUser() {
-  console.log("test");
+export async function updateUser(user: TUser): Promise<TUser | null> {
+  try {
+    const validatedUser = userSchema.parse(user);
+
+    const { id, name, email, dob, gender, address } = validatedUser;
+
+    const newAddress = await prisma.address.update({
+      where: {
+        id: address.id,
+      },
+
+      data: {
+        ...address,
+      },
+    });
+
+    const newUser = await prisma.user.update({
+      where: {
+        id,
+        email,
+      },
+      data: {
+        id,
+        name,
+        email,
+        dob,
+        gender,
+        addressId: newAddress.id,
+      },
+      include: {
+        address: true,
+      },
+    });
+    console.log("User updated: ", newUser);
+    return newUser;
+  } catch (error) {
+    console.error("Error in updating the user", error);
+    return null;
+  }
 }
 
-export function deleteUser() {}
+export async function deleteUser(user: TUser): Promise<TUser | null> {
+  try {
+    const validatedUser = userSchema.parse(user);
+    const { id, address } = validatedUser;
+    const addressId = address.id;
+
+    prisma.address.delete({
+      where: {
+        id: addressId,
+      },
+    });
+
+    const newUser = prisma.user.delete({
+      where: {
+        id,
+      },
+      include: {
+        address: true,
+      },
+    });
+
+    return newUser;
+  } catch (error) {
+    console.error("Error deleting the user: ", error);
+    return null;
+  }
+}

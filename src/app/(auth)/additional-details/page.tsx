@@ -8,6 +8,7 @@ import React from "react";
 const AdditionalDetails = async () => {
   const { getUser } = getKindeServerSession();
   const kindeUser = (await getUser()) as KindeUser<TKindeUser>;
+
   const user = await mapKindeUserToUser(kindeUser);
 
   return user ? (
