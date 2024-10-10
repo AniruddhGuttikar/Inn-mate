@@ -51,6 +51,8 @@ export async function createUser(user: TUser): Promise<TUser | null> {
   }
 }
 
-export function updateUser() {}
+export function updateUser() {
+  console.log("test");
+}
 
 export function deleteUser() {}
