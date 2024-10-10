@@ -16,25 +16,20 @@ export async function mapKindeUserToUser(
   });
 
   if (!user) {
-    user = await prisma.user.create({
-      data: {
-        email: validatedKindeUser.data.email,
-        name: `${validatedKindeUser.data.given_name} ${
-          validatedKindeUser.data.family_name || ""
-        }`,
-        dob: new Date(),
-        gender: "OTHERS",
-        image: validatedKindeUser.data.picture || undefined,
-        // Create an associated address
-        address: {
-          create: {
-            city: "",
-            state: "",
-            country: "",
-          },
-        },
+    const newUser: TUser = {
+      name:
+        validatedKindeUser.data.given_name +
+        (validatedKindeUser.data.family_name ?? ""),
+      email: validatedKindeUser.data.email,
+      gender: "OTHERS",
+      dob: new Date(),
+      address: {
+        city: "",
+        country: "",
+        state: "",
       },
-    });
+    };
+    return newUser;
   }
-  return user;
+  return null;
 }
