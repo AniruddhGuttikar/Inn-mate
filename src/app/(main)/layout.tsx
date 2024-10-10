@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import "../globals.css";
 import PropertyBookingDashboard from "@/components/navbar/Navbar";
 import { Toaster } from "@/components/ui/toaster";
+import { isUserAuthenticated } from "@/lib/userMapper";
 
 const geistSans = localFont({
   src: "../fonts/GeistVF.woff",
@@ -20,11 +21,12 @@ export const metadata: Metadata = {
   description: "dwell into the world of booking",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // const isUser = await isUserAuthenticated();
   return (
     <html lang="en">
       <body

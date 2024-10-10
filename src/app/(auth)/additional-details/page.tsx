@@ -1,25 +1,22 @@
 import ProfileCompletionForm from "@/components/user/UserForm";
-import { TKindeUser } from "@/lib/definitions";
-import { mapKindeUserToUser } from "@/lib/userMapper";
+import { TUser } from "@/lib/definitions";
+import { getUser, isUserAuthenticated } from "@/lib/userMapper";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
-import { KindeUser } from "@kinde-oss/kinde-auth-nextjs/types";
+import { redirect } from "next/navigation";
 import React from "react";
 
 const AdditionalDetails = async () => {
-  const { getUser } = getKindeServerSession();
-  const kindeUser = (await getUser()) as KindeUser<TKindeUser>;
+  const { isAuthenticated: isKindeAuthenticated } = getKindeServerSession();
 
-  const user = await mapKindeUserToUser(kindeUser);
+  const isAuthenticated = await isUserAuthenticated();
+  const user = await getUser();
+  console.log(user);
 
-  return user ? (
-    <>
-      <ProfileCompletionForm user={user} />
-    </>
-  ) : (
-    <>
-      <h1>Sorry there was a problem creating the user</h1>
-    </>
-  );
+  if ((await isKindeAuthenticated()) && isAuthenticated) {
+    redirect("/");
+  }
+
+  return <ProfileCompletionForm user={user as TUser} />;
 };
 
 export default AdditionalDetails;

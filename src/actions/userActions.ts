@@ -5,11 +5,8 @@ import { TUser, userSchema } from "@/lib/definitions";
 
 export async function createUser(user: TUser): Promise<TUser | null> {
   try {
-    const validatedUser = userSchema.safeParse(user);
-    if (!validatedUser.success) {
-      throw new Error("Couldn't validate the user");
-    }
-    const { name, email, dob, gender, address } = validatedUser.data;
+    const validatedUser = userSchema.parse(user);
+    const { name, email, dob, gender, address } = validatedUser;
 
     // add the address and user to our database
     const newAddress = await prisma.address.create({
@@ -33,7 +30,7 @@ export async function createUser(user: TUser): Promise<TUser | null> {
       },
     });
     console.log(newUser, `was successfuly created`);
-    return newUser as TUser;
+    return newUser;
   } catch (error) {
     console.error("Error creating user:", error);
     return null;

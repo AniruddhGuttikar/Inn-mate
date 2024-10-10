@@ -21,8 +21,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
-import { addressSchema, TUser, userSchema } from "@/lib/definitions";
+import { TUser, userSchema } from "@/lib/definitions";
 import { createUser } from "@/actions/userActions";
+import { useRouter } from "next/navigation";
 
 export default function ProfileCompletionForm({ user }: { user: TUser }) {
   const form = useForm<TUser>({
@@ -32,14 +33,18 @@ export default function ProfileCompletionForm({ user }: { user: TUser }) {
       address: user.address || { city: "", state: "", country: "" },
     },
   });
+  const router = useRouter();
 
   async function onSubmit(data: TUser) {
     try {
       createUser(data);
       toast({
         title: "Profile updated",
-        description: "Your profile has been successfully updated.",
+        description:
+          "Your profile has been successfully updated. Redirecting back to home",
       });
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      router.push("/");
     } catch (error) {
       console.error("Error updating user:", error);
       toast({
