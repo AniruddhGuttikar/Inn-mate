@@ -65,8 +65,9 @@ export const locationSchema = z.object({
 // Property Schema
 export const propertySchema = z.object({
   id: z.string().cuid(),
+  userId: z.string().cuid(),
   name: z.string(),
-  description: z.string().optional(),
+  description: z.string(),
   pricePerNight: z.number().positive(),
   maxGuests: z.number().int().positive(),
   propertyType: PropertyTypeEnum,
@@ -156,8 +157,10 @@ export type TCheckInCheckOut = z.infer<typeof checkInCheckOutSchema>;
 
 // additional merged schemas for the form validatoin
 
-export const addPropertySchema = propertySchema.merge(
+export const addPropertyFormvaluesSchema = propertySchema.merge(
   locationSchema.omit({ id: true })
 );
 
-export type TAddPropertySchema = z.infer<typeof addPropertySchema>;
+export type TAddPropertyFormvaluesSchema = z.infer<
+  typeof addPropertyFormvaluesSchema
+>;

@@ -2,8 +2,9 @@
 
 import {
   imageSchema,
+  locationSchema,
   propertySchema,
-  TAddPropertySchema,
+  TAddPropertyFormvaluesSchema,
   TImage,
   TProperty,
 } from "@/lib/definitions";
@@ -53,19 +54,29 @@ export async function getAllImagesbyId(
 
 export async function addProperty(
   kindeId: string,
-  propertyData: TAddPropertySchema
+  propertyData: TAddPropertyFormvaluesSchema
 ): Promise<boolean> {
   try {
     const user = await getUserByKindeId(kindeId);
-    if (!user) {
+    if (!user || !user.id) {
       throw new Error(`couldn't find the user with ${kindeId}`);
     }
+    const validatedLocation = locationSchema.parse(propertyData);
+    const validatedProperty = propertySchema.parse(propertyData);
 
-    const validatedProperty = propertySchema.parse;
+    const location = await prisma.location.create({
+      data: {
+        ...validatedLocation,
+      },
+    });
 
     const property = await prisma.property.create({
-      data: { ...propertyData },
+      data: {
+        ...validatedProperty,
+        userId: user.id,
+      },
     });
+    return true;
   } catch (error) {
     console.error("Error in adding the property: ", error);
     return false;
