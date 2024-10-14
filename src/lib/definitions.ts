@@ -153,3 +153,11 @@ export type TAmenity = z.infer<typeof amenitySchema>;
 export type TLocation = z.infer<typeof locationSchema>;
 export type TPayment = z.infer<typeof paymentSchema>;
 export type TCheckInCheckOut = z.infer<typeof checkInCheckOutSchema>;
+
+// additional merged schemas for the form validatoin
+
+export const addPropertySchema = propertySchema.merge(
+  locationSchema.omit({ id: true })
+);
+
+export type TAddPropertySchema = z.infer<typeof addPropertySchema>;

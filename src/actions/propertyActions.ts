@@ -3,10 +3,11 @@
 import {
   imageSchema,
   propertySchema,
+  TAddPropertySchema,
   TImage,
   TProperty,
 } from "@/lib/definitions";
-import { isAuthenticatedUserInDb } from "./userActions";
+import { getUserByKindeId, isAuthenticatedUserInDb } from "./userActions";
 import prisma from "@/lib/db";
 import { z } from "zod";
 
@@ -47,5 +48,26 @@ export async function getAllImagesbyId(
   } catch (error) {
     console.error("Error in getting images: ", error);
     return null;
+  }
+}
+
+export async function addProperty(
+  kindeId: string,
+  propertyData: TAddPropertySchema
+): Promise<boolean> {
+  try {
+    const user = await getUserByKindeId(kindeId);
+    if (!user) {
+      throw new Error(`couldn't find the user with ${kindeId}`);
+    }
+
+    const validatedProperty = propertySchema.parse;
+
+    const property = await prisma.property.create({
+      data: { ...propertyData },
+    });
+  } catch (error) {
+    console.error("Error in adding the property: ", error);
+    return false;
   }
 }
