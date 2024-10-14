@@ -1,0 +1,233 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  kindeId   String   @unique
+  email     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  name      String
+  dob       DateTime
+  gender    Gender
+  image     String?
+
+  addressId String
+  address   Address @relation(fields: [addressId], references: [id])
+
+  properties Property[]
+  listings   Listing[]
+  bookings   Booking[]
+  reviews    Review[]
+  favorites  Favorite[]
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHERS
+}
+
+model Address {
+  id      String @id @default(cuid())
+  city    String
+  state   String
+  country String
+
+  users User[]
+}
+
+model Property {
+  id                  String       @id @default(cuid())
+  name                String
+  description         String
+  pricePerNight       Float
+  maxGuests           Int
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+  propertyType        PropertyType
+  propertyDescription String?
+  isHotel             Boolean      @default(false)
+
+  images Image[]
+
+  locationId String
+  location   Location @relation(fields: [locationId], references: [id])
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  rooms     Room[]
+  listings  Listing[]
+  bookings  Booking[]
+  reviews   Review[]
+  favorites Favorite[]
+  amenities Amenity[]
+}
+
+model Room {
+  id            String @id @default(cuid())
+  name          String
+  description   String
+  capacity      Int
+  pricePerNight Float
+
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id])
+
+  bookings Booking[]
+}
+
+model Image {
+  id   String @id @default(cuid())
+  link String
+
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id])
+}
+
+enum PropertyType {
+  Hotel
+  Home
+  Resort
+  Farmhouse
+  Beachhouse
+  Cottage
+  Apartment
+}
+
+model Booking {
+  id         String   @id @default(cuid())
+  startDate  DateTime
+  endDate    DateTime
+  totalPrice Float
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id])
+
+  roomId String?
+  room   Room?   @relation(fields: [roomId], references: [id])
+
+  status BookingStatus
+
+  payment    Payment?
+  checkInOut CheckInCheckOut?
+}
+
+enum BookingStatus {
+  CONFIRMED
+  ACTIVE
+  COMPLETED
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  rating    Int
+  comment   String
+  createdAt DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id])
+}
+
+model Favorite {
+  id         String @id @default(cuid())
+  userId     String
+  propertyId String
+
+  user     User     @relation(fields: [userId], references: [id])
+  property Property @relation(fields: [propertyId], references: [id])
+
+  @@unique([userId, propertyId])
+}
+
+model Listing {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id])
+}
+
+model Amenity {
+  id   String      @id @default(cuid())
+  name AmenityType
+
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id])
+}
+
+enum AmenityType {
+  WIFI
+  PARKING
+  AIR_CONDITIONING
+  PARK
+  POOL
+  GYM
+  KITCHEN
+  TV
+  LAUNDRY
+  PET_FRIENDLY
+}
+
+model Location {
+  id        String  @id @default(cuid())
+  city      String
+  state     String?
+  country   String
+  latitude  Float?
+  longitude Float?
+
+  properties Property[]
+}
+
+model Payment {
+  id          String   @id @default(cuid())
+  amount      Float
+  paymentDate DateTime
+
+  bookingId String  @unique
+  booking   Booking @relation(fields: [bookingId], references: [id])
+}
+
+model CheckInCheckOut {
+  id           String   @id @default(cuid())
+  checkInDate  DateTime
+  checkOutDate DateTime
+
+  bookingId String  @unique
+  booking   Booking @relation(fields: [bookingId], references: [id])
+}
+
+// model Admin {
+//   id        String   @id @default(cuid())
+//   name      String
+//   email     String   @unique
+//   password  String
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @updatedAt
+// }
