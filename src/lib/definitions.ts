@@ -167,6 +167,6 @@ export type TAddPropertyFormvaluesSchema = z.infer<
 
 export const userFormSchema = userSchema
   .merge(z.object({ address: addressSchema }))
-  .omit({ id: true, kindeId: true, image: true });
+  .omit({ id: true, kindeId: true, image: true });  
 
 export type TUserFormValues = z.infer<typeof userFormSchema>;

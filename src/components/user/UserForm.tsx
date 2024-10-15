@@ -27,14 +27,15 @@ import {
   userFormSchema,
 } from "@/lib/definitions";
 import { useToast } from "@/hooks/use-toast";
-
-// Create a new schema for the form, omitting fields that shouldn't be updated
+import { createUser } from "@/actions/userActions";
+import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
 
 export const UserForm = ({ user }: { user: TUser }) => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { user: kindeUser } = useKindeBrowserClient(); // Get Kinde user info
 
-  const form = useForm<TUserFormValues>({
+  const form = useForm<TUser>({
     resolver: zodResolver(userFormSchema),
     defaultValues: {
       name: user.name,
@@ -49,11 +50,29 @@ export const UserForm = ({ user }: { user: TUser }) => {
     },
   });
 
-  async function onSubmit(data: TUserFormValues) {
+  async function onSubmit(data: TUser) {
     setIsSubmitting(true);
     try {
+      console.log('Kinde User:', kindeUser);
+
+      if (!kindeUser || !kindeUser.id) {
+        console.error("Kinde user ID is missing");
+        toast({
+          title: "Error",
+          description: "User ID is missing. Please try again.",
+          variant: "destructive",
+        });
+        return; // Stop further execution
+      }
+      console.log(data)
+      // Include kindeId in the data to be sent
+      const userData = {
+        ...data,
+        kindeId: kindeUser.id, // Add the kindeId here
+      };
+
       // Call your server action here to update the user
-      // const result = await updateUser(user.id, data);
+      const result = await createUser(userData);
       toast({
         title: "Profile updated successfully",
         description: "Your profile information has been updated.",

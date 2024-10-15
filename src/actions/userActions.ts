@@ -87,7 +87,7 @@ export async function createUser(user: TUser): Promise<TUser | null> {
     console.log(newUser, `was successfuly created`);
     return newUser;
   } catch (error) {
-    console.error("Error creating user:", error);
+    console.error("Error creating user:here:: ", error);
     return null;
   }
 }
