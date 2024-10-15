@@ -20,13 +20,15 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  TUser,
-  GenderTypeEnum,
-  TUserFormValues,
-  userFormSchema,
-} from "@/lib/definitions";
+import { TUser, GenderTypeEnum, userSchema } from "@/lib/definitions";
 import { useToast } from "@/hooks/use-toast";
+import {
+  createUser,
+  getUserByKindeId,
+  isAuthenticatedUserInDb,
+  updateUser,
+} from "@/actions/userActions";
+import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
 
 // Create a new schema for the form, omitting fields that shouldn't be updated
 
@@ -34,8 +36,14 @@ export const UserForm = ({ user }: { user: TUser }) => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const form = useForm<TUserFormValues>({
-    resolver: zodResolver(userFormSchema),
+  const { user: kindeUser, isAuthenticated } = useKindeBrowserClient();
+
+  if (!kindeUser || !isAuthenticated) {
+    return <>sorry you are not logged in</>;
+  }
+
+  const form = useForm<TUser>({
+    resolver: zodResolver(userSchema),
     defaultValues: {
       name: user.name,
       email: user.email,
@@ -49,15 +57,34 @@ export const UserForm = ({ user }: { user: TUser }) => {
     },
   });
 
-  async function onSubmit(data: TUserFormValues) {
+  async function onSubmit(data: TUser) {
     setIsSubmitting(true);
     try {
-      // Call your server action here to update the user
-      // const result = await updateUser(user.id, data);
-      toast({
-        title: "Profile updated successfully",
-        description: "Your profile information has been updated.",
-      });
+      if (!kindeUser) {
+        throw new Error("couldn't create the user");
+      }
+      const user = await getUserByKindeId(kindeUser.id);
+      // if the user is not present in the database CREATE
+      if (!user) {
+        const result = await createUser(data);
+        if (result) {
+          toast({
+            title: "Profile created successfully",
+            description: "Your profile has been created",
+          });
+        } else {
+          throw new Error("couldn't create the user");
+        }
+      } else {
+        // if the user is there then UPDATE
+        const result = await updateUser(data);
+        if (result) {
+          toast({
+            title: "Profile updated successfully",
+            description: "Your profile information has been updated.",
+          });
+        }
+      }
     } catch (error) {
       console.error("Failed to update profile:", error);
       toast({
