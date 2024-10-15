@@ -27,10 +27,17 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { toast } from "@/hooks/use-toast";
+import { addProperty } from "@/actions/propertyActions";
+import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
 
 export default function AddPropertyForm() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { user, isAuthenticated } = useKindeBrowserClient();
+
+  if (!isAuthenticated) {
+    return <>Sorry user not authenticated</>;
+  }
 
   const form = useForm<TAddPropertyFormvaluesSchema>({
     resolver: zodResolver(addPropertyFormvaluesSchema),
@@ -49,8 +56,10 @@ export default function AddPropertyForm() {
   async function onSubmit(data: TAddPropertyFormvaluesSchema) {
     setIsSubmitting(true);
     try {
-      // Call your server action here to add the property
-      // const result = await addProperty(data);
+      if (!user?.id) {
+        throw new Error('no attribute "id" on the user');
+      }
+      const result = await addProperty(user.id, data);
       toast({
         title: "Property added successfully",
         description: "Your new property has been listed.",

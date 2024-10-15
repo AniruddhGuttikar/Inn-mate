@@ -164,3 +164,9 @@ export const addPropertyFormvaluesSchema = propertySchema.merge(
 export type TAddPropertyFormvaluesSchema = z.infer<
   typeof addPropertyFormvaluesSchema
 >;
+
+export const userFormSchema = userSchema
+  .merge(z.object({ address: addressSchema }))
+  .omit({ id: true, kindeId: true, image: true });
+
+export type TUserFormValues = z.infer<typeof userFormSchema>;
