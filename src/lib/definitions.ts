@@ -169,4 +169,6 @@ export const userFormSchema = userSchema
   .merge(z.object({ address: addressSchema }))
   .omit({ id: true, kindeId: true, image: true });
 
+const userFormSchema2 = userSchema.merge(addressSchema.omit({ id: true }));
+
 export type TUserFormValues = z.infer<typeof userFormSchema>;
