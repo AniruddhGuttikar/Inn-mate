@@ -11,7 +11,7 @@ import { KindeUser } from "@kinde-oss/kinde-auth-nextjs/types";
 
 export async function getUserByKindeId(kindeId: string): Promise<TUser | null> {
   try {
-    const newUser = await prisma.user.findUnique({
+    const user = await prisma.user.findUniqueOrThrow({
       where: {
         kindeId,
       },
@@ -20,10 +20,10 @@ export async function getUserByKindeId(kindeId: string): Promise<TUser | null> {
       },
     });
 
-    if (!newUser) {
+    if (!user) {
       return null;
     }
-    return newUser;
+    return user;
   } catch (error) {
     console.error("Error finding the user: ", error);
     return null;

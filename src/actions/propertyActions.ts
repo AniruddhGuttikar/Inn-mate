@@ -11,6 +11,8 @@ import {
 import { getUserByKindeId, isAuthenticatedUserInDb } from "./userActions";
 import prisma from "@/lib/db";
 import { z } from "zod";
+import { connect } from "http2";
+import { getLocationById } from "./locationActions";
 
 export async function getAllPropertiesByUserId(
   userId: string
@@ -55,30 +57,49 @@ export async function getAllImagesbyId(
 export async function addProperty(
   kindeId: string,
   propertyData: TAddPropertyFormvaluesSchema
-): Promise<boolean> {
+): Promise<TProperty | null> {
   try {
     const user = await getUserByKindeId(kindeId);
     if (!user || !user.id) {
       throw new Error(`couldn't find the user with ${kindeId}`);
     }
+    const isAuthenticatedUser = await isAuthenticatedUserInDb(user.id);
+    if (!isAuthenticatedUser) {
+      throw new Error(
+        "User not authenticated, please register before proceeding"
+      );
+    }
     const validatedLocation = locationSchema.parse(propertyData);
     const validatedProperty = propertySchema.parse(propertyData);
 
-    const location = await prisma.location.create({
-      data: {
-        ...validatedLocation,
+    // check if the location already exists
+
+    let location = await prisma.location.findFirst({
+      where: {
+        city: validatedLocation.city,
+        country: validatedLocation.country,
+        state: validatedLocation.state,
       },
     });
+    if (!location) {
+      location = await prisma.location.create({
+        data: {
+          ...validatedLocation,
+        },
+      });
+    }
 
     const property = await prisma.property.create({
       data: {
         ...validatedProperty,
         userId: user.id,
+        locationId: location.id,
       },
     });
-    return true;
+
+    return property;
   } catch (error) {
     console.error("Error in adding the property: ", error);
-    return false;
+    return null;
   }
 }

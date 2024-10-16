@@ -57,6 +57,8 @@ export const UserForm = ({ user }: { user: TUser }) => {
           title: "Profile created successfully",
           description: "Your profile has been created, redirecting to home",
         });
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        router.push("/");
       } else {
         const result = await createUser(user);
         if (!result) {
@@ -66,11 +68,11 @@ export const UserForm = ({ user }: { user: TUser }) => {
           title: "Profile updated successfully",
           description: "Your profile has been updated, redirecting to home",
         });
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        router.push("/");
       }
     } catch (error) {
       console.log("Error in submitting the form: ", error);
-    } finally {
-      router.push("/");
     }
   };
 
@@ -78,7 +80,7 @@ export const UserForm = ({ user }: { user: TUser }) => {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="w-1/2 mx-auto space-y-6 flex flex-col"
+        className="w-2/5 border p-4 rounded-xl mx-auto space-y-6 flex flex-col"
       >
         {/* field for user name */}
         <FormField
@@ -109,12 +111,13 @@ export const UserForm = ({ user }: { user: TUser }) => {
           )}
         />
 
+        {/* field for user DOB */}
         <FormField
           control={form.control}
           name="dob"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Name</FormLabel>
+              <FormLabel className="font-bold">Name</FormLabel>
               <FormControl>
                 <Input
                   type="date"
@@ -132,12 +135,13 @@ export const UserForm = ({ user }: { user: TUser }) => {
           )}
         />
 
+        {/* field for user gender */}
         <FormField
           control={form.control}
           name="gender"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Gender</FormLabel>
+              <FormLabel className="font-bold">Gender</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
@@ -157,12 +161,13 @@ export const UserForm = ({ user }: { user: TUser }) => {
           )}
         />
 
+        {/* field for user address*/}
         <FormField
           control={form.control}
           name="address.city"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>City</FormLabel>
+              <FormLabel className="font-bold">City</FormLabel>
               <FormControl>
                 <Input placeholder={user.address.city} {...field} />
               </FormControl>
@@ -176,7 +181,7 @@ export const UserForm = ({ user }: { user: TUser }) => {
           name="address.state"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>State</FormLabel>
+              <FormLabel className="font-bold">State</FormLabel>
               <FormControl>
                 <Input placeholder={user.address.state} {...field} />
               </FormControl>
@@ -190,7 +195,7 @@ export const UserForm = ({ user }: { user: TUser }) => {
           name="address.country"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Country</FormLabel>
+              <FormLabel className="font-bold">Country</FormLabel>
               <FormControl>
                 <Input placeholder={user.address.country} {...field} />
               </FormControl>

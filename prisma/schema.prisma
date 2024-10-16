@@ -61,14 +61,13 @@ model Property {
   propertyDescription String?
   isHotel             Boolean      @default(false)
 
-  images Image[]
-
   locationId String
   location   Location @relation(fields: [locationId], references: [id])
 
   userId String
   user   User   @relation(fields: [userId], references: [id])
 
+  images    Image[]
   rooms     Room[]
   listings  Listing[]
   bookings  Booking[]
@@ -195,9 +194,9 @@ enum AmenityType {
 }
 
 model Location {
-  id        String  @id @default(cuid())
+  id        String @id @default(cuid())
   city      String
-  state     String?
+  state     String
   country   String
   latitude  Float?
   longitude Float?

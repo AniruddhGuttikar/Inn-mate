@@ -55,16 +55,16 @@ export const kindeUserSchema = z.object({
 
 // Location Schema
 export const locationSchema = z.object({
-  id: z.string().cuid(),
+  id: z.string().cuid().optional(),
   city: z.string(),
-  state: z.string().optional(),
+  state: z.string(),
   country: z.string(),
   latitude: z.number().optional(),
   longitude: z.number().optional(),
 });
 // Property Schema
 export const propertySchema = z.object({
-  id: z.string().cuid(),
+  id: z.string().cuid().optional(),
   userId: z.string().cuid(),
   name: z.string(),
   description: z.string(),
@@ -72,7 +72,7 @@ export const propertySchema = z.object({
   maxGuests: z.number().int().positive(),
   propertyType: PropertyTypeEnum,
   propertyDescription: z.string().optional().nullable(),
-  locationId: z.string().cuid(),
+  locationId: z.string().cuid().optional(),
   isHotel: z.boolean().default(false),
 });
 

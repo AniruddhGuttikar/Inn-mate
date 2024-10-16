@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/popover";
 import { User } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 const ProfileButton = () => {
   const { user } = useKindeBrowserClient();
@@ -20,14 +21,32 @@ const ProfileButton = () => {
     return;
   }
 
-  const links = [{ label: "Bookings", link: `bookings/${user.id}` }];
+  const links = [
+    { label: "Bookings", link: `/bookings/${user.id}` },
+    { label: "Edit Profile", link: `/additional-details` },
+  ];
 
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="outline" size="icon">
-          <User className="h-[1.2rem] w-[1.2rem]" />
-          <span className="sr-only">Open user menu</span>
+        <Button variant="ghost" className="rounded-full" size="icon">
+          {user.picture ? (
+            <>
+              <Image
+                src={user.picture}
+                alt="user-profile"
+                width={34}
+                height={34}
+                className="rounded-full"
+              />
+              <span className="sr-only">Open user menu</span>
+            </>
+          ) : (
+            <>
+              <User className="h-[1.2rem] w-[1.2rem]" />
+              <span className="sr-only">Open user menu</span>
+            </>
+          )}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-56">
