@@ -1,3 +1,4 @@
+"use client";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -26,18 +27,15 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { toast } from "@/hooks/use-toast";
+import { toast, useToast } from "@/hooks/use-toast";
 import { addProperty } from "@/actions/propertyActions";
 import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
 
 export default function AddPropertyForm() {
   const router = useRouter();
+  const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { user, isAuthenticated } = useKindeBrowserClient();
-
-  if (!isAuthenticated) {
-    return <>Sorry user not authenticated</>;
-  }
 
   const form = useForm<TAddPropertyFormvaluesSchema>({
     resolver: zodResolver(addPropertyFormvaluesSchema),
@@ -53,6 +51,9 @@ export default function AddPropertyForm() {
     },
   });
 
+  if (!isAuthenticated) {
+    return <>Sorry user not authenticated</>;
+  }
   async function onSubmit(data: TAddPropertyFormvaluesSchema) {
     setIsSubmitting(true);
     try {

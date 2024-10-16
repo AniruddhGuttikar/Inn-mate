@@ -1,17 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { GenderTypeEnum, TUser, userSchema } from "@/lib/definitions";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Form,
   FormControl,
@@ -20,86 +14,73 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { TUser, GenderTypeEnum, userSchema } from "@/lib/definitions";
-import { useToast } from "@/hooks/use-toast";
+import { Input } from "@/components/ui/input";
+
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 import {
   createUser,
-  getUserByKindeId,
   isAuthenticatedUserInDb,
   updateUser,
 } from "@/actions/userActions";
-import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
-
-// Create a new schema for the form, omitting fields that shouldn't be updated
+import { useRouter } from "next/navigation";
 
 export const UserForm = ({ user }: { user: TUser }) => {
-  const { toast } = useToast();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const { user: kindeUser, isAuthenticated } = useKindeBrowserClient();
-
-  if (!kindeUser || !isAuthenticated) {
-    return <>sorry you are not logged in</>;
-  }
-
-  const form = useForm<TUser>({
+  //   console.log("data received in the form: ", user);
+  const form = useForm({
     resolver: zodResolver(userSchema),
-    defaultValues: {
-      name: user.name,
-      email: user.email,
-      dob: user.dob,
-      gender: user.gender,
-      address: {
-        city: user.address.city,
-        state: user.address.state,
-        country: user.address.country,
-      },
-    },
+    defaultValues: user,
   });
 
-  async function onSubmit(data: TUser) {
-    setIsSubmitting(true);
+  const router = useRouter();
+
+  const { toast } = useToast();
+
+  // Adding a console log for errors if validation fails
+  console.log("Form errors: ", form.formState.errors);
+
+  const onSubmit = async (user: TUser) => {
+    console.log("inside the submit button: ", user);
     try {
-      if (!kindeUser) {
-        throw new Error("couldn't create the user");
-      }
-      const user = await getUserByKindeId(kindeUser.id);
-      // if the user is not present in the database CREATE
-      if (!user) {
-        const result = await createUser(data);
-        if (result) {
-          toast({
-            title: "Profile created successfully",
-            description: "Your profile has been created",
-          });
-        } else {
+      if (user.id && (await isAuthenticatedUserInDb(user.id))) {
+        const result = await updateUser(user);
+        if (!result) {
+          throw new Error("couldn't update the user");
+        }
+
+        toast({
+          title: "Profile created successfully",
+          description: "Your profile has been created, redirecting to home",
+        });
+      } else {
+        const result = await createUser(user);
+        if (!result) {
           throw new Error("couldn't create the user");
         }
-      } else {
-        // if the user is there then UPDATE
-        const result = await updateUser(data);
-        if (result) {
-          toast({
-            title: "Profile updated successfully",
-            description: "Your profile information has been updated.",
-          });
-        }
+        toast({
+          title: "Profile updated successfully",
+          description: "Your profile has been updated, redirecting to home",
+        });
       }
     } catch (error) {
-      console.error("Failed to update profile:", error);
-      toast({
-        title: "Error",
-        description: "Failed to update profile. Please try again.",
-        variant: "destructive",
-      });
+      console.log("Error in submitting the form: ", error);
     } finally {
-      setIsSubmitting(false);
+      router.push("/");
     }
-  }
+  };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="w-1/2 mx-auto space-y-6 flex flex-col"
+      >
+        {/* field for user name */}
         <FormField
           control={form.control}
           name="name"
@@ -113,7 +94,7 @@ export const UserForm = ({ user }: { user: TUser }) => {
             </FormItem>
           )}
         />
-
+        {/* field for user email */}
         <FormField
           control={form.control}
           name="email"
@@ -133,7 +114,7 @@ export const UserForm = ({ user }: { user: TUser }) => {
           name="dob"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Date of Birth</FormLabel>
+              <FormLabel>Name</FormLabel>
               <FormControl>
                 <Input
                   type="date"
@@ -218,8 +199,12 @@ export const UserForm = ({ user }: { user: TUser }) => {
           )}
         />
 
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Updating Profile..." : "Update Profile"}
+        <Button
+          className="mx-auto px-10 py-6 text-lg"
+          type="submit"
+          disabled={form.formState.isSubmitting}
+        >
+          {form.formState.isSubmitting ? "Updating Profile..." : "Submit"}
         </Button>
       </form>
     </Form>

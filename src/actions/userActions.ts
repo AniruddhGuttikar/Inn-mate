@@ -62,6 +62,19 @@ export async function createUser(user: TUser): Promise<TUser | null> {
     const validatedUser = userSchema.parse(user);
     const { name, email, dob, gender, address, kindeId } = validatedUser;
 
+    // const isUser = await prisma.user.findUniqueOrThrow({
+    //   where: {
+    //     id: user.id,
+    //   },
+    // });
+    // if (isUser) {
+    //   throw new Error("User already exists, try upadating");
+    // }
+
+    if (user.id) {
+      throw new Error("User already exists, try upadating");
+    }
+
     // add the address and user to our database
     const newAddress = await prisma.address.create({
       data: {
@@ -168,14 +181,27 @@ export async function mapKindeUserToUser(
   console.log("kinde user in server action", kindeUser);
   try {
     const validatedKindeUser = kindeUserSchema.parse(kindeUser);
+
+    const alreadyUser = await prisma.user.findUnique({
+      where: {
+        kindeId: kindeUser.id,
+      },
+      include: {
+        address: true,
+      },
+    });
+
+    if (alreadyUser) {
+      return alreadyUser;
+    }
+
     const user: TUser = {
       address: {
         city: "",
         country: "",
         state: "",
       },
-      id: validatedKindeUser.id,
-      kindeId: kindeUser.id,
+      kindeId: validatedKindeUser.id,
       dob: new Date(),
       email: validatedKindeUser.email,
       name: validatedKindeUser.given_name,
