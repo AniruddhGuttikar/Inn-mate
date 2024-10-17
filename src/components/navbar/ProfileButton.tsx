@@ -51,7 +51,9 @@ const ProfileButton = () => {
       </PopoverTrigger>
       <PopoverContent className="w-56">
         <div className="grid gap-4">
-          <div className="font-medium">{user?.email}</div>
+          <div className="font-medium">
+            {user.given_name + " " + (user.family_name ? user.family_name : "")}
+          </div>
           {links.map((link) => (
             <Link href={link.link}>
               <Button

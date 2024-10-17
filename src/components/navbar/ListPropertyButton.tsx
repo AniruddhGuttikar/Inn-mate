@@ -19,7 +19,7 @@ export const ListPropertyButton = ({
         router.push(`/user/${userId}/properties`);
       }}
     >
-      List Property
+      List Your Property
     </Button>
   );
 };

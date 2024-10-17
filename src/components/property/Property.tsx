@@ -10,6 +10,8 @@ import {
   TLocation,
   TAmenity,
 } from "@/lib/definitions";
+import BookPropertyButton from "./BookPropertyButton";
+import ListPropertyButton from "./ListNowButton";
 
 interface PropertyCardProps {
   property: TProperty;
@@ -17,6 +19,9 @@ interface PropertyCardProps {
   images: TImage[] | null;
   location: TLocation;
   amenities: TAmenity[];
+  bookOrList: "book" | "list";
+  hostName: string;
+  hostKindeId?: string;
 }
 
 export default function PropertyCard({
@@ -25,6 +30,9 @@ export default function PropertyCard({
   images,
   location,
   amenities,
+  bookOrList,
+  hostKindeId,
+  hostName,
 }: PropertyCardProps) {
   let averageRating;
   let imageLink;
@@ -101,13 +109,21 @@ export default function PropertyCard({
             <Badge variant="secondary">+{amenities.length - 3} more</Badge>
           )}
         </div>
+        <h3>hosted by: {hostName}</h3>
       </CardContent>
       <CardFooter className="p-4 pt-0 flex justify-between items-center">
         <div>
           <span className="text-lg font-bold">${property.pricePerNight}</span>
           <span className="text-sm text-muted-foreground"> / night</span>
         </div>
-        <Button>Book now</Button>
+        {bookOrList === "book" ? (
+          <BookPropertyButton propertyId={property.id} />
+        ) : (
+          <ListPropertyButton
+            propertyId={property.id}
+            kindeUserId={hostKindeId}
+          />
+        )}
       </CardFooter>
     </Card>
   );

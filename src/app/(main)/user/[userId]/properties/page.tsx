@@ -53,18 +53,21 @@ const MyProperties = async () => {
           reviews={reviews}
           amenities={amenities}
           images={images}
+          bookOrList="list"
+          hostKindeId={kindeUser.id}
+          hostName={user.name}
         />
       );
     })
   );
 
   return (
-    <>
+    <div className="w-full">
+      <AddProperty userId={user.id} />
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
         {propertyCards.filter(Boolean)}
       </div>
-      <AddProperty userId={user.id} />
-    </>
+    </div>
   );
 };
 

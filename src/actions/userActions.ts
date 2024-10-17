@@ -10,6 +10,28 @@ import {
 import { KindeUser } from "@kinde-oss/kinde-auth-nextjs/types";
 import { revalidatePath } from "next/cache";
 
+export async function getUserById(
+  id: string | undefined
+): Promise<TUser | null> {
+  try {
+    const user = await prisma.user.findUniqueOrThrow({
+      where: {
+        id,
+      },
+      include: {
+        address: true,
+      },
+    });
+
+    if (!user) {
+      return null;
+    }
+    return user;
+  } catch (error) {
+    console.error("Error finding the user: ", error);
+    return null;
+  }
+}
 export async function getUserByKindeId(kindeId: string): Promise<TUser | null> {
   try {
     const user = await prisma.user.findUniqueOrThrow({
