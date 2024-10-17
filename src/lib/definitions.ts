@@ -65,13 +65,12 @@ export const locationSchema = z.object({
 // Property Schema
 export const propertySchema = z.object({
   id: z.string().cuid().optional(),
-  userId: z.string().cuid(),
+  userId: z.string().cuid().optional(),
   name: z.string(),
   description: z.string(),
   pricePerNight: z.number().positive(),
   maxGuests: z.number().int().positive(),
   propertyType: PropertyTypeEnum,
-  propertyDescription: z.string().optional().nullable(),
   locationId: z.string().cuid().optional(),
   isHotel: z.boolean().default(false),
 });

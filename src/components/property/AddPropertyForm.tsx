@@ -30,9 +30,12 @@ import { useToast } from "@/hooks/use-toast";
 import { addProperty } from "@/actions/propertyActions";
 import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
 
-export default function AddPropertyForm({ userId, kindeId }: { userId: string, kindeId: string }) {
+export default function AddPropertyForm() {
   const router = useRouter();
   const { toast } = useToast();
+
+  const { user, isAuthenticated } = useKindeBrowserClient();
+  const kindeId = user?.id;
 
   const form = useForm<TAddPropertyFormvaluesSchema>({
     resolver: zodResolver(addPropertyFormvaluesSchema),
@@ -42,27 +45,26 @@ export default function AddPropertyForm({ userId, kindeId }: { userId: string, k
       pricePerNight: 100,
       maxGuests: 1,
       propertyType: "Home",
-      propertyDescription: "",
       isHotel: false,
       city: "",
       state: "",
       country: "",
-      userId,
     }),
   });
 
-  if (!userId) {
+  if (!user?.id || !isAuthenticated) {
     return <>Sorry user not authenticated</>;
   }
 
   console.log("Form errors: ", form.formState.errors);
 
   async function onSubmit(property: TAddPropertyFormvaluesSchema) {
+    console.log("data received in the property form: ", property);
     try {
-      if (!userId) {
+      if (!kindeId) {
         throw new Error("userId not found");
       }
-      const result = await addProperty(userId, property);
+      const result = await addProperty(kindeId, property);
       if (!result) {
         throw new Error("couldn't create the property");
       }
@@ -79,10 +81,7 @@ export default function AddPropertyForm({ userId, kindeId }: { userId: string, k
         description: "Failed to add property. Please try again.",
         variant: "destructive",
       });
-    } finally {
     }
-
-    console.log("data received in the property form: ", property);
   }
 
   return (

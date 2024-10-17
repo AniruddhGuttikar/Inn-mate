@@ -8,6 +8,7 @@ import {
   userSchema,
 } from "@/lib/definitions";
 import { KindeUser } from "@kinde-oss/kinde-auth-nextjs/types";
+import { revalidatePath } from "next/cache";
 
 export async function getUserByKindeId(kindeId: string): Promise<TUser | null> {
   try {
@@ -98,6 +99,7 @@ export async function createUser(user: TUser): Promise<TUser | null> {
       },
     });
     console.log(newUser, `was successfuly created`);
+    revalidatePath("/");
     return newUser;
   } catch (error) {
     console.error("Error creating user:", error);

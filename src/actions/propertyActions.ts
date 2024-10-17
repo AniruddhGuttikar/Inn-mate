@@ -13,6 +13,7 @@ import prisma from "@/lib/db";
 import { z } from "zod";
 import { connect } from "http2";
 import { getLocationById } from "./locationActions";
+import { revalidatePath } from "next/cache";
 
 export async function getAllPropertiesByUserId(
   userId: string
@@ -61,7 +62,7 @@ export async function addProperty(
   try {
     const user = await getUserByKindeId(kindeId);
     if (!user || !user.id) {
-      throw new Error(`couldn't find the user with ${kindeId}`);
+      throw new Error(`couldn't find the user with kindeID ${kindeId}`);
     }
     const isAuthenticatedUser = await isAuthenticatedUserInDb(user.id);
     if (!isAuthenticatedUser) {
@@ -89,14 +90,17 @@ export async function addProperty(
       });
     }
 
+    const isHotel = validatedProperty.propertyType === "Hotel";
+
     const property = await prisma.property.create({
       data: {
         ...validatedProperty,
+        isHotel,
         userId: user.id,
         locationId: location.id,
       },
     });
-
+    revalidatePath(`/user/${kindeId}/properties`);
     return property;
   } catch (error) {
     console.error("Error in adding the property: ", error);
