@@ -11,7 +11,6 @@ import {
 import { getUserByKindeId, isAuthenticatedUserInDb } from "./userActions";
 import prisma from "@/lib/db";
 import { z } from "zod";
-import { connect } from "http2";
 import { getLocationById } from "./locationActions";
 import { revalidatePath } from "next/cache";
 
@@ -19,14 +18,24 @@ export async function getAllPropertiesByUserId(
   userId: string
 ): Promise<TProperty[] | null> {
   try {
-    const isUser = await isAuthenticatedUserInDb(userId);
+    // const isUser = await isAuthenticatedUserInDb(userId);
     // if (!isUser) {
     //   return null;
     // }
 
     const properties = await prisma.property.findMany({
       where: { userId },
-      //include: {amenities: true, }
+      include: {
+        // amenities: true,
+        // bookings: true,
+        // favorites: true,
+        // images: true,
+        // listings: true,
+        // location: true,
+        // reviews: true,
+        // rooms: true,
+        // user: true,
+      },
     });
     const propertiesSchemaArray = z.array(propertySchema);
     const validatedProperties = propertiesSchemaArray.parse(properties);
@@ -101,6 +110,7 @@ export async function addProperty(
       },
     });
     revalidatePath(`/user/${kindeId}/properties`);
+    revalidatePath("/");
     return property;
   } catch (error) {
     console.error("Error in adding the property: ", error);
