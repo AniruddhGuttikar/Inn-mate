@@ -7,7 +7,11 @@ const AdditionalDetails = async () => {
   const { getUser } = getKindeServerSession();
   const kindeUser = (await getUser()) as TKindeUser;
   const user = await mapKindeUserToUser(kindeUser);
-  return <UserForm user={user as TUser} />;
+  if (user) {
+    return <UserForm user={user as TUser} />;
+  } else {
+    <>sorry couldn't fetch the user</>;
+  }
 };
 
 export default AdditionalDetails;

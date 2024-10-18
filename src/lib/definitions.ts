@@ -55,24 +55,23 @@ export const kindeUserSchema = z.object({
 
 // Location Schema
 export const locationSchema = z.object({
-  id: z.string().cuid(),
+  id: z.string().cuid().optional(),
   city: z.string(),
-  state: z.string().optional(),
+  state: z.string(),
   country: z.string(),
-  latitude: z.number().optional(),
-  longitude: z.number().optional(),
+  latitude: z.number().optional().nullable(),
+  longitude: z.number().optional().nullable(),
 });
 // Property Schema
 export const propertySchema = z.object({
-  id: z.string().cuid(),
-  userId: z.string().cuid(),
+  id: z.string().cuid().optional(),
+  userId: z.string().cuid().optional(),
   name: z.string(),
   description: z.string(),
   pricePerNight: z.number().positive(),
   maxGuests: z.number().int().positive(),
   propertyType: PropertyTypeEnum,
-  propertyDescription: z.string().optional().nullable(),
-  locationId: z.string().cuid(),
+  locationId: z.string().cuid().optional(),
   isHotel: z.boolean().default(false),
 });
 
@@ -164,9 +163,12 @@ export const addPropertyFormvaluesSchema = propertySchema.merge(
 export type TAddPropertyFormvaluesSchema = z.infer<
   typeof addPropertyFormvaluesSchema
 >;
+<<<<<<< HEAD
 
 export const userFormSchema = userSchema
   .merge(z.object({ address: addressSchema }))
   .omit({ id: true, kindeId: true, image: true });  
 
 export type TUserFormValues = z.infer<typeof userFormSchema>;
+=======
+>>>>>>> upstream/main

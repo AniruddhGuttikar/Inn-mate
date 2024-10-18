@@ -1,11 +1,12 @@
+import { mapKindeUserToUser } from "@/actions/userActions";
 import AddPropertyForm from "@/components/property/AddPropertyForm";
+import { TKindeUser } from "@/lib/definitions";
+import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import React from "react";
 
-export default function AddPropertyPage() {
-  return (
-    <div className="container mx-auto py-10">
-      <h1 className="text-2xl font-bold mb-5">Add New Property</h1>
-      <AddPropertyForm />
-    </div>
-  );
+export default async function AddPropertyPage() {
+  // const { getUser } = getKindeServerSession();
+  // const kindeUser = (await getUser()) as TKindeUser;
+  // const user = await mapKindeUserToUser(kindeUser);
+  return <AddPropertyForm />;
 }

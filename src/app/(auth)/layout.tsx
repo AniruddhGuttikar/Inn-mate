@@ -8,7 +8,7 @@ export default function AuthLayout({
 }) {
   return (
     <html lang="en">
-      <body className="antialiased">
+      <body>
         <nav className="flex flex-col w-full items-center mx-auto justify-between p-6 md:flex-row">
           <h1 className="text-3xl mx-auto font-bold">INNMATE</h1>
         </nav>

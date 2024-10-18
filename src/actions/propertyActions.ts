@@ -11,19 +11,45 @@ import {
 import { getUserByKindeId, isAuthenticatedUserInDb } from "./userActions";
 import prisma from "@/lib/db";
 import { z } from "zod";
+import { getLocationById } from "./locationActions";
+import { revalidatePath } from "next/cache";
+
+export async function getAllProperties(): Promise<TProperty[] | null> {
+  try {
+    const properties = await prisma.property.findMany({
+      take: 12,
+    });
+    const propertiesSchemaArray = z.array(propertySchema);
+    const validatedProperties = propertiesSchemaArray.parse(properties);
+    return validatedProperties;
+  } catch (error) {
+    console.error("Error in getting properties: ", error);
+    return null;
+  }
+}
 
 export async function getAllPropertiesByUserId(
   userId: string
 ): Promise<TProperty[] | null> {
   try {
-    const isUser = await isAuthenticatedUserInDb(userId);
+    // const isUser = await isAuthenticatedUserInDb(userId);
     // if (!isUser) {
     //   return null;
     // }
 
     const properties = await prisma.property.findMany({
       where: { userId },
-      //include: {amenities: true, }
+      include: {
+        // amenities: true,
+        // bookings: true,
+        // favorites: true,
+        // images: true,
+        // listings: true,
+        // location: true,
+        // reviews: true,
+        // rooms: true,
+        // user: true,
+      },
     });
     const propertiesSchemaArray = z.array(propertySchema);
     const validatedProperties = propertiesSchemaArray.parse(properties);
@@ -55,30 +81,53 @@ export async function getAllImagesbyId(
 export async function addProperty(
   kindeId: string,
   propertyData: TAddPropertyFormvaluesSchema
-): Promise<boolean> {
+): Promise<TProperty | null> {
   try {
     const user = await getUserByKindeId(kindeId);
     if (!user || !user.id) {
-      throw new Error(`couldn't find the user with ${kindeId}`);
+      throw new Error(`couldn't find the user with kindeID ${kindeId}`);
+    }
+    const isAuthenticatedUser = await isAuthenticatedUserInDb(user.id);
+    if (!isAuthenticatedUser) {
+      throw new Error(
+        "User not authenticated, please register before proceeding"
+      );
     }
     const validatedLocation = locationSchema.parse(propertyData);
     const validatedProperty = propertySchema.parse(propertyData);
 
-    const location = await prisma.location.create({
-      data: {
-        ...validatedLocation,
+    // check if the location already exists
+
+    let location = await prisma.location.findFirst({
+      where: {
+        city: validatedLocation.city,
+        country: validatedLocation.country,
+        state: validatedLocation.state,
       },
     });
+    if (!location) {
+      location = await prisma.location.create({
+        data: {
+          ...validatedLocation,
+        },
+      });
+    }
+
+    const isHotel = validatedProperty.propertyType === "Hotel";
 
     const property = await prisma.property.create({
       data: {
         ...validatedProperty,
+        isHotel,
         userId: user.id,
+        locationId: location.id,
       },
     });
-    return true;
+    revalidatePath(`/user/${kindeId}/properties`);
+    revalidatePath("/");
+    return property;
   } catch (error) {
     console.error("Error in adding the property: ", error);
-    return false;
+    return null;
   }
 }
