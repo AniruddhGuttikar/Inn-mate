@@ -17,15 +17,19 @@ export async function POST(req: Request) {
             product_data: {
               name: 'Sample Product',
             },
+        
             unit_amount: amount,
           },
           quantity: 1,
+    
         },
       ],
       mode: 'payment',
       success_url: `${process.env.NEXT_PUBLIC_DOMAIN}/success`,
       cancel_url: `${process.env.NEXT_PUBLIC_DOMAIN}/cancel`,
     });
+    console.log(session.object)
+    
 
     return NextResponse.json({ sessionId: session.id });
   } catch (err) {
