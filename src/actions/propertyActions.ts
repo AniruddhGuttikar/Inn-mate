@@ -110,7 +110,7 @@ export async function addProperty(
     }
     const validatedLocation = locationSchema.parse(propertyData);
     const validatedProperty = propertySchema.parse(propertyData);
-    const validatedImage= imageSchema.parse(propertyData)
+    // const validatedImage= imageSchema.parse(propertyData)
 
     // check if the location already exists
 
@@ -131,9 +131,10 @@ export async function addProperty(
     }
 
     const isHotel = validatedProperty.propertyType === "Hotel";
-
+    console.log("propertyImage",propertyData.images)
 
     const property = await prisma.property.create({
+      
       data: {
         ...validatedProperty,
         isHotel,
@@ -142,8 +143,8 @@ export async function addProperty(
         images:{
           create: propertyData.images?.map(img => ({
             link: img.link,
-            id:img.id,
-            propertyId:img.propertyId
+            // id:img.id,
+            // propertyId:img.propertyId
           })) || [],
       },
     }});

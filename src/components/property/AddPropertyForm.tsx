@@ -1,5 +1,6 @@
 "use client";
 
+import cuid from 'cuid';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
@@ -38,17 +39,17 @@ interface ImageObject {
   propertyId: string;
 }
 
-
 export default function AddPropertyForm() {
   const router = useRouter();
   const { toast } = useToast();
-
   const { user, isAuthenticated } = useKindeBrowserClient();
   const kindeId = user?.id;
+  const propertyId=cuid()
 
   const form = useForm<TAddPropertyFormvaluesSchema>({
     resolver: zodResolver(addPropertyFormvaluesSchema),
     defaultValues: addPropertyFormvaluesSchema.parse({
+      id:propertyId,
       name: "",
       description: "",
       pricePerNight: 100,
@@ -62,78 +63,74 @@ export default function AddPropertyForm() {
     }),
   });
 
-
   const [imageUrls, setImageUrls] = useState<ImageObject[]>([]);
 
-  useEffect(() => {
-    const formattedImages = imageUrls.map((image) => ({
-      link: image.link,  // This ensures link is a string (URL)
-      id: image.id || '',            
-      propertyId: image.propertyId || '',  
-    }));
-    
-    form.setValue("images", formattedImages);
-  }, [imageUrls, form]);
 
-  if (!user?.id || !isAuthenticated) {
+  if (!isAuthenticated) {
     return <>Sorry, user not authenticated</>;
   }
 
-  async function onSubmit(property: TAddPropertyFormvaluesSchema) {
+
+  console.log(form.formState.isSubmitting)
+
+  const onSubmit = async (property: TAddPropertyFormvaluesSchema) => {
+
+    
     try {
-
-
-
-
-
       if (!kindeId) {
-        throw new Error("userId not found");
+        throw new Error("User ID not found");
       }
-  
-      // Map the image URLs to the expected structure
+
       const formattedImages = imageUrls.map((url) => ({
-        link: url.link,        
-        id: url.id,              
-        propertyId: property.id || property.name,      
+        link: url.link,
+        id: cuid(),
+        propertyId: propertyId
       }));
-  
-      // Add the images to the property object
-      const propertyWithImages = {
+
+      const propertyWithImages = imageUrls.length >0 ?{
         ...property,
-        images: formattedImages, 
-      };
-  
+        images: formattedImages, // Pass empty array if no images
+    } :{
+      ...property
+    };
+
+    console.log(propertyWithImages)
+
+
+
       const result = await addProperty(kindeId, propertyWithImages);
-  
+
       if (!result) {
         throw new Error("Couldn't create the property");
       }
-  
+
       toast({
         title: "Property added successfully",
         description: "Your new property has been listed.",
       });
-  
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      router.push(`/user/${kindeId}/properties`); // Redirect to properties list
+
+      await new Promise((resolve) => setTimeout(resolve,4000));
+      router.push(`/user/${kindeId}/properties`);
     } catch (error) {
-      console.error("Failed to add property:", error);
+      console.log("Error in adding prop:",error)
       toast({
         title: "Error",
         description: "Failed to add property. Please try again.",
         variant: "destructive",
       });
     }
-  }
-  
+  };
 
   return (
     <Form {...form}>
       <form
-        onSubmit={form.handleSubmit(onSubmit)}
+        onSubmit={(e) => {
+
+          e.preventDefault();
+          form.handleSubmit(onSubmit)(e);
+        }}
         className="flex flex-col w-2/5 border p-4 rounded-xl space-y-8 mx-auto"
       >
-        {/* Property Name Field */}
         <FormField
           control={form.control}
           name="name"
@@ -147,8 +144,6 @@ export default function AddPropertyForm() {
             </FormItem>
           )}
         />
-
-        {/* Property Description Field */}
         <FormField
           control={form.control}
           name="description"
@@ -165,8 +160,6 @@ export default function AddPropertyForm() {
             </FormItem>
           )}
         />
-
-        {/* Price per Night Field */}
         <FormField
           control={form.control}
           name="pricePerNight"
@@ -184,8 +177,6 @@ export default function AddPropertyForm() {
             </FormItem>
           )}
         />
-
-        {/* Maximum Guests Field */}
         <FormField
           control={form.control}
           name="maxGuests"
@@ -203,8 +194,6 @@ export default function AddPropertyForm() {
             </FormItem>
           )}
         />
-
-        {/* Property Type Field */}
         <FormField
           control={form.control}
           name="propertyType"
@@ -229,8 +218,6 @@ export default function AddPropertyForm() {
             </FormItem>
           )}
         />
-
-        {/* City Field */}
         <FormField
           control={form.control}
           name="city"
@@ -244,8 +231,6 @@ export default function AddPropertyForm() {
             </FormItem>
           )}
         />
-
-        {/* State Field */}
         <FormField
           control={form.control}
           name="state"
@@ -259,8 +244,6 @@ export default function AddPropertyForm() {
             </FormItem>
           )}
         />
-
-        {/* Country Field */}
         <FormField
           control={form.control}
           name="country"
@@ -274,24 +257,13 @@ export default function AddPropertyForm() {
             </FormItem>
           )}
         />
-
-        {/* File Input Field */}
-        <FormField
-          control={form.control}
-          name="images"
-          render={() => (
-            <FormItem>
-              <FormLabel className="font-bold">Upload Images</FormLabel>
-              <FormControl>
-              <Fileinput images={imageUrls} setImages={setImageUrls} propertyId={form.getValues("id") || ""} />
-
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* Submit Button */}
+          <FormLabel className="font-bold">Upload Images</FormLabel>
+          
+            <Fileinput
+              images={imageUrls}
+              setImages={setImageUrls}
+              propertyId={form.getValues("id") || ""}
+            />
         <Button
           type="submit"
           className="mx-auto px-10 py-6 text-lg"

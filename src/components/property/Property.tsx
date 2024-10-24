@@ -47,7 +47,9 @@ export default function PropertyCard({
     imageLink = images[0].link;
   } else {
     imageLink =
-      "https://images.unsplash.com/photo-1579297206620-c410c4af42e4?q=80&w=1587&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D";
+  //     "https://images.unsplash.com/photo-1579297206620-c410c4af42e4?q=80&w=1587&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D";
+  // }
+  'https://th.bing.com/th/id/OIP.7uysmPeeGjhBNLLTiZc6fAHaLb?w=115&h=180&c=7&r=0&o=5&dpr=1.3&pid=1.7'
   }
   console.log("Image link: ", imageLink);
 
