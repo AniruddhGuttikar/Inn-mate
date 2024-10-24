@@ -29,6 +29,15 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { addProperty } from "@/actions/propertyActions";
 import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
+import Fileinput from "../ui/fileinput";
+import { useEffect, useState } from "react";
+
+interface ImageObject {
+  id: string;
+  link: string;
+  propertyId: string;
+}
+
 
 export default function AddPropertyForm() {
   const router = useRouter();
@@ -49,29 +58,62 @@ export default function AddPropertyForm() {
       city: "",
       state: "",
       country: "",
+      images: [],
     }),
   });
 
+
+  const [imageUrls, setImageUrls] = useState<ImageObject[]>([]);
+
+  useEffect(() => {
+    const formattedImages = imageUrls.map((image) => ({
+      link: image.link,  // This ensures link is a string (URL)
+      id: image.id || '',            
+      propertyId: image.propertyId || '',  
+    }));
+    
+    form.setValue("images", formattedImages);
+  }, [imageUrls, form]);
+
   if (!user?.id || !isAuthenticated) {
-    return <>Sorry user not authenticated</>;
+    return <>Sorry, user not authenticated</>;
   }
 
-  console.log("Form errors: ", form.formState.errors);
-
   async function onSubmit(property: TAddPropertyFormvaluesSchema) {
-    console.log("data received in the property form: ", property);
     try {
+
+
+
+
+
       if (!kindeId) {
         throw new Error("userId not found");
       }
-      const result = await addProperty(kindeId, property);
+  
+      // Map the image URLs to the expected structure
+      const formattedImages = imageUrls.map((url) => ({
+        link: url.link,        
+        id: url.id,              
+        propertyId: property.id || property.name,      
+      }));
+  
+      // Add the images to the property object
+      const propertyWithImages = {
+        ...property,
+        images: formattedImages, 
+      };
+  
+      const result = await addProperty(kindeId, propertyWithImages);
+  
       if (!result) {
-        throw new Error("couldn't create the property");
+        throw new Error("Couldn't create the property");
       }
+  
       toast({
         title: "Property added successfully",
         description: "Your new property has been listed.",
       });
+  
       await new Promise((resolve) => setTimeout(resolve, 2000));
       router.push(`/user/${kindeId}/properties`); // Redirect to properties list
     } catch (error) {
@@ -83,6 +125,7 @@ export default function AddPropertyForm() {
       });
     }
   }
+  
 
   return (
     <Form {...form}>
@@ -90,7 +133,7 @@ export default function AddPropertyForm() {
         onSubmit={form.handleSubmit(onSubmit)}
         className="flex flex-col w-2/5 border p-4 rounded-xl space-y-8 mx-auto"
       >
-        {/* field for the property name */}
+        {/* Property Name Field */}
         <FormField
           control={form.control}
           name="name"
@@ -105,7 +148,7 @@ export default function AddPropertyForm() {
           )}
         />
 
-        {/* field for the property description */}
+        {/* Property Description Field */}
         <FormField
           control={form.control}
           name="description"
@@ -123,7 +166,7 @@ export default function AddPropertyForm() {
           )}
         />
 
-        {/* field for price per night */}
+        {/* Price per Night Field */}
         <FormField
           control={form.control}
           name="pricePerNight"
@@ -142,7 +185,7 @@ export default function AddPropertyForm() {
           )}
         />
 
-        {/* field for max guests*/}
+        {/* Maximum Guests Field */}
         <FormField
           control={form.control}
           name="maxGuests"
@@ -161,6 +204,7 @@ export default function AddPropertyForm() {
           )}
         />
 
+        {/* Property Type Field */}
         <FormField
           control={form.control}
           name="propertyType"
@@ -186,25 +230,7 @@ export default function AddPropertyForm() {
           )}
         />
 
-        {/* <FormField
-          control={form.control}
-          name="isHotel"
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-              <FormControl>
-                <input
-                  type="checkbox"
-                  checked={field.value}
-                  onChange={field.onChange}
-                />
-              </FormControl>
-              <div className="space-y-1 leading-none">
-                <FormLabel className="font-bold">Is this a hotel?</FormLabel>
-              </div>
-            </FormItem>
-          )}
-        /> */}
-
+        {/* City Field */}
         <FormField
           control={form.control}
           name="city"
@@ -219,6 +245,7 @@ export default function AddPropertyForm() {
           )}
         />
 
+        {/* State Field */}
         <FormField
           control={form.control}
           name="state"
@@ -233,6 +260,7 @@ export default function AddPropertyForm() {
           )}
         />
 
+        {/* Country Field */}
         <FormField
           control={form.control}
           name="country"
@@ -247,6 +275,23 @@ export default function AddPropertyForm() {
           )}
         />
 
+        {/* File Input Field */}
+        <FormField
+          control={form.control}
+          name="images"
+          render={() => (
+            <FormItem>
+              <FormLabel className="font-bold">Upload Images</FormLabel>
+              <FormControl>
+              <Fileinput images={imageUrls} setImages={setImageUrls} propertyId={form.getValues("id") || ""} />
+
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Submit Button */}
         <Button
           type="submit"
           className="mx-auto px-10 py-6 text-lg"

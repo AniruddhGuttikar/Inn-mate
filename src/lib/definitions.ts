@@ -63,6 +63,13 @@ export const locationSchema = z.object({
   longitude: z.number().optional().nullable(),
 });
 // Property Schema
+
+// Image Schema
+export const imageSchema = z.object({
+  id: z.string().cuid(),
+  link: z.string().url(),
+  propertyId: z.string().cuid(),
+});
 export const propertySchema = z.object({
   id: z.string().cuid().optional(),
   userId: z.string().cuid().optional(),
@@ -73,14 +80,11 @@ export const propertySchema = z.object({
   propertyType: PropertyTypeEnum,
   locationId: z.string().cuid().optional(),
   isHotel: z.boolean().default(false),
+  images: z.array(imageSchema).optional(),
+
 });
 
-// Image Schema
-export const imageSchema = z.object({
-  id: z.string().cuid(),
-  link: z.string().url(),
-  propertyId: z.string().cuid(),
-});
+
 
 // Booking Schema
 export const bookingSchema = z.object({
@@ -163,12 +167,9 @@ export const addPropertyFormvaluesSchema = propertySchema.merge(
 export type TAddPropertyFormvaluesSchema = z.infer<
   typeof addPropertyFormvaluesSchema
 >;
-<<<<<<< HEAD
 
 export const userFormSchema = userSchema
   .merge(z.object({ address: addressSchema }))
   .omit({ id: true, kindeId: true, image: true });  
 
 export type TUserFormValues = z.infer<typeof userFormSchema>;
-=======
->>>>>>> upstream/main

@@ -14,6 +14,21 @@ import { z } from "zod";
 import { getLocationById } from "./locationActions";
 import { revalidatePath } from "next/cache";
 
+const UPLOADCARE_PUBLIC_KEY = 'ecc593f3433cbf4e6114'; // Replace with your Uploadcare public key
+const UPLOADCARE_SECRET_KEY = process.env.NEXT_PUBLIC_UPLOADCARE_SECRET_KEY!
+import {
+  deleteFile,
+  UploadcareSimpleAuthSchema,
+} from '@uploadcare/rest-client';
+
+
+const uploadcareSimpleAuthSchema = new UploadcareSimpleAuthSchema({
+  publicKey: UPLOADCARE_PUBLIC_KEY,
+  secretKey :UPLOADCARE_SECRET_KEY,
+
+});
+
+
 export async function getAllProperties(): Promise<TProperty[] | null> {
   try {
     const properties = await prisma.property.findMany({
@@ -95,8 +110,10 @@ export async function addProperty(
     }
     const validatedLocation = locationSchema.parse(propertyData);
     const validatedProperty = propertySchema.parse(propertyData);
+    const validatedImage= imageSchema.parse(propertyData)
 
     // check if the location already exists
+
 
     let location = await prisma.location.findFirst({
       where: {
@@ -115,14 +132,21 @@ export async function addProperty(
 
     const isHotel = validatedProperty.propertyType === "Hotel";
 
+
     const property = await prisma.property.create({
       data: {
         ...validatedProperty,
         isHotel,
         userId: user.id,
         locationId: location.id,
+        images:{
+          create: propertyData.images?.map(img => ({
+            link: img.link,
+            id:img.id,
+            propertyId:img.propertyId
+          })) || [],
       },
-    });
+    }});
     revalidatePath(`/user/${kindeId}/properties`);
     revalidatePath("/");
     return property;
@@ -130,4 +154,28 @@ export async function addProperty(
     console.error("Error in adding the property: ", error);
     return null;
   }
+}
+
+
+export async function Delete_UploadCare(urlToDelete : string){
+  try {
+    // Delete the image from Uploadcare
+    const result = await deleteFile(
+      {
+        uuid: urlToDelete,
+      },
+      { authSchema: uploadcareSimpleAuthSchema }
+    )
+    if(result.metadata){
+      return 200
+    }
+    else{
+      return 400
+    }
+    
+}
+catch (error) {
+    console.error('Error deleting image from Uploadcare:', error);
+  }
+
 }

@@ -1,14 +1,3 @@
-<<<<<<< HEAD
-import PayPage from "@/components/payment/payment";
-export default function Home() {
-  return (<>
-  <div>HOME</div>;
-  <PayPage/>
-  
-  </>
-  );
-  }
-=======
 import { getAllAmenitiesForProperty } from "@/actions/amenitiesAction";
 import { getLocationById } from "@/actions/locationActions";
 import { getAllImagesbyId, getAllProperties } from "@/actions/propertyActions";
@@ -17,7 +6,6 @@ import { getUserById, getUserByKindeId } from "@/actions/userActions";
 import PropertyCard from "@/components/property/Property";
 import { TKindeUser } from "@/lib/definitions";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
-
 export default async function Home() {
   const { getUser, isAuthenticated } = getKindeServerSession();
   const kindeUser = (await getUser()) as TKindeUser;
@@ -71,8 +59,10 @@ export default async function Home() {
     <>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
         {propertyCards.filter(Boolean)}
+
+        <img src="https://ucarecdn.com/aa64a8eb-d743-42ef-9a1c-a9f869ece52a/-/preview/1000x1000/"></img>
+        
       </div>
     </>
   );
 }
->>>>>>> upstream/main

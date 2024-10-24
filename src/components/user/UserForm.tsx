@@ -14,65 +14,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-<<<<<<< HEAD
-import {
-  TUser,
-  GenderTypeEnum,
-  TUserFormValues,
-  userFormSchema,
-} from "@/lib/definitions";
-import { useToast } from "@/hooks/use-toast";
-import { createUser } from "@/actions/userActions";
-import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
-
-export const UserForm = ({ user }: { user: TUser }) => {
-  const { toast } = useToast();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const { user: kindeUser } = useKindeBrowserClient(); // Get Kinde user info
-
-  const form = useForm<TUser>({
-    resolver: zodResolver(userFormSchema),
-    defaultValues: {
-      name: user.name,
-      email: user.email,
-      dob: user.dob,
-      gender: user.gender,
-      address: {
-        city: user.address.city,
-        state: user.address.state,
-        country: user.address.country,
-      },
-    },
-  });
-
-  async function onSubmit(data: TUser) {
-    setIsSubmitting(true);
-    try {
-      console.log('Kinde User:', kindeUser);
-
-      if (!kindeUser || !kindeUser.id) {
-        console.error("Kinde user ID is missing");
-        toast({
-          title: "Error",
-          description: "User ID is missing. Please try again.",
-          variant: "destructive",
-        });
-        return; // Stop further execution
-      }
-      console.log(data)
-      // Include kindeId in the data to be sent
-      const userData = {
-        ...data,
-        kindeId: kindeUser.id, // Add the kindeId here
-      };
-
-      // Call your server action here to update the user
-      const result = await createUser(userData);
-      toast({
-        title: "Profile updated successfully",
-        description: "Your profile information has been updated.",
-      });
-=======
 import { Input } from "@/components/ui/input";
 
 import {
@@ -130,7 +71,6 @@ export const UserForm = ({ user }: { user: TUser }) => {
         await new Promise((resolve) => setTimeout(resolve, 2000));
         router.push("/");
       }
->>>>>>> upstream/main
     } catch (error) {
       console.log("Error in submitting the form: ", error);
     }
