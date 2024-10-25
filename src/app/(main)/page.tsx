@@ -59,9 +59,6 @@ export default async function Home() {
     <>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
         {propertyCards.filter(Boolean)}
-
-        <img src="https://ucarecdn.com/aa64a8eb-d743-42ef-9a1c-a9f869ece52a/-/preview/1000x1000/"></img>
-        
       </div>
     </>
   );

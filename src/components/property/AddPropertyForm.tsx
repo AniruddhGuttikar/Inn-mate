@@ -160,6 +160,8 @@ export default function AddPropertyForm() {
             </FormItem>
           )}
         />
+
+        {/* field for price per night */}
         <FormField
           control={form.control}
           name="pricePerNight"
@@ -177,6 +179,8 @@ export default function AddPropertyForm() {
             </FormItem>
           )}
         />
+
+        {/* field for max guests*/}
         <FormField
           control={form.control}
           name="maxGuests"

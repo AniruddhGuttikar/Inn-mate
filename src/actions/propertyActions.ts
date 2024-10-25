@@ -114,7 +114,6 @@ export async function addProperty(
 
     // check if the location already exists
 
-
     let location = await prisma.location.findFirst({
       where: {
         city: validatedLocation.city,

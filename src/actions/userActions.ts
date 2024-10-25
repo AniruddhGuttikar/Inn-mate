@@ -10,7 +10,6 @@ import {
 import { KindeUser } from "@kinde-oss/kinde-auth-nextjs/types";
 import { revalidatePath } from "next/cache";
 
-
 export async function getUserById(
   id: string | undefined
 ): Promise<TUser | null> {
