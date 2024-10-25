@@ -21,6 +21,7 @@ export const AmenityTypeEnum = z.enum([
   "TV",
   "LAUNDRY",
   "PET_FRIENDLY",
+  "COFFEE",
 ]);
 export const GenderTypeEnum = z.enum(["MALE", "FEMALE", "OTHERS"]);
 
@@ -156,9 +157,9 @@ export type TCheckInCheckOut = z.infer<typeof checkInCheckOutSchema>;
 
 // additional merged schemas for the form validatoin
 
-export const addPropertyFormvaluesSchema = propertySchema.merge(
-  locationSchema.omit({ id: true })
-);
+export const addPropertyFormvaluesSchema = propertySchema
+  .merge(locationSchema.omit({ id: true }))
+  .merge(z.array(imageSchema));
 
 export type TAddPropertyFormvaluesSchema = z.infer<
   typeof addPropertyFormvaluesSchema

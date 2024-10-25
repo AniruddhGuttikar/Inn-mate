@@ -60,20 +60,19 @@ export async function getAllPropertiesByUserId(
   }
 }
 
-export async function getAllImagesbyId(
+export async function getPropertyById(
   propertyId: string
-): Promise<TImage[] | null> {
+): Promise<TProperty | null> {
   try {
-    const images = await prisma.image.findMany({
+    const property = await prisma.property.findUnique({
       where: {
-        propertyId,
+        id: propertyId,
       },
     });
-    const imagesSchemaArray = z.array(imageSchema);
-    const validatedImages = imagesSchemaArray.parse(images);
-    return validatedImages;
+    const validatedProperty = propertySchema.parse(property);
+    return validatedProperty;
   } catch (error) {
-    console.error("Error in getting images: ", error);
+    console.error("Error in getting properties: ", error);
     return null;
   }
 }
@@ -95,6 +94,7 @@ export async function addProperty(
     }
     const validatedLocation = locationSchema.parse(propertyData);
     const validatedProperty = propertySchema.parse(propertyData);
+    const images = imageSchema.parse();
 
     // check if the location already exists
 
@@ -128,6 +128,24 @@ export async function addProperty(
     return property;
   } catch (error) {
     console.error("Error in adding the property: ", error);
+    return null;
+  }
+}
+
+export async function getAllImagesbyId(
+  propertyId: string
+): Promise<TImage[] | null> {
+  try {
+    const images = await prisma.image.findMany({
+      where: {
+        propertyId,
+      },
+    });
+    const imagesSchemaArray = z.array(imageSchema);
+    const validatedImages = imagesSchemaArray.parse(images);
+    return validatedImages;
+  } catch (error) {
+    console.error("Error in getting images: ", error);
     return null;
   }
 }
