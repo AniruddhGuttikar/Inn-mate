@@ -156,11 +156,11 @@ export type TPayment = z.infer<typeof paymentSchema>;
 export type TCheckInCheckOut = z.infer<typeof checkInCheckOutSchema>;
 
 // additional merged schemas for the form validatoin
-
-export const addPropertyFormvaluesSchema = propertySchema
+export const addPropertyFormValuesSchema = propertySchema
   .merge(locationSchema.omit({ id: true }))
-  .merge(z.array(imageSchema));
-
+  .extend({
+    images: z.array(imageSchema).optional(),
+  });
 export type TAddPropertyFormvaluesSchema = z.infer<
-  typeof addPropertyFormvaluesSchema
+  typeof addPropertyFormValuesSchema
 >;

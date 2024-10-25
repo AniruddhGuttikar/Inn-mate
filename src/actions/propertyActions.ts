@@ -92,9 +92,11 @@ export async function addProperty(
         "User not authenticated, please register before proceeding"
       );
     }
+    const imagesSchemaArray = z.array(imageSchema);
+
     const validatedLocation = locationSchema.parse(propertyData);
     const validatedProperty = propertySchema.parse(propertyData);
-    const images = imageSchema.parse();
+    const validatedImages = imagesSchemaArray.parse(propertyData.images);
 
     // check if the location already exists
 
@@ -121,8 +123,16 @@ export async function addProperty(
         isHotel,
         userId: user.id,
         locationId: location.id,
+        ...(validatedImages.length > 0 && {
+          images: {
+            create: validatedImages.map((image) => ({
+              link: image.link,
+            })),
+          },
+        }),
       },
     });
+
     revalidatePath(`/user/${kindeId}/properties`);
     revalidatePath("/");
     return property;
