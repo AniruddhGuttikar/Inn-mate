@@ -16,7 +16,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import DateRangePicker from "@/components/property/DateRangePicker";
 import { DateRange } from "react-day-picker";
-
+import { useToast } from "@/hooks/use-toast";
+import { DESTRUCTION } from "dns";
 // Mock data (replace with actual data fetching in a real application)
 const property = {
   id: "1",
@@ -46,6 +47,11 @@ const property = {
 export default function PropertyListingPage() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
+  const [savedData,setsavedData]=useState<DateRange>()
+  const {toast}=useToast()
+
+  const [isDateAdded, setisDateAdded]=useState(false)
+
   const nextImage = () => {
     setCurrentImageIndex(
       (prevIndex) => (prevIndex + 1) % property.images.length
@@ -61,8 +67,25 @@ export default function PropertyListingPage() {
 
   const handleDateSave = (dates: DateRange | undefined) => {
     // Handle the saved dates (e.g., update state, make API call, etc.)
+    setisDateAdded(true)
     console.log("Selected dates:", dates);
   };
+
+  const HnadleClick=()=>{
+    console.log('reserved clicked')
+    if(isDateAdded){
+      console.log("dat and data is available ")
+    }
+    else{
+      toast({
+        title :'warning',
+        description: 'Add dates first',
+        
+      })
+      console.log("please pick dates")
+    }
+
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -183,7 +206,7 @@ export default function PropertyListingPage() {
                   }
                   onSave={handleDateSave}
                 />
-                <Button className="w-full mt-4">Reserve</Button>
+                <Button onClick={HnadleClick} className="w-full mt-4">Reserve</Button>
               </CardContent>
             </Card>
           </div>

@@ -118,6 +118,8 @@ export const listingSchema = z.object({
   id: z.string().cuid(),
   userId: z.string().cuid(),
   propertyId: z.string().cuid(),
+  checkInDate: z.coerce.date(),
+  checkOutDate: z.coerce.date(),
 });
 
 // Amenity Schema

@@ -1,3 +1,5 @@
+"use client"
+
 import Image from "next/image";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +14,7 @@ import {
 } from "@/lib/definitions";
 import BookPropertyButton from "./BookPropertyButton";
 import ListPropertyButton from "./ListNowButton";
+import { useState } from "react";
 
 interface PropertyCardProps {
   property: TProperty;
@@ -53,6 +56,13 @@ export default function PropertyCard({
   }
   console.log("Image link: ", imageLink);
 
+  const [isFavorited, setIsFavorited] = useState(false);
+
+  // Function to toggle the favorite state
+  const handleToggleFavorite = () => {
+    setIsFavorited(!isFavorited);
+  };
+
   return (
     <Card className="w-full max-w-sm mx-auto">
       <div className="relative aspect-square">
@@ -62,14 +72,26 @@ export default function PropertyCard({
           fill
           className="object-cover rounded-t-lg"
         />
-        <Button
-          size="icon"
-          variant="secondary"
-          className="absolute top-2 right-2 rounded-full"
-        >
-          <Heart className="h-4 w-4" />
-          <span className="sr-only">Add to favorites</span>
-        </Button>
+
+
+      <Button
+        size="icon"
+        variant="secondary"
+        className="absolute top-2 right-2 rounded-full"
+        onClick={handleToggleFavorite}
+      >
+        {/* Conditionally apply the fill color */}
+        <Heart
+        className="h-4 w-4"
+        style={{
+          fill: isFavorited ? "red" : "none", 
+          stroke: isFavorited ? "red" : "gray", 
+        }}
+      />
+        <span className="sr-only">Add to favorites</span>
+
+        
+      </Button>
       </div>
       <CardContent className="p-4">
         <div className="flex justify-between items-start mb-2">
