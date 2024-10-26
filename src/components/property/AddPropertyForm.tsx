@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import {
   PropertyTypeEnum,
   TAddPropertyFormvaluesSchema,
-  addPropertyFormvaluesSchema,
+  addPropertyFormValuesSchema,
 } from "@/lib/definitions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,8 +38,8 @@ export default function AddPropertyForm() {
   const kindeId = user?.id;
 
   const form = useForm<TAddPropertyFormvaluesSchema>({
-    resolver: zodResolver(addPropertyFormvaluesSchema),
-    defaultValues: addPropertyFormvaluesSchema.parse({
+    resolver: zodResolver(addPropertyFormValuesSchema),
+    defaultValues: addPropertyFormValuesSchema.parse({
       name: "",
       description: "",
       pricePerNight: 100,

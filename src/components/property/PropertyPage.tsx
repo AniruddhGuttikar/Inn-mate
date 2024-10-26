@@ -74,17 +74,43 @@ export default function PropertyListingPage({
 }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
+  if (!property.id) {
+    return <>Sorry this property doesn't exist</>;
+  }
+  const displayedImages =
+    images && images.length > 0
+      ? images
+      : [
+          {
+            id: "default1",
+            propertyId: property.id,
+            link: "https://images.unsplash.com/photo-1579297206620-c410c4af42e4?q=80&w=1587&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+          },
+          {
+            id: "default2",
+            propertyId: property.id,
+            link: "https://images.unsplash.com/photo-1579297206620-c410c4af42e4?q=80&w=1587&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+          },
+        ];
+
   const nextImage = () => {
-    setCurrentImageIndex((prevIndex) => (prevIndex + 1) % images.length);
+    setCurrentImageIndex(
+      (prevIndex) => (prevIndex + 1) % displayedImages.length
+    );
   };
 
   const prevImage = () => {
     setCurrentImageIndex(
-      (prevIndex) => (prevIndex - 1 + images.length) % images.length
+      (prevIndex) =>
+        (prevIndex - 1 + displayedImages.length) % displayedImages.length
     );
   };
 
-  const findAverageRating = (reviews: TReview[]): number | undefined => {
+  const findAverageRating = (reviews: TReview[] | null): number => {
+    if (!reviews || reviews.length === 0) {
+      return -1;
+    }
+    console.log("reviews: ", reviews[0].rating);
     const total = reviews.reduce((sum, review) => sum + review.rating, 0);
     const average = total / reviews.length;
 
@@ -114,7 +140,7 @@ export default function PropertyListingPage({
     <div className="min-h-screen bg-background">
       <div className="relative h-[50vh] md:h-[60vh] lg:h-[70vh]">
         <Image
-          src={images[currentImageIndex].link}
+          src={displayedImages[currentImageIndex].link}
           alt={`${property.name} - Image ${currentImageIndex + 1}`}
           layout="fill"
           objectFit="cover"
@@ -137,7 +163,7 @@ export default function PropertyListingPage({
           <ChevronRight className="h-4 w-4" />
         </Button>
         <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
-          {images.map((_, index) => (
+          {displayedImages.map((_, index) => (
             <div
               key={index}
               className={`h-2 w-2 rounded-full ${
@@ -155,10 +181,15 @@ export default function PropertyListingPage({
             <div className="flex items-center mb-4">
               <Star className="h-5 w-5 text-yellow-400 mr-1" />
               <span className="font-semibold">
-                {findAverageRating(reviews) ?? ""}
+                {(() => {
+                  const averageRating = findAverageRating(reviews);
+                  return averageRating === -1
+                    ? "Be the first one to review"
+                    : averageRating;
+                })()}
               </span>
               <span className="text-muted-foreground ml-1">
-                ({reviews.length} reviews)
+                ({reviews ? reviews.length : 0} reviews)
               </span>
               <span className="mx-2">•</span>
               <span className="text-muted-foreground">
@@ -197,7 +228,7 @@ export default function PropertyListingPage({
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {amenities.map((amenity) => {
+                  {amenities?.map((amenity) => {
                     const Icon = amenityIcons[amenity.name]; // Get the corresponding icon
                     return (
                       <div key={amenity.id} className="flex items-center">

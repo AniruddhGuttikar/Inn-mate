@@ -15,7 +15,7 @@ const ListNowButton = ({
   return (
     <Button
       onClick={() => {
-        router.push(`/user/${kindeUserId}/properties/${propertyId}`);
+        router.push(`/user/${kindeUserId}/properties/${propertyId}/list`);
       }}
     >
       List Now
