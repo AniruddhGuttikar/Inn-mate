@@ -82,7 +82,6 @@ const Favorites = async ({ params: { userid } }: FavoritesProps) => {
             bookOrList="book"
             hostName={user.name}
             hostKindeId={property.userId}
-            favorites={''}
           />
         );
       })

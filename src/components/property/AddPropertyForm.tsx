@@ -49,7 +49,6 @@ export default function AddPropertyForm() {
   const form = useForm<TAddPropertyFormvaluesSchema>({
     resolver: zodResolver(addPropertyFormValuesSchema),
     defaultValues: addPropertyFormValuesSchema.parse({
-      id:propertyId,
       name: "",
       description: "",
       pricePerNight: 100,
