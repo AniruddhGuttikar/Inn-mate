@@ -19,7 +19,7 @@ export default async function Home() {
     console.log("couldn't get the user in /user/userId/properties");
     return <>sorry couldn't fetch the user</>;
   }
-
+  
   const properties = await getAllProperties();
   if (!properties) {
     return <>sorry couldn't fetch the properties</>;
@@ -51,6 +51,7 @@ export default async function Home() {
           bookOrList="book"
           hostName={user.name}
           hostKindeId={property.userId}
+          favorites={''}
         />
       );
     })

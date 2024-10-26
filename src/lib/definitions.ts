@@ -21,6 +21,7 @@ export const AmenityTypeEnum = z.enum([
   "TV",
   "LAUNDRY",
   "PET_FRIENDLY",
+  "COFFEE",
 ]);
 export const GenderTypeEnum = z.enum(["MALE", "FEMALE", "OTHERS"]);
 
@@ -108,7 +109,7 @@ export const reviewSchema = z.object({
 
 // Favorite Schema
 export const favoriteSchema = z.object({
-  id: z.string().cuid(),
+  id: z.string().cuid().optional(),
   userId: z.string().cuid(),
   propertyId: z.string().cuid(),
 });
@@ -161,13 +162,13 @@ export type TPayment = z.infer<typeof paymentSchema>;
 export type TCheckInCheckOut = z.infer<typeof checkInCheckOutSchema>;
 
 // additional merged schemas for the form validatoin
-
-export const addPropertyFormvaluesSchema = propertySchema.merge(
-  locationSchema.omit({ id: true })
-);
-
+export const addPropertyFormValuesSchema = propertySchema
+  .merge(locationSchema.omit({ id: true }))
+  .extend({
+    images: z.array(imageSchema).optional(),
+  });
 export type TAddPropertyFormvaluesSchema = z.infer<
-  typeof addPropertyFormvaluesSchema
+  typeof addPropertyFormValuesSchema
 >;
 
 export const userFormSchema = userSchema

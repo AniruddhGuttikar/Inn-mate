@@ -1,5 +1,3 @@
-"use client"
-
 import Image from "next/image";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -14,7 +12,7 @@ import {
 } from "@/lib/definitions";
 import BookPropertyButton from "./BookPropertyButton";
 import ListPropertyButton from "./ListNowButton";
-import { useState } from "react";
+import FavoriteButton from './FavoritesButton';
 
 interface PropertyCardProps {
   property: TProperty;
@@ -25,43 +23,36 @@ interface PropertyCardProps {
   bookOrList: "book" | "list";
   hostName: string;
   hostKindeId?: string;
+
 }
 
-export default function PropertyCard({
-  property,
-  reviews,
-  images,
-  location,
-  amenities,
-  bookOrList,
-  hostKindeId,
-  hostName,
+export default function PropertyCard(
+  {
+    property,
+    reviews,
+    images,
+    location,
+    amenities,
+    bookOrList,
+    hostKindeId,
+    hostName,
+  
 }: PropertyCardProps) {
+
+  // If favorites is an empty string, show all properties
+
   let averageRating;
   let imageLink;
+  
   if (reviews) {
     averageRating =
       reviews.length > 0
-        ? reviews.reduce((sum, review) => sum + review.rating, 0) /
-          reviews.length
+        ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
         : null;
   }
-  if (images && images?.length !== 0) {
-    imageLink = images[0].link;
-  } else {
-    imageLink =
-  //     "https://images.unsplash.com/photo-1579297206620-c410c4af42e4?q=80&w=1587&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D";
-  // }
-  'https://th.bing.com/th/id/OIP.7uysmPeeGjhBNLLTiZc6fAHaLb?w=115&h=180&c=7&r=0&o=5&dpr=1.3&pid=1.7'
-  }
+
+  imageLink = images?.[0]?.link || "https://th.bing.com/th/id/OIP.7uysmPeeGjhBNLLTiZc6fAHaLb?w=115&h=180&c=7&r=0&o=5&dpr=1.3&pid=1.7";
   console.log("Image link: ", imageLink);
-
-  const [isFavorited, setIsFavorited] = useState(false);
-
-  // Function to toggle the favorite state
-  const handleToggleFavorite = () => {
-    setIsFavorited(!isFavorited);
-  };
 
   return (
     <Card className="w-full max-w-sm mx-auto">
@@ -72,26 +63,7 @@ export default function PropertyCard({
           fill
           className="object-cover rounded-t-lg"
         />
-
-
-      <Button
-        size="icon"
-        variant="secondary"
-        className="absolute top-2 right-2 rounded-full"
-        onClick={handleToggleFavorite}
-      >
-        {/* Conditionally apply the fill color */}
-        <Heart
-        className="h-4 w-4"
-        style={{
-          fill: isFavorited ? "red" : "none", 
-          stroke: isFavorited ? "red" : "gray", 
-        }}
-      />
-        <span className="sr-only">Add to favorites</span>
-
-        
-      </Button>
+        <FavoriteButton propertyId={property.id ||   ''} /> {/* Pass propertyId here */}
       </div>
       <CardContent className="p-4">
         <div className="flex justify-between items-start mb-2">
@@ -103,7 +75,7 @@ export default function PropertyCard({
               {location.city}, {location.country}
             </p>
           </div>
-          {averageRating !== null && averageRating !== undefined && (
+          {averageRating !== null && (
             <div className="flex items-center">
               <Star className="h-4 w-4 fill-primary text-primary mr-1" />
               <span className="text-sm font-medium">
@@ -143,10 +115,7 @@ export default function PropertyCard({
         {bookOrList === "book" ? (
           <BookPropertyButton propertyId={property.id} />
         ) : (
-          <ListPropertyButton
-            propertyId={property.id}
-            kindeUserId={hostKindeId}
-          />
+          <ListPropertyButton propertyId={property.id} kindeUserId={hostKindeId} />
         )}
       </CardFooter>
     </Card>

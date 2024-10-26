@@ -75,20 +75,19 @@ export async function getAllPropertiesByUserId(
   }
 }
 
-export async function getAllImagesbyId(
+export async function getPropertyById(
   propertyId: string
-): Promise<TImage[] | null> {
+): Promise<TProperty | null> {
   try {
-    const images = await prisma.image.findMany({
+    const property = await prisma.property.findUnique({
       where: {
-        propertyId,
+        id: propertyId,
       },
     });
-    const imagesSchemaArray = z.array(imageSchema);
-    const validatedImages = imagesSchemaArray.parse(images);
-    return validatedImages;
+    const validatedProperty = propertySchema.parse(property);
+    return validatedProperty;
   } catch (error) {
-    console.error("Error in getting images: ", error);
+    console.error("Error in getting properties: ", error);
     return null;
   }
 }
@@ -108,9 +107,11 @@ export async function addProperty(
         "User not authenticated, please register before proceeding"
       );
     }
+    const imagesSchemaArray = z.array(imageSchema);
+
     const validatedLocation = locationSchema.parse(propertyData);
     const validatedProperty = propertySchema.parse(propertyData);
-    // const validatedImage= imageSchema.parse(propertyData)
+    const validatedImages = imagesSchemaArray.parse(propertyData.images);
 
     // check if the location already exists
 
@@ -139,14 +140,17 @@ export async function addProperty(
         isHotel,
         userId: user.id,
         locationId: location.id,
-        images:{
-          create: propertyData.images?.map(img => ({
-            link: img.link,
-            // id:img.id,
-            // propertyId:img.propertyId
-          })) || [],
+        images: validatedImages?.length > 0
+          ? {
+              create: validatedImages.map((image) => ({
+                link: image.link,
+              })),
+            }
+          : undefined,
       },
-    }});
+    });
+    
+
     revalidatePath(`/user/${kindeId}/properties`);
     revalidatePath("/");
     return property;
@@ -178,4 +182,21 @@ catch (error) {
     console.error('Error deleting image from Uploadcare:', error);
   }
 
+}
+export async function getAllImagesbyId(
+  propertyId: string
+): Promise<TImage[] | null> {
+  try {
+    const images = await prisma.image.findMany({
+      where: {
+        propertyId,
+      },
+    });
+    const imagesSchemaArray = z.array(imageSchema);
+    const validatedImages = imagesSchemaArray.parse(images);
+    return validatedImages;
+  } catch (error) {
+    console.error("Error in getting images: ", error);
+    return null;
+  }
 }

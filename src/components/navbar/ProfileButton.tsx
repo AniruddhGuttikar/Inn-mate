@@ -24,6 +24,7 @@ const ProfileButton = () => {
   const links = [
     { label: "Bookings", link: `/bookings/${user.id}` },
     { label: "Edit Profile", link: `/additional-details` },
+    { label: 'Favorites' , link : `/Favorites/${user.id}`}
   ];
 
   return (

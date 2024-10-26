@@ -183,6 +183,7 @@ enum AmenityType {
   WIFI
   PARKING
   AIR_CONDITIONING
+  COFFEE
   PARK
   POOL
   GYM

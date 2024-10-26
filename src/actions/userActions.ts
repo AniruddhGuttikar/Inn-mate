@@ -239,3 +239,4 @@ export async function mapKindeUserToUser(
 }
 
 
+//favorited places by user
