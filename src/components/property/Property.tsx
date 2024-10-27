@@ -11,7 +11,7 @@ import {
   TAmenity,
 } from "@/lib/definitions";
 import BookPropertyButton from "./BookPropertyButton";
-import ListPropertyButton from "./ListNowButton";
+import ListPropertyButton, { EditProperty } from "./ListNowButton";
 import FavoriteButton from './FavoritesButton';
 
 interface PropertyCardProps {
@@ -115,7 +115,10 @@ export default function PropertyCard(
         {bookOrList === "book" ? (
           <BookPropertyButton propertyId={property.id} />
         ) : (
+          <>
+          <EditProperty propertyId={property.id} kindeUserId={hostKindeId} />
           <ListPropertyButton propertyId={property.id} kindeUserId={hostKindeId} />
+          </>
         )}
       </CardFooter>
     </Card>

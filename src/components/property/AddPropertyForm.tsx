@@ -28,10 +28,12 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import { addProperty } from "@/actions/propertyActions";
+import { addProperty, getAllImagesbyId, getPropertyById, updateProperty } from "@/actions/propertyActions";
 import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
 import Fileinput from "../ui/fileinput";
 import { useEffect, useState } from "react";
+import { getLocationById } from '@/actions/locationActions';
+import DeleteProperty from './DeleteProperty';
 
 interface ImageObject {
   id: string;
@@ -39,12 +41,34 @@ interface ImageObject {
   propertyId: string;
 }
 
-export default function AddPropertyForm() {
+type AddPropertyFormProps = {
+  userId?: string;
+  propId?: string;
+};
+type PropertyType = typeof PropertyTypeEnum["_type"];
+interface PropertyDet {
+  name: string;
+  description: string;
+  pricePerNight: number;
+  maxGuests: number;
+  propertyType:PropertyType
+  isHotel: boolean;
+  city: string;
+  state: string;
+  country: string;
+  images: ImageObject[];
+}
+
+export default function AddPropertyForm({ userId, propId }: AddPropertyFormProps) {
   const router = useRouter();
   const { toast } = useToast();
   const { user, isAuthenticated } = useKindeBrowserClient();
   const kindeId = user?.id;
-  const propertyId=cuid()
+  const propertyId = cuid();
+
+  const [prop, setProp] = useState<PropertyDet>();
+  const [isEdit, setIsEdit] = useState(false);
+  const [imageUrls, setImageUrls] = useState<ImageObject[]>([]);
 
   const form = useForm<TAddPropertyFormvaluesSchema>({
     resolver: zodResolver(addPropertyFormValuesSchema),
@@ -61,20 +85,58 @@ export default function AddPropertyForm() {
       images: [],
     }),
   });
+  useEffect(() => {
+    const fetchProperty = async () => {
+      if (userId && propId) {
+        const property = await getPropertyById(propId);
+        if (property && property.locationId) {
+          const location = await getLocationById(property.locationId);
+          const imageLinks = await getAllImagesbyId(propId) ?? [];
+          setImageUrls(imageLinks)
+          setProp({ 
+            ...property, 
+            images: imageLinks,
+            city: location?.city || "",
+            state: location?.state || "",
+            country: location?.country || ""
+          });
+          setIsEdit(true);
+        }
+      }
+    };
 
-  const [imageUrls, setImageUrls] = useState<ImageObject[]>([]);
+    fetchProperty();
+  }, [userId, propId]);
 
+  useEffect(() => {
+    if (prop && isEdit) {
+      form.reset({
+        name: prop?.name || "",
+        description: prop?.description || "",
+        pricePerNight: prop?.pricePerNight || 100,
+        maxGuests: prop?.maxGuests || 1,
+        propertyType: prop.propertyType as PropertyType | undefined || "Home",
+        isHotel: prop?.isHotel || false,
+        city: prop?.city || "",
+        state: prop?.state || "",
+        country: prop?.country || "",
+        images: prop?.images || [],
+      });
+    }
+  }, [prop, isEdit, form]);
 
   if (!isAuthenticated) {
     return <>Sorry, user not authenticated</>;
   }
 
-
-  console.log(form.formState.isSubmitting)
+  const handleDelete=async()=>{
+    console.log('Delete function called')
+    return (
+      <DeleteProperty/>
+    )
+  }
 
   const onSubmit = async (property: TAddPropertyFormvaluesSchema) => {
-
-    
     try {
       if (!kindeId) {
         throw new Error("User ID not found");
@@ -83,22 +145,16 @@ export default function AddPropertyForm() {
       const formattedImages = imageUrls.map((url) => ({
         link: url.link,
         id: cuid(),
-        propertyId: propertyId
+        propertyId: propertyId,
       }));
 
-      const propertyWithImages = imageUrls.length >0 ?{
-        ...property,
-        images: formattedImages, // Pass empty array if no images
-    } :{
-      ...property
-    };
+      const propertyWithImages = imageUrls.length > 0
+        ? { ...property, images: formattedImages }
+        : { ...property };
 
-    console.log(propertyWithImages)
-
-
-
+      
+      if (!isEdit){
       const result = await addProperty(kindeId, propertyWithImages);
-
       if (!result) {
         throw new Error("Couldn't create the property");
       }
@@ -107,11 +163,28 @@ export default function AddPropertyForm() {
         title: "Property added successfully",
         description: "Your new property has been listed.",
       });
+    }
+    else{
+      if(propId){
+        const result= await updateProperty(kindeId,propId,propertyWithImages)
+        if (!result) {
+          throw new Error("Couldn't create the property");
+        }
+  
+        toast({
+          title: "Property Updated successfully",
+          description: "Your property has been Updated.",
+        });
 
-      await new Promise((resolve) => setTimeout(resolve,4000));
+      }
+    }
+
+
+
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       router.push(`/user/${kindeId}/properties`);
     } catch (error) {
-      console.log("Error in adding prop:",error)
+      console.log("Error in adding prop:", error);
       toast({
         title: "Error",
         description: "Failed to add property. Please try again.",
@@ -121,10 +194,10 @@ export default function AddPropertyForm() {
   };
 
   return (
+    <>
     <Form {...form}>
       <form
         onSubmit={(e) => {
-
           e.preventDefault();
           form.handleSubmit(onSubmit)(e);
         }}
@@ -159,8 +232,6 @@ export default function AddPropertyForm() {
             </FormItem>
           )}
         />
-
-        {/* field for price per night */}
         <FormField
           control={form.control}
           name="pricePerNight"
@@ -178,8 +249,6 @@ export default function AddPropertyForm() {
             </FormItem>
           )}
         />
-
-        {/* field for max guests*/}
         <FormField
           control={form.control}
           name="maxGuests"
@@ -260,9 +329,8 @@ export default function AddPropertyForm() {
             </FormItem>
           )}
         />
-          <FormLabel className="font-bold">Upload Images</FormLabel>
-          
-            <Fileinput
+        <FormLabel className="font-bold">Images</FormLabel>
+        <Fileinput
               images={imageUrls}
               setImages={setImageUrls}
               propertyId={form.getValues("id") || ""}
@@ -272,9 +340,23 @@ export default function AddPropertyForm() {
           className="mx-auto px-10 py-6 text-lg"
           disabled={form.formState.isSubmitting}
         >
-          {form.formState.isSubmitting ? "Adding Property..." : "Add Property"}
+          {isEdit
+            ? form.formState.isSubmitting
+              ? "Editing Property..."
+              : "Edit Property"
+            : form.formState.isSubmitting
+            ? "Adding Property..."
+            : "Add Property"}
         </Button>
-      </form>
+
+        {isEdit && (
+          <button onClick={handleDelete} className="mt-4 px-4 py-2 text-red-600">
+      Delete Property
+        </button>
+        )
+}
+        </form>
     </Form>
+</>
   );
 }

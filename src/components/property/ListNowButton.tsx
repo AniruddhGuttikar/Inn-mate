@@ -24,3 +24,23 @@ const ListNowButton = ({
 };
 
 export default ListNowButton;
+
+export function EditProperty ({
+  propertyId,
+  kindeUserId,
+}: {
+  propertyId: string | undefined;
+  kindeUserId: string | undefined;
+})  {
+  const router = useRouter();
+  return (
+    <Button
+      onClick={() => {
+        router.push(`/user/${kindeUserId}/edit-property/${propertyId}`);
+      }}
+    >
+      Edit  .
+    </Button>
+  );
+};
+

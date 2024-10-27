@@ -92,6 +92,9 @@ export async function getPropertyById(
   }
 }
 
+
+
+
 export async function addProperty(
   kindeId: string,
   propertyData: TAddPropertyFormvaluesSchema
@@ -160,6 +163,79 @@ export async function addProperty(
   }
 }
 
+
+export async function updateProperty(
+  kindeId: string,
+  propertyId: string,
+  propertyData: TAddPropertyFormvaluesSchema
+): Promise<TProperty | null> {
+  try {
+    const user = await getUserByKindeId(kindeId);
+    if (!user || !user.id) {
+      throw new Error(`Couldn't find the user with kindeID ${kindeId}`);
+    }
+
+    const isAuthenticatedUser = await isAuthenticatedUserInDb(user.id);
+    if (!isAuthenticatedUser) {
+      throw new Error(
+        "User not authenticated, please register before proceeding"
+      );
+    }
+
+    const imagesSchemaArray = z.array(imageSchema);
+    const validatedLocation = locationSchema.parse(propertyData);
+    const validatedProperty = propertySchema.parse(propertyData);
+    const validatedImages = imagesSchemaArray.parse(propertyData.images);
+
+    // Check if the property exists
+    const existingProperty = await prisma.property.findUnique({
+      where: { id: propertyId },
+    });
+    if (!existingProperty) {
+      throw new Error(`Property with ID ${propertyId} not found`);
+    }
+
+    // Check if the location already exists
+    let location = await prisma.location.findFirst({
+      where: {
+        city: validatedLocation.city,
+        country: validatedLocation.country,
+        state: validatedLocation.state,
+      },
+    });
+
+    if (!location) {
+      location = await prisma.location.create({
+        data: {
+          ...validatedLocation,
+        },
+      });
+    }
+
+    const isHotel = validatedProperty.propertyType === "Hotel";
+
+    // Update the property in the database
+    const property = await prisma.property.update({
+      where: { id: propertyId },
+      data: {
+        ...validatedProperty,
+        isHotel,
+        locationId: location.id,
+        images: {
+          deleteMany: {}, // Optionally delete old images if necessary
+          create: validatedImages.map((image) => ({
+            link: image.link,
+          })),
+        },
+      },
+    });
+
+    return property;
+  } catch (error) {
+    console.error("Error in updating the property: ", error);
+    return null;
+  }
+}
 
 export async function Delete_UploadCare(urlToDelete : string){
   try {
