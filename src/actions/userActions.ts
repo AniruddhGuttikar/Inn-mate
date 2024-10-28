@@ -3,12 +3,17 @@
 import prisma from "@/lib/db";
 import {
   kindeUserSchema,
+  TBooking,
   TKindeUser,
   TUser,
   userSchema,
 } from "@/lib/definitions";
 import { KindeUser } from "@kinde-oss/kinde-auth-nextjs/types";
 import { revalidatePath } from "next/cache";
+import { getPropertyById } from "./propertyActions";
+import nodemailer from 'nodemailer' ;
+
+
 
 export async function getUserById(
   id: string | undefined
@@ -238,5 +243,76 @@ export async function mapKindeUserToUser(
   }
 }
 
+export default async function SendMailToUsers(bookingDataList: TBooking[]) {
+  try {
+    // Configure your SMTP transport (e.g., Gmail or other email service)
+    const transporter = nodemailer.createTransport({
+      service: 'Gmail', // Or another email service provider
+      auth: {
+        user: process.env.SMTP_USER, // Your email address
+        pass: process.env.SMTP_PASS, // Your email password or app-specific password
+      },
+    });
 
-//favorited places by user
+    for (const bookingData of bookingDataList) {
+      const userId = bookingData.userId;
+      const user = await getUserById(userId);
+      const prop = await getPropertyById(bookingData.propertyId);
+      const propName = prop?.name;
+
+      if (!user || !user.email) {
+        console.error(`User not found or email not available for user ID ${userId}`);
+        continue;
+      }
+
+      const userEmail = user.email;
+      const subject = 'Booking Cancellation Notice';
+
+      const htmlContent = `
+        <div style="font-family: Arial, sans-serif; margin: 20px; padding: 20px; border: 1px solid #ccc; border-radius: 5px;">
+          <h1 style="color: #333;">Dear ${user.name},</h1>
+          <p style="color: #555;">We regret to inform you that your booking has been canceled by the admin. <strong style="color: red;">This property is no longer available.</strong> We sincerely apologize for the inconvenience this may cause.</p>
+          
+          <h2 style="color: #333;">Booking Details:</h2>
+          <ul style="list-style-type: none; padding: 0;">
+            <li><strong>Booking ID:</strong> ${bookingData.id}</li>
+            <li><strong>Property:</strong> ${propName}</li>
+            <li><strong>Check-in:</strong> ${bookingData.startDate}</li>
+            <li><strong>Check-out:</strong> ${bookingData.endDate}</li>
+            <li><strong>Total Price:</strong> $${bookingData.totalPrice}</li>
+          </ul>
+          
+          <p style="color: #555;">As a token of our apology, we will issue a full refund for your booking. Please allow 3-5 business days for the refund to process.</p>
+          
+          <p style="color: #555;">Thank you for your understanding. If you have any further questions or need assistance, feel free to reach out to our support team.</p>
+          
+          <p style="color: #555;">Best regards,</p>
+          <p style="color: #555;">The Team</p>
+          <footer style="margin-top: 20px; border-top: 1px solid #ccc; padding-top: 10px; color: #777;">
+            <p>Contact us: support@example.com | Phone: +1 234 567 890</p>
+            <p>Follow us on <a href="https://twitter.com/example" style="color: #1DA1F2;">Twitter</a> and <a href="https://facebook.com/example" style="color: #1877F2;">Facebook</a></p>
+          </footer>
+        </div>
+      `;
+
+      const mailOptions = {
+        from: 'no-reply@example.com', // Your email or service email
+        to: userEmail,
+        subject,
+        html: htmlContent,
+      };
+
+      try {
+        await transporter.sendMail(mailOptions);
+        console.log('Cancellation email sent successfully to:', userEmail);
+        return 200
+      } catch (error) {
+        console.error(`Error sending email to ${userEmail}:`, error);
+        return null
+      }
+    }
+  } catch (error) {
+    console.error('Error processing bookings:', error);
+    return null
+  }
+}

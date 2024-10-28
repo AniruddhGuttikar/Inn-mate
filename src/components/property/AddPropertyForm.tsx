@@ -33,7 +33,7 @@ import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
 import Fileinput from "../ui/fileinput";
 import { useEffect, useState } from "react";
 import { getLocationById } from '@/actions/locationActions';
-import DeleteProperty from './DeleteProperty';
+import DeleteModal from '../modals/ConfirmationModal';
 
 interface ImageObject {
   id: string;
@@ -45,13 +45,15 @@ type AddPropertyFormProps = {
   userId?: string;
   propId?: string;
 };
+
 type PropertyType = typeof PropertyTypeEnum["_type"];
+
 interface PropertyDet {
   name: string;
   description: string;
   pricePerNight: number;
   maxGuests: number;
-  propertyType:PropertyType
+  propertyType: PropertyType;
   isHotel: boolean;
   city: string;
   state: string;
@@ -65,6 +67,7 @@ export default function AddPropertyForm({ userId, propId }: AddPropertyFormProps
   const { user, isAuthenticated } = useKindeBrowserClient();
   const kindeId = user?.id;
   const propertyId = cuid();
+  const [open, setOpen] = useState(false);
 
   const [prop, setProp] = useState<PropertyDet>();
   const [isEdit, setIsEdit] = useState(false);
@@ -85,6 +88,7 @@ export default function AddPropertyForm({ userId, propId }: AddPropertyFormProps
       images: [],
     }),
   });
+
   useEffect(() => {
     const fetchProperty = async () => {
       if (userId && propId) {
@@ -92,9 +96,9 @@ export default function AddPropertyForm({ userId, propId }: AddPropertyFormProps
         if (property && property.locationId) {
           const location = await getLocationById(property.locationId);
           const imageLinks = await getAllImagesbyId(propId) ?? [];
-          setImageUrls(imageLinks)
-          setProp({ 
-            ...property, 
+          setImageUrls(imageLinks);
+          setProp({
+            ...property,
             images: imageLinks,
             city: location?.city || "",
             state: location?.state || "",
@@ -129,12 +133,30 @@ export default function AddPropertyForm({ userId, propId }: AddPropertyFormProps
     return <>Sorry, user not authenticated</>;
   }
 
-  const handleDelete=async()=>{
-    console.log('Delete function called')
-    return (
-      <DeleteProperty/>
-    )
-  }
+  const handleClickOpen = () => {
+    setOpen(true);
+  };
+
+  // Function to close the modal
+  const handleClose = () => {
+    setOpen(false);
+  };
+
+  // Function to handle delete
+  const handleDelete = async () => {
+    console.log('Delete function called');
+    // Here you can add the delete logic (e.g., API call)
+    // For now, we'll just log deleteConfirm
+    const deleteConfirm = true; // Mock confirmation value
+    if (deleteConfirm) {
+      console.log('Delete confirmed');
+      //Delete confirm called url updated
+      router.push(`${propId}/DeleteProps`)
+    }
+    
+    // After deletion, close the modal
+    handleClose();
+  };
 
   const onSubmit = async (property: TAddPropertyFormvaluesSchema) => {
     try {
@@ -152,34 +174,29 @@ export default function AddPropertyForm({ userId, propId }: AddPropertyFormProps
         ? { ...property, images: formattedImages }
         : { ...property };
 
-      
-      if (!isEdit){
-      const result = await addProperty(kindeId, propertyWithImages);
-      if (!result) {
-        throw new Error("Couldn't create the property");
-      }
-
-      toast({
-        title: "Property added successfully",
-        description: "Your new property has been listed.",
-      });
-    }
-    else{
-      if(propId){
-        const result= await updateProperty(kindeId,propId,propertyWithImages)
+      if (!isEdit) {
+        const result = await addProperty(kindeId, propertyWithImages);
         if (!result) {
           throw new Error("Couldn't create the property");
         }
-  
+
         toast({
-          title: "Property Updated successfully",
-          description: "Your property has been Updated.",
+          title: "Property added successfully",
+          description: "Your new property has been listed.",
         });
+      } else {
+        if (propId) {
+          const result = await updateProperty(kindeId, propId, propertyWithImages);
+          if (!result) {
+            throw new Error("Couldn't create the property");
+          }
 
+          toast({
+            title: "Property Updated successfully",
+            description: "Your property has been Updated.",
+          });
+        }
       }
-    }
-
-
 
       await new Promise((resolve) => setTimeout(resolve, 1000));
       router.push(`/user/${kindeId}/properties`);
@@ -195,168 +212,177 @@ export default function AddPropertyForm({ userId, propId }: AddPropertyFormProps
 
   return (
     <>
-    <Form {...form}>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          form.handleSubmit(onSubmit)(e);
-        }}
-        className="flex flex-col w-2/5 border p-4 rounded-xl space-y-8 mx-auto"
-      >
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="font-bold">Property Name</FormLabel>
-              <FormControl>
-                <Input placeholder="Cozy Cottage" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="font-bold">Description</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="A charming cottage nestled in the heart of the countryside..."
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="pricePerNight"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="font-bold">Price per Night (INR)</FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  {...field}
-                  onChange={(e) => field.onChange(parseFloat(e.target.value))}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="maxGuests"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="font-bold">Maximum Guests</FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  {...field}
-                  onChange={(e) => field.onChange(parseInt(e.target.value))}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="propertyType"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="font-bold">Property Type</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+      <Form {...form}>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            form.handleSubmit(onSubmit)(e);
+          }}
+          className="flex flex-col w-2/5 border p-4 rounded-xl space-y-8 mx-auto"
+        >
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="font-bold">Property Name</FormLabel>
                 <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a property type" />
-                  </SelectTrigger>
+                  <Input placeholder="Cozy Cottage" {...field} />
                 </FormControl>
-                <SelectContent>
-                  {Object.values(PropertyTypeEnum.enum).map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {type}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="city"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="font-bold">City</FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="state"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="font-bold">State/Province</FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="country"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="font-bold">Country</FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormLabel className="font-bold">Images</FormLabel>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="description"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="font-bold">Description</FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder="A charming cottage nestled in the heart of the countryside..."
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="pricePerNight"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="font-bold">Price per Night (INR)</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    {...field}
+                    onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="maxGuests"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="font-bold">Maximum Guests</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    {...field}
+                    onChange={(e) => field.onChange(parseInt(e.target.value))}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="propertyType"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="font-bold">Property Type</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a property type" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {Object.values(PropertyTypeEnum.enum).map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {type}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="city"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="font-bold">City</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="state"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="font-bold">State</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="country"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="font-bold">Country</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
         <Fileinput
               images={imageUrls}
               setImages={setImageUrls}
               propertyId={form.getValues("id") || ""}
             />
-        <Button
+      
+            <Button
           type="submit"
           className="mx-auto px-10 py-6 text-lg"
           disabled={form.formState.isSubmitting}
-        >
+          >
           {isEdit
             ? form.formState.isSubmitting
-              ? "Editing Property..."
-              : "Edit Property"
+            ? "Editing Property..."
+            : "Edit Property"
             : form.formState.isSubmitting
             ? "Adding Property..."
             : "Add Property"}
         </Button>
-
-        {isEdit && (
-          <button onClick={handleDelete} className="mt-4 px-4 py-2 text-red-600">
-      Delete Property
-        </button>
-        )
-}
+          {isEdit &&(
+            <Button type='button' className="mx-auto px-10 py-6 text-black-600 bg-red-500 hover:bg-red-700 rounded font-bold"
+              onClick={handleClickOpen}>
+              Delete Property
+            </Button>
+            )}
         </form>
-    </Form>
-</>
+      </Form>
+      <DeleteModal
+        open={open}
+        onClose={handleClose}
+        bookingsCount={0}
+        onDelete={async () => {
+          await handleDelete();
+          console.log('Delete confirmed'); // Log confirmation when "Yes" is pressed
+        }}
+      />
+    </>
   );
 }

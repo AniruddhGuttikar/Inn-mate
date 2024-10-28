@@ -15,7 +15,7 @@ import { getLocationById } from "./locationActions";
 import { revalidatePath } from "next/cache";
 
 const UPLOADCARE_PUBLIC_KEY = 'ecc593f3433cbf4e6114'; // Replace with your Uploadcare public key
-const UPLOADCARE_SECRET_KEY = process.env.NEXT_PUBLIC_UPLOADCARE_SECRET_KEY!
+const UPLOADCARE_SECRET_KEY = process.env.UPLOADCARE_SECRET_KEY!
 import {
   deleteFile,
   UploadcareSimpleAuthSchema,
@@ -273,6 +273,65 @@ export async function getAllImagesbyId(
     return validatedImages;
   } catch (error) {
     console.error("Error in getting images: ", error);
+    return null;
+  }
+}
+
+
+export async function DeletePropertyByIdAdmin(propertyId : string){
+  const result= await prisma.property.delete({
+    where:{
+      id:propertyId,
+    },
+  })
+  if (result){
+    return result;
+  }
+  else{
+    return null;
+  }
+}
+
+
+export async function updatePropertyDelete(
+  kindeId: string,
+  propertyId: string,
+  isDelete: boolean
+): Promise<TProperty | null> {
+  try {
+    const user = await getUserByKindeId(kindeId);
+    if (!user || !user.id) {
+      throw new Error(`Couldn't find the user with kindeID ${kindeId}`);
+    }
+
+    const isAuthenticatedUser = await isAuthenticatedUserInDb(user.id);
+    if (!isAuthenticatedUser) {
+      throw new Error(
+        "User not authenticated, please register before proceeding"
+      );
+    }
+
+    // Check if the property exists
+    const existingProperty = await prisma.property.findUnique({
+      where: { id: propertyId },
+    });
+    if (!existingProperty) {
+      throw new Error(`Property with ID ${propertyId} not found`);
+    }
+
+    // Update only the isDeleted field
+    const property = await prisma.property.update({
+      where: {
+        id: propertyId,
+      },
+      data: {
+        isDeleted: isDelete,
+      },
+    });
+
+    return property;
+  } catch (error) {
+    console.error("Error in updating the property: ", error);
     return null;
   }
 }

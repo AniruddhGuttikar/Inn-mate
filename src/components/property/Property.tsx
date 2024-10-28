@@ -23,6 +23,7 @@ interface PropertyCardProps {
   bookOrList: "book" | "list";
   hostName: string;
   hostKindeId?: string;
+  favorites:string;
 
 }
 
@@ -36,6 +37,7 @@ export default function PropertyCard(
     bookOrList,
     hostKindeId,
     hostName,
+    favorites,
   
 }: PropertyCardProps) {
 

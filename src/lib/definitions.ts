@@ -82,7 +82,7 @@ export const propertySchema = z.object({
   locationId: z.string().cuid().optional(),
   isHotel: z.boolean().default(false),
   images: z.array(imageSchema).optional(),
-
+  isDeleted :z.boolean().default(false).optional(),
 });
 
 
