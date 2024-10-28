@@ -111,17 +111,24 @@ export const favoriteSchema = z.object({
 });
 
 // Listing Schema
-export const listingSchema = z.object({
-  id: z.string().cuid(),
-  userId: z.string().cuid(),
-  propertyId: z.string().cuid(),
-});
+export const listingSchema = z
+  .object({
+    id: z.string().cuid().optional(),
+    availabilityStart: z.coerce.date(),
+    availabilityEnd: z.coerce.date(),
+    userId: z.string().cuid(),
+    propertyId: z.string().cuid(),
+  })
+  .refine((data) => data.availabilityEnd > data.availabilityStart, {
+    message: "End date must be after start date",
+    path: ["availabilityEnd"],
+  });
 
 // Amenity Schema
 export const amenitySchema = z.object({
-  id: z.string().cuid(),
+  id: z.string().cuid().optional(),
   name: AmenityTypeEnum,
-  propertyId: z.string().cuid(),
+  propertyId: z.string().cuid().optional(),
 });
 
 // Payment Schema
@@ -154,13 +161,16 @@ export type TAmenity = z.infer<typeof amenitySchema>;
 export type TLocation = z.infer<typeof locationSchema>;
 export type TPayment = z.infer<typeof paymentSchema>;
 export type TCheckInCheckOut = z.infer<typeof checkInCheckOutSchema>;
+export type TAmenityType = z.infer<typeof AmenityTypeEnum>;
 
 // additional merged schemas for the form validatoin
 export const addPropertyFormValuesSchema = propertySchema
   .merge(locationSchema.omit({ id: true }))
   .extend({
     images: z.array(imageSchema).optional(),
+    amenities: z.array(amenitySchema).optional(),
   });
+
 export type TAddPropertyFormvaluesSchema = z.infer<
   typeof addPropertyFormValuesSchema
 >;

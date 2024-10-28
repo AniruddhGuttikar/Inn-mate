@@ -1,6 +1,7 @@
 "use server";
 
 import {
+  amenitySchema,
   imageSchema,
   locationSchema,
   propertySchema,
@@ -93,10 +94,14 @@ export async function addProperty(
       );
     }
     const imagesSchemaArray = z.array(imageSchema);
+    const amenitiesSchemaArray = z.array(amenitySchema);
 
     const validatedLocation = locationSchema.parse(propertyData);
     const validatedProperty = propertySchema.parse(propertyData);
-    const validatedImages = imagesSchemaArray.parse(propertyData.images);
+    // const validatedImages = imagesSchemaArray.parse(propertyData.images);
+    const validatedAmenities = amenitiesSchemaArray.parse(
+      propertyData.amenities
+    );
 
     // check if the location already exists
 
@@ -123,10 +128,17 @@ export async function addProperty(
         isHotel,
         userId: user.id,
         locationId: location.id,
-        ...(validatedImages.length > 0 && {
-          images: {
-            create: validatedImages.map((image) => ({
-              link: image.link,
+        // ...(validatedImages.length > 0 && {
+        //   images: {
+        //     create: validatedImages.map((image) => ({
+        //       link: image.link,
+        //     })),
+        //   },
+        // }),
+        ...(validatedAmenities.length > 0 && {
+          amenities: {
+            create: validatedAmenities.map((amenity) => ({
+              name: amenity.name,
             })),
           },
         }),
@@ -143,9 +155,12 @@ export async function addProperty(
 }
 
 export async function getAllImagesbyId(
-  propertyId: string
+  propertyId: string | undefined
 ): Promise<TImage[] | null> {
   try {
+    if (!propertyId) {
+      throw new Error("couldn't get the property");
+    }
     const images = await prisma.image.findMany({
       where: {
         propertyId,

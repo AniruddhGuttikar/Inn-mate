@@ -160,9 +160,11 @@ model Favorite {
 }
 
 model Listing {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                String   @id @default(cuid())
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  availabilityStart DateTime
+  availabilityEnd   DateTime
 
   userId String
   user   User   @relation(fields: [userId], references: [id])

@@ -1,4 +1,4 @@
-"use client";
+// "use client";
 
 import { ListPropertyButton } from "./ListPropertyButton";
 import SearchBox from "./SearchBox";
@@ -7,10 +7,14 @@ import RegisterButton from "./RegisterButton";
 
 import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
 import Link from "next/link";
+import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 
-export default function Navbar() {
-  const { user, isAuthenticated } = useKindeBrowserClient();
-  console.log("user in navbar: ", user);
+export default async function Navbar() {
+  // const { user, isAuthenticated } = useKindeBrowserClient();
+  const { getUser, isAuthenticated } = getKindeServerSession();
+  const user = await getUser();
+  const isAuthenticatedUser = await isAuthenticated();
+  console.log("user in navbar: ");
 
   return (
     <nav className="flex flex-col w-full border-b-2 items-center mx-auto justify-between p-6 md:flex-row ">
@@ -19,7 +23,7 @@ export default function Navbar() {
       </Link>
       <SearchBox />
       <ListPropertyButton userId={user?.id} />
-      {isAuthenticated ? <ProfileButton /> : <RegisterButton />}
+      {isAuthenticatedUser ? <ProfileButton /> : <RegisterButton />}
     </nav>
   );
 }

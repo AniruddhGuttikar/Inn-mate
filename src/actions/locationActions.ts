@@ -4,9 +4,12 @@ import prisma from "@/lib/db";
 import { locationSchema, TLocation } from "@/lib/definitions";
 
 export async function getLocationById(
-  locationId: string
+  locationId: string | undefined
 ): Promise<TLocation | null> {
   try {
+    if (!locationId) {
+      throw new Error("Couldn't get the locationId");
+    }
     const location = await prisma.location.findUnique({
       where: {
         id: locationId,

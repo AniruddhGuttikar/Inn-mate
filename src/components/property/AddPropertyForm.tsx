@@ -1,11 +1,14 @@
 "use client";
 
-import { useForm } from "react-hook-form";
+import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import {
+  AmenityTypeEnum,
   PropertyTypeEnum,
   TAddPropertyFormvaluesSchema,
+  TAmenity,
+  TAmenityType,
   addPropertyFormValuesSchema,
 } from "@/lib/definitions";
 import { Button } from "@/components/ui/button";
@@ -21,6 +24,7 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -29,6 +33,8 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { addProperty } from "@/actions/propertyActions";
 import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
+import { Badge } from "@/components/ui/badge";
+import { X } from "lucide-react";
 
 export default function AddPropertyForm() {
   const router = useRouter();
@@ -49,8 +55,36 @@ export default function AddPropertyForm() {
       city: "",
       state: "",
       country: "",
+      amenities: [],
     }),
   });
+
+  const { fields, append, remove, replace } = useFieldArray({
+    control: form.control,
+    name: "amenities",
+  });
+
+  const handleAmenitySelect = (value: string) => {
+    const amenityName = value as TAmenityType;
+    const currentAmenities = form.getValues("amenities") || [];
+
+    // Check if amenity already exists
+    if (!currentAmenities.some((amenity) => amenity.name === amenityName)) {
+      const newAmenity: TAmenity = {
+        name: amenityName,
+      };
+
+      form.setValue("amenities", [...currentAmenities, newAmenity]);
+    }
+  };
+
+  const removeAmenity = (indexToRemove: number) => {
+    const currentAmenities = form.getValues("amenities") || [];
+    form.setValue(
+      "amenities",
+      currentAmenities.filter((_, index) => index !== indexToRemove)
+    );
+  };
 
   if (!user?.id || !isAuthenticated) {
     return <>Sorry user not authenticated</>;
@@ -181,6 +215,54 @@ export default function AddPropertyForm() {
                   ))}
                 </SelectContent>
               </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="amenities"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="font-bold">Amenities</FormLabel>
+              <Select onValueChange={handleAmenitySelect}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select amenities" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {Object.values(AmenityTypeEnum.enum).map((amenity) => (
+                    <SelectItem key={amenity} value={amenity}>
+                      {amenity.replace(/_/g, " ")}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormDescription>
+                Select all the amenities available at your property.
+              </FormDescription>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {field.value?.map((amenity, index) => (
+                  <Badge
+                    key={index}
+                    variant="secondary"
+                    className="text-sm py-1 px-2"
+                  >
+                    {amenity.name.replace(/_/g, " ")}
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-auto p-0 ml-2"
+                      onClick={() => removeAmenity(index)}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </Badge>
+                ))}
+              </div>
               <FormMessage />
             </FormItem>
           )}
