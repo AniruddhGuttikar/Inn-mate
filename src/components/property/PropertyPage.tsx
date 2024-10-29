@@ -32,32 +32,8 @@ import {
   TReview,
   TUser,
 } from "@/lib/definitions";
-
-// Mock data (replace with actual data fetching in a real application)
-const property = {
-  id: "1",
-  name: "Luxurious Beachfront Villa",
-  description:
-    "Experience the ultimate beachfront luxury in this stunning villa. Enjoy breathtaking ocean views, private beach access, and world-class amenities.",
-  pricePerNight: 500,
-  maxGuests: 8,
-  propertyType: "VILLA",
-  isHotel: false,
-  location: {
-    city: "Malibu",
-    state: "California",
-    country: "United States",
-  },
-  images: [
-    "/placeholder.svg?height=600&width=800",
-    "/placeholder.svg?height=600&width=800",
-    "/placeholder.svg?height=600&width=800",
-    "/placeholder.svg?height=600&width=800",
-  ],
-  amenities: ["Wifi", "TV", "Parking", "Kitchen", "Coffee maker"],
-  rating: 4.9,
-  reviewCount: 128,
-};
+import { createBooking } from "@/actions/bookingActions";
+import { useToast } from "@/hooks/use-toast";
 
 export default function PropertyListingPage({
   property,
@@ -77,6 +53,9 @@ export default function PropertyListingPage({
   listing: TListing;
 }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [selectedDates, setSelectedDates] = useState<DateRange>();
+
+  const { toast } = useToast();
 
   if (!property.id || !host) {
     return <>Sorry this property doesn't exist</>;
@@ -135,26 +114,49 @@ export default function PropertyListingPage({
     PET_FRIENDLY: Dog,
   };
 
-  const handleDateSave = (dates: DateRange | undefined) => {
-    // Handle the saved dates (e.g., update state, make API call, etc.)
+  const handleSubmit = async () => {
     try {
-      if (!host.id || !property.id || !dates?.from || !dates.to) {
+      if (
+        !host.id ||
+        !property.id ||
+        !selectedDates?.from ||
+        !selectedDates.to
+      ) {
         throw new Error("couldn't get all the booking details");
       }
       const msInDay = 1000 * 60 * 60 * 24;
       const totalDays = Math.ceil(
-        (dates.to.getTime() - dates.from.getTime()) / msInDay
+        (selectedDates.to.getTime() - selectedDates.from.getTime()) / msInDay
       );
-      const booking: TBooking = {
+      const bookingValues: TBooking = {
         userId: host?.id,
         propertyId: property.id,
-        startDate: dates?.from,
-        endDate: dates?.to,
+        startDate: selectedDates?.from,
+        endDate: selectedDates?.to,
         status: "CONFIRMED",
         totalPrice: property.pricePerNight * totalDays,
       };
-    } catch (error) {}
+      const booking = await createBooking(bookingValues);
+      if (!booking) {
+        throw new Error("Error in creating the ");
+      }
+      toast({
+        title: "Booking created successfully",
+        description: "Successfully created the booking",
+      });
+    } catch (error) {
+      toast({
+        title: "Error in Creating the Booking",
+        variant: "destructive",
+        description: "Sorry we couldn't create the booking",
+      });
+    }
+  };
+
+  const handleDateSave = async (dates: DateRange | undefined) => {
+    // Handle the saved dates (e.g., update state, make API call, etc.)
     console.log("Selected dates:", dates);
+    setSelectedDates(dates);
   };
 
   return (
@@ -274,7 +276,9 @@ export default function PropertyListingPage({
                   availabilityEnd={listing.availabilityEnd}
                   onSave={handleDateSave}
                 />
-                <Button className="w-full mt-4">Reserve</Button>
+                <Button className="w-full mt-4" onClick={handleSubmit}>
+                  Reserve
+                </Button>
               </CardContent>
             </Card>
           </div>
