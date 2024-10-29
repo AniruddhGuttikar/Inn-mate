@@ -24,7 +24,9 @@ import DateRangePicker from "@/components/property/DateRangePicker";
 import { DateRange } from "react-day-picker";
 import {
   TAmenity,
+  TBooking,
   TImage,
+  TListing,
   TLocation,
   TProperty,
   TReview,
@@ -64,6 +66,7 @@ export default function PropertyListingPage({
   reviews,
   images,
   host,
+  listing,
 }: {
   property: TProperty;
   location: TLocation;
@@ -71,10 +74,11 @@ export default function PropertyListingPage({
   reviews: TReview[] | null;
   images: TImage[] | null;
   host: TUser;
+  listing: TListing;
 }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  if (!property.id) {
+  if (!property.id || !host) {
     return <>Sorry this property doesn't exist</>;
   }
   const displayedImages =
@@ -133,6 +137,19 @@ export default function PropertyListingPage({
 
   const handleDateSave = (dates: DateRange | undefined) => {
     // Handle the saved dates (e.g., update state, make API call, etc.)
+    try {
+      if (!host.id || !property.id || !dates?.from || !dates.to) {
+        throw new Error("couldn't get all the booking details");
+      }
+      const booking: TBooking = {
+        userId: host?.id,
+        propertyId: property.id,
+        startDate: dates?.from,
+        endDate: dates?.to,
+        status: "CONFIRMED",
+        totalPrice: property.pricePerNight * dates.to - dates.from,
+      };
+    } catch (error) {}
     console.log("Selected dates:", dates);
   };
 
@@ -249,10 +266,8 @@ export default function PropertyListingPage({
               </CardHeader>
               <CardContent>
                 <DateRangePicker
-                  availabilityStart={new Date()}
-                  availabilityEnd={
-                    new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
-                  }
+                  availabilityStart={listing.availabilityStart}
+                  availabilityEnd={listing.availabilityEnd}
                   onSave={handleDateSave}
                 />
                 <Button className="w-full mt-4">Reserve</Button>

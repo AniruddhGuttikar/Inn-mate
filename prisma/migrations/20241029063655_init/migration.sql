@@ -8,7 +8,7 @@ CREATE TYPE "PropertyType" AS ENUM ('Hotel', 'Home', 'Resort', 'Farmhouse', 'Bea
 CREATE TYPE "BookingStatus" AS ENUM ('CONFIRMED', 'ACTIVE', 'COMPLETED');
 
 -- CreateEnum
-CREATE TYPE "AmenityType" AS ENUM ('WIFI', 'PARKING', 'AIR_CONDITIONING', 'PARK', 'POOL', 'GYM', 'KITCHEN', 'TV', 'LAUNDRY', 'PET_FRIENDLY');
+CREATE TYPE "AmenityType" AS ENUM ('WIFI', 'PARKING', 'AIR_CONDITIONING', 'COFFEE', 'PARK', 'POOL', 'GYM', 'KITCHEN', 'TV', 'LAUNDRY', 'PET_FRIENDLY');
 
 -- CreateTable
 CREATE TABLE "User" (
@@ -46,7 +46,6 @@ CREATE TABLE "Property" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "propertyType" "PropertyType" NOT NULL,
-    "propertyDescription" TEXT,
     "isHotel" BOOLEAN NOT NULL DEFAULT false,
     "locationId" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
@@ -104,12 +103,12 @@ CREATE TABLE "Review" (
 );
 
 -- CreateTable
-CREATE TABLE "favourite" (
+CREATE TABLE "Favourite" (
     "id" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
     "propertyId" TEXT NOT NULL,
 
-    CONSTRAINT "favourite_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "Favourite_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -117,6 +116,8 @@ CREATE TABLE "Listing" (
     "id" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "availabilityStart" TIMESTAMP(3) NOT NULL,
+    "availabilityEnd" TIMESTAMP(3) NOT NULL,
     "userId" TEXT NOT NULL,
     "propertyId" TEXT NOT NULL,
 
@@ -136,7 +137,7 @@ CREATE TABLE "Amenity" (
 CREATE TABLE "Location" (
     "id" TEXT NOT NULL,
     "city" TEXT NOT NULL,
-    "state" TEXT,
+    "state" TEXT NOT NULL,
     "country" TEXT NOT NULL,
     "latitude" DOUBLE PRECISION,
     "longitude" DOUBLE PRECISION,
@@ -171,7 +172,7 @@ CREATE UNIQUE INDEX "User_kindeId_key" ON "User"("kindeId");
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "favourite_userId_propertyId_key" ON "favourite"("userId", "propertyId");
+CREATE UNIQUE INDEX "Favourite_userId_propertyId_key" ON "Favourite"("userId", "propertyId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Payment_bookingId_key" ON "Payment"("bookingId");
@@ -210,10 +211,10 @@ ALTER TABLE "Review" ADD CONSTRAINT "Review_userId_fkey" FOREIGN KEY ("userId") 
 ALTER TABLE "Review" ADD CONSTRAINT "Review_propertyId_fkey" FOREIGN KEY ("propertyId") REFERENCES "Property"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "favourite" ADD CONSTRAINT "favourite_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Favourite" ADD CONSTRAINT "Favourite_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "favourite" ADD CONSTRAINT "favourite_propertyId_fkey" FOREIGN KEY ("propertyId") REFERENCES "Property"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Favourite" ADD CONSTRAINT "Favourite_propertyId_fkey" FOREIGN KEY ("propertyId") REFERENCES "Property"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Listing" ADD CONSTRAINT "Listing_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

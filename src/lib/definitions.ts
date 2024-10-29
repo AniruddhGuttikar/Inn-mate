@@ -85,7 +85,7 @@ export const imageSchema = z.object({
 
 // Booking Schema
 export const bookingSchema = z.object({
-  id: z.string().cuid(),
+  id: z.string().cuid().optional(),
   startDate: z.coerce.date(),
   endDate: z.coerce.date(),
   totalPrice: z.number().positive(),

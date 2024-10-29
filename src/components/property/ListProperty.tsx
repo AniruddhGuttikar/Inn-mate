@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { format } from "date-fns";
+import { format, startOfToday } from "date-fns";
 import Image from "next/image";
 import { CalendarIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -40,6 +40,9 @@ import {
   TUser,
 } from "@/lib/definitions";
 import { DateRange } from "react-day-picker";
+import { createListing } from "@/actions/listingActions";
+import { useRouter } from "next/navigation";
+import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
 
 export default function ListProperty({
   property,
@@ -55,6 +58,8 @@ export default function ListProperty({
   const [date, setDate] = useState<DateRange>();
 
   const { toast } = useToast();
+  const router = useRouter();
+  const { getUser } = useKindeBrowserClient();
 
   const form = useForm<TListing>({
     resolver: zodResolver(listingSchema),
@@ -80,12 +85,26 @@ export default function ListProperty({
           },
         ];
 
-  function onSubmit(values: TListing) {
-    console.log(values);
-    toast({
-      title: "Listing created",
-      description: "Your property has been successfully listed.",
-    });
+  async function onSubmit(values: TListing) {
+    console.log("values in lisitng page: ", values);
+    try {
+      const listing = await createListing(values);
+      if (!listing) {
+        throw new Error("Error in creating the listing");
+      }
+      toast({
+        title: "Listing created",
+        description: "Your property has been successfully listed. redirecting",
+      });
+      const userKindeId = getUser()?.id;
+      router.push(`/user/${userKindeId}/properties`);
+    } catch (error) {
+      toast({
+        title: "Couldn't create the Listing",
+        description: "Sorry, we were unable to add your listing.",
+        variant: "destructive",
+      });
+    }
   }
 
   return (
@@ -190,6 +209,7 @@ export default function ListProperty({
                               }
                             }}
                             numberOfMonths={2}
+                            fromDate={startOfToday()}
                           />
                         </PopoverContent>
                       </Popover>

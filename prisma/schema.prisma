@@ -171,6 +171,8 @@ model Listing {
 
   propertyId String
   property   Property @relation(fields: [propertyId], references: [id])
+
+  @@unique([userId, propertyId])
 }
 
 model Amenity {
