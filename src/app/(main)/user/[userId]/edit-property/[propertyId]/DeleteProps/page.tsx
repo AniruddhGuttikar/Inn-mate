@@ -23,16 +23,8 @@ export default async  function Deleteprops({ params }: Props){
         return(<h1>Sorry..Something went wrong</h1>)
     }
     
-    // const bookings=await getBookingDetailsByPropertyId(propertyId)
-    const bookings= {
-        id: 'string',
-        startDate: 'Date',
-        endDate: 'Date',
-        totalPrice: 2,
-        userId: 'string',
-        propertyId: 'string',
-        status: "CONFIRMED" 
-    }
+    const bookings=await getBookingDetailsByPropertyId(propertyId)
+
     if(!bookings){
         return(
             <h1>hi</h1>
@@ -40,7 +32,7 @@ export default async  function Deleteprops({ params }: Props){
     }
     return(
         <>
-        <DeleteProperty bookings={bookings} userId={user.id}  kindeId={kindeUserId}/>
+        <DeleteProperty bookings={bookings} userId={user.id}  kindeId={kindeUserId} propertyId={propertyId}/>
         </>
     )
 }

@@ -7,180 +7,173 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model address {
+model Address {
   id      String @id
   city    String
   state   String
   country String
-  user    user[]
+  user    User[]
 }
 
-model amenity {
-  id         String       @id
-  name       amenity_name
+model Amenity {
+  id         String      @id @default(cuid())
+  name       AmenityType
   propertyId String
-  property   property     @relation(fields: [propertyId], references: [id], map: "Amenity_propertyId_fkey")
-
-  @@index([propertyId], map: "Amenity_propertyId_fkey")
+  property   Property @relation(fields: [propertyId], references: [id])
 }
 
-model booking {
-  id              String           @id
+model Booking {
+  id              String           @id @default(cuid())
   startDate       DateTime
   endDate         DateTime
   totalPrice      Float
   createdAt       DateTime         @default(now())
-  updatedAt       DateTime
+  updatedAt       DateTime         @updatedAt
   userId          String
   propertyId      String
   roomId          String?
-  status          booking_status
-  property        property         @relation(fields: [propertyId], references: [id], map: "Booking_propertyId_fkey")
-  room            room?            @relation(fields: [roomId], references: [id], map: "Booking_roomId_fkey")
-  user            user             @relation(fields: [userId], references: [id], map: "Booking_userId_fkey")
-  checkincheckout checkincheckout?
-  payment         payment?
-
-  @@index([propertyId], map: "Booking_propertyId_fkey")
-  @@index([roomId], map: "Booking_roomId_fkey")
-  @@index([userId], map: "Booking_userId_fkey")
+  status          BookingStatus
+  property        Property @relation(fields: [propertyId], references: [id])
+  room            Room?    @relation(fields: [roomId], references: [id])
+  user            User     @relation(fields: [userId], references: [id])
+  payment         Payment?
+  checkInOut      CheckInCheckOut?
 }
 
-model checkincheckout {
+model CheckInCheckOut {
   id           String   @id
   checkInDate  DateTime
   checkOutDate DateTime
-  bookingId    String   @unique(map: "CheckInCheckOut_bookingId_key")
-  booking      booking  @relation(fields: [bookingId], references: [id], map: "CheckInCheckOut_bookingId_fkey")
+  bookingId    String   @unique
+  booking      Booking  @relation(fields: [bookingId], references: [id])
 }
 
-model favorite {
-  id         String   @id
+model Favorite {
+  id         String @id @default(cuid())
   userId     String
   propertyId String
-  property   property @relation(fields: [propertyId], references: [id], map: "Favorite_propertyId_fkey")
-  user       user     @relation(fields: [userId], references: [id], map: "Favorite_userId_fkey")
-
-  @@unique([userId, propertyId], map: "Favorite_userId_propertyId_key")
-  @@index([propertyId], map: "Favorite_propertyId_fkey")
+  user       User     @relation(fields: [userId], references: [id])
+  property   Property @relation(fields: [propertyId], references: [id])
+  @@unique([userId, propertyId])
 }
 
-model image {
-  id         String   @id
+model Image {
+  id         String @id @default(cuid())
   link       String
   propertyId String
-  property   property @relation(fields: [propertyId], references: [id], map: "Image_propertyId_fkey")
-
-  @@index([propertyId], map: "Image_propertyId_fkey")
+  property   Property @relation(fields: [propertyId], references: [id])
 }
 
-model listing {
-  id         String   @id
+model Listing {
+  id         String   @id @default(cuid())
   createdAt  DateTime @default(now())
-  updatedAt  DateTime
+  updatedAt  DateTime @updatedAt
   userId     String
   propertyId String
-  property   property @relation(fields: [propertyId], references: [id], map: "Listing_propertyId_fkey")
-  user       user     @relation(fields: [userId], references: [id], map: "Listing_userId_fkey")
-
-  @@index([propertyId], map: "Listing_propertyId_fkey")
-  @@index([userId], map: "Listing_userId_fkey")
+  user       User     @relation(fields: [userId], references: [id])
+  property   Property @relation(fields: [propertyId], references: [id])
 }
 
-model location {
-  id        String     @id
+model Location {
+  id        String     @id @default(cuid())
   city      String
   state     String
   country   String
   latitude  Float?
   longitude Float?
-  property  property[]
+  property  Property[]
 }
 
-model payment {
-  id          String   @id
+model Payment {
+  id          String   @id @default(cuid())
   amount      Float
   paymentDate DateTime
-  bookingId   String   @unique(map: "Payment_bookingId_key")
-  booking     booking  @relation(fields: [bookingId], references: [id], map: "Payment_bookingId_fkey")
+  bookingId   String   @unique
+  booking     Booking  @relation(fields: [bookingId], references: [id])
 }
 
-model property {
-  id            String                @id
+model Property {
+  id            String                @id @default(cuid())
   name          String
   description   String
   pricePerNight Float
   maxGuests     Int
   createdAt     DateTime              @default(now())
-  updatedAt     DateTime
-  propertyType  property_propertyType
+  updatedAt     DateTime              @updatedAt
+  propertyType  PropertyType
   isHotel       Boolean               @default(false)
   isDeleted     Boolean               @default(false)
   locationId    String
   userId        String
-  amenity       amenity[]
-  booking       booking[]
-  favorite      favorite[]
-  image         image[]
-  listing       listing[]
-  location      location              @relation(fields: [locationId], references: [id], map: "Property_locationId_fkey")
-  user          user                  @relation(fields: [userId], references: [id], map: "Property_userId_fkey")
-  review        review[]
-  room          room[]
-
-  @@index([locationId], map: "Property_locationId_fkey")
-  @@index([userId], map: "Property_userId_fkey")
+  amenity       Amenity[]
+  booking       Booking[]
+  favorite      Favorite[]
+  image         Image[]
+  listing       Listing[]
+  location      Location @relation(fields: [locationId], references: [id])
+  user          User     @relation(fields: [userId], references: [id])
+  review        Review[]
+  room          Room[]
 }
 
-model review {
-  id         String   @id
+model Review {
+  id         String   @id @default(cuid())
   rating     Int
   comment    String
   createdAt  DateTime @default(now())
   userId     String
   propertyId String
-  property   property @relation(fields: [propertyId], references: [id], map: "Review_propertyId_fkey")
-  user       user     @relation(fields: [userId], references: [id], map: "Review_userId_fkey")
-
-  @@index([propertyId], map: "Review_propertyId_fkey")
-  @@index([userId], map: "Review_userId_fkey")
+  user       User     @relation(fields: [userId], references: [id])
+  property   Property @relation(fields: [propertyId], references: [id])
 }
 
-model room {
-  id            String    @id
+model Room {
+  id            String    @id @default(cuid())
   name          String
   description   String
   capacity      Int
   pricePerNight Float
   propertyId    String
-  booking       booking[]
-  property      property  @relation(fields: [propertyId], references: [id], map: "Room_propertyId_fkey")
-
-  @@index([propertyId], map: "Room_propertyId_fkey")
+  booking       Booking[]
+  property      Property @relation(fields: [propertyId], references: [id])
 }
 
-model user {
-  id        String      @id
-  kindeId   String      @unique(map: "User_kindeId_key")
-  email     String      @unique(map: "User_email_key")
+model User {
+  id        String      @id @default(cuid())
+  kindeId   String      @unique
+  email     String      @unique
   createdAt DateTime    @default(now())
   updatedAt DateTime
   name      String
   dob       DateTime
-  gender    user_gender
+  gender    UserGender
   image     String?
   addressId String
-  booking   booking[]
-  favorite  favorite[]
-  listing   listing[]
-  property  property[]
-  review    review[]
-  address   address     @relation(fields: [addressId], references: [id], map: "User_addressId_fkey")
-
-  @@index([addressId], map: "User_addressId_fkey")
+  booking   Booking[]
+  favorite  Favorite[]
+  listing   Listing[]
+  property  Property[]
+  review    Review[]
+  address   Address @relation(fields: [addressId], references: [id])
 }
 
-enum amenity_name {
+enum PropertyType {
+  Hotel
+  Home
+  Resort
+  Farmhouse
+  Beachhouse
+  Cottage
+  Apartment
+}
+
+enum BookingStatus {
+  CONFIRMED
+  ACTIVE
+  COMPLETED
+}
+
+enum AmenityType {
   WIFI
   PARKING
   AIR_CONDITIONING
@@ -194,24 +187,8 @@ enum amenity_name {
   PET_FRIENDLY
 }
 
-enum property_propertyType {
-  Hotel
-  Home
-  Resort
-  Farmhouse
-  Beachhouse
-  Cottage
-  Apartment
-}
-
-enum user_gender {
+enum UserGender {
   MALE
   FEMALE
   OTHERS
-}
-
-enum booking_status {
-  CONFIRMED
-  ACTIVE
-  COMPLETED
 }

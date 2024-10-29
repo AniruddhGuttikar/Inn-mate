@@ -1,12 +1,15 @@
 "use client";
 
 import cuid from 'cuid';
-import { useForm } from "react-hook-form";
+import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import {
+  AmenityTypeEnum,
   PropertyTypeEnum,
   TAddPropertyFormvaluesSchema,
+  TAmenity,
+  TAmenityType,
   addPropertyFormValuesSchema,
 } from "@/lib/definitions";
 import { Button } from "@/components/ui/button";
@@ -22,6 +25,7 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -34,6 +38,8 @@ import Fileinput from "../ui/fileinput";
 import { useEffect, useState } from "react";
 import { getLocationById } from '@/actions/locationActions';
 import DeleteModal from '../modals/ConfirmationModal';
+import { Badge } from "@/components/ui/badge";
+import { X } from "lucide-react";
 
 interface ImageObject {
   id: string;
@@ -85,7 +91,9 @@ export default function AddPropertyForm({ userId, propId }: AddPropertyFormProps
       city: "",
       state: "",
       country: "",
+      
       images: [],
+      amenities: [],
     }),
   });
 
@@ -131,6 +139,37 @@ export default function AddPropertyForm({ userId, propId }: AddPropertyFormProps
 
   if (!isAuthenticated) {
     return <>Sorry, user not authenticated</>;
+  }
+
+  // const { fields, append, remove, replace } = useFieldArray({
+  //   control: form.control,
+  //   name: "amenities",
+  // });
+
+  const handleAmenitySelect = (value: string) => {
+    const amenityName = value as TAmenityType;
+    const currentAmenities = form.getValues("amenities") || [];
+
+    // Check if amenity already exists
+    if (!currentAmenities.some((amenity) => amenity.name === amenityName)) {
+      const newAmenity: TAmenity = {
+        name: amenityName,
+      };
+
+      form.setValue("amenities", [...currentAmenities, newAmenity]);
+    }
+  };
+
+  const removeAmenity = (indexToRemove: number) => {
+    const currentAmenities = form.getValues("amenities") || [];
+    form.setValue(
+      "amenities",
+      currentAmenities.filter((_, index) => index !== indexToRemove)
+    );
+  };
+
+  if (!user?.id || !isAuthenticated) {
+    return <>Sorry user not authenticated</>;
   }
 
   const handleClickOpen = () => {
@@ -307,53 +346,123 @@ export default function AddPropertyForm({ userId, propId }: AddPropertyFormProps
               </FormItem>
             )}
           />
-          <FormField
-            control={form.control}
-            name="city"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="font-bold">City</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="state"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="font-bold">State</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="country"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="font-bold">Country</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
 
+        <FormField
+          control={form.control}
+          name="amenities"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="font-bold">Amenities</FormLabel>
+              <Select onValueChange={handleAmenitySelect}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select amenities" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {Object.values(AmenityTypeEnum.enum).map((amenity) => (
+                    <SelectItem key={amenity} value={amenity}>
+                      {amenity.replace(/_/g, " ")}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormDescription>
+                Select all the amenities available at your property.
+              </FormDescription>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {field.value?.map((amenity, index) => (
+                  <Badge
+                    key={index}
+                    variant="secondary"
+                    className="text-sm py-1 px-2"
+                  >
+                    {amenity.name.replace(/_/g, " ")}
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-auto p-0 ml-2"
+                      onClick={() => removeAmenity(index)}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </Badge>
+                ))}
+              </div>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* <FormField
+          control={form.control}
+          name="isHotel"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+              <FormControl>
+                <input
+                  type="checkbox"
+                  checked={field.value}
+                  onChange={field.onChange}
+                />
+              </FormControl>
+              <div className="space-y-1 leading-none">
+                <FormLabel className="font-bold">Is this a hotel?</FormLabel>
+              </div>
+            </FormItem>
+          )}
+        /> */}
+
+        <FormField
+          control={form.control}
+          name="city"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="font-bold">City</FormLabel>
+              <FormControl>
+                <Input {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="state"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="font-bold">State/Province</FormLabel>
+              <FormControl>
+                <Input {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="country"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="font-bold">Country</FormLabel>
+              <FormControl>
+                <Input {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
         <Fileinput
               images={imageUrls}
               setImages={setImageUrls}
               propertyId={form.getValues("id") || ""}
             />
-      
-            <Button
+
+        <Button
           type="submit"
           className="mx-auto px-10 py-6 text-lg"
           disabled={form.formState.isSubmitting}

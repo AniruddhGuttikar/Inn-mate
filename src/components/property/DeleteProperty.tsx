@@ -163,31 +163,36 @@ export default function DeleteProperty({ bookings, userId, kindeId, propertyId }
     return (
         <div>
             <div className="container mx-auto p-6">
-                <h2 className="text-2xl font-bold text-center mb-6">Current bookings</h2>
+                <h2 className="text-2xl font-bold text-center mb-6">Current Bookings</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <Card key={5} className="bg-white shadow-md rounded-lg p-4">
-                        <CardHeader>
-                            <CardTitle className="text-lg font-semibold text-gray-900">Booking for User ID: {'booking.userId'}</CardTitle>
-                            <CardDescription className="text-sm text-gray-500">
-                                Status: <span className="font-medium">{'booking.status'}</span>
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="mt-4">
-                            <div className="text-gray-700">
-                                <p>
-                                    <span className="font-semibold">Start Date:</span> {'format(new Date(booking.startDate), "MMM dd, yyyy")'}
-                                </p>
-                                <p>
-                                    <span className="font-semibold">End Date:</span> {'format(new Date(booking.endDate), "MMM dd, yyyy")'}
-                                </p>
-                                <p>
-                                    <span className="font-semibold">Total Price:</span> ${'booking.totalPrice.toFixed(2)'}
-                                </p>
-                            </div>
-                        </CardContent>
-                        <CardFooter className="flex justify-end">
-                        </CardFooter>
-                    </Card>
+                    {bookings.map((booking) => (
+                        <Card key={booking.id} className="bg-white shadow-md rounded-lg p-4">
+                            <CardHeader>
+                                <CardTitle className="text-lg font-semibold text-gray-900">
+                                    Booking for User ID: {booking.userId}
+                                </CardTitle>
+                                <CardDescription className="text-sm text-gray-500">
+                                    Status: <span className="font-medium">{booking.status}</span>
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="mt-4">
+                                <div className="text-gray-700">
+                                    <p>
+                                        <span className="font-semibold">Start Date:</span> {format(new Date(booking.startDate), "MMM dd, yyyy")}
+                                    </p>
+                                    <p>
+                                        <span className="font-semibold">End Date:</span> {format(new Date(booking.endDate), "MMM dd, yyyy")}
+                                    </p>
+                                    <p>
+                                        <span className="font-semibold">Total Price:</span> ${booking.totalPrice.toFixed(2)}
+                                    </p>
+                                </div>
+                            </CardContent>
+                            <CardFooter className="flex justify-end">
+                                {/* Add any footer content if necessary */}
+                            </CardFooter>
+                        </Card>
+                    ))}
                 </div>
             </div>
 
@@ -202,7 +207,7 @@ export default function DeleteProperty({ bookings, userId, kindeId, propertyId }
             <DeleteModalCnf
                 open={open}
                 onClose={handleClose}
-                bookingsCount={1}
+                bookingsCount={1} // Adjust as needed to reflect the actual count
                 onDelete={async () => {
                     await handleDelete();
                 }}

@@ -81,7 +81,7 @@ export default function PropertyCard(
             <div className="flex items-center">
               <Star className="h-4 w-4 fill-primary text-primary mr-1" />
               <span className="text-sm font-medium">
-                {averageRating.toFixed(1)}
+                {averageRating?.toFixed(1)}
               </span>
             </div>
           )}
