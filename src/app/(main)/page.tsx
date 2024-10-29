@@ -1,6 +1,9 @@
 import { getAllAmenitiesForProperty } from "@/actions/amenitiesAction";
 import { getLocationById } from "@/actions/locationActions";
-import { getAllImagesbyId, getAllProperties } from "@/actions/propertyActions";
+import {
+  getAllImagesbyId,
+  getAllListedProperties,
+} from "@/actions/propertyActions";
 import { getAllReviewsById } from "@/actions/reviewActions";
 import { getUserById, getUserByKindeId } from "@/actions/userActions";
 import PropertyCard from "@/components/property/Property";
@@ -11,17 +14,17 @@ export default async function Home() {
   const { getUser, isAuthenticated } = getKindeServerSession();
   const kindeUser = (await getUser()) as TKindeUser;
 
-  if (!kindeUser || !isAuthenticated) {
-    return <h2>Sorry You are not authorized to see this route</h2>;
-  }
+  // if (!kindeUser || !isAuthenticated) {
+  //   return <h2>Sorry You are not authorized to see this route</h2>;
+  // }
 
-  const user = await getUserByKindeId(kindeUser.id);
-  if (!user || !user.id || !isAuthenticated) {
-    console.log("couldn't get the user in /user/userId/properties");
-    return <>sorry couldn't fetch the user</>;
-  }
+  //const user = await getUserByKindeId(kindeUser.id);
+  // if (!user || !user.id || !isAuthenticated) {
+  //   console.log("couldn't get the user in /user/userId/properties");
+  //   return <>sorry couldn't fetch the user</>;
+  // }
 
-  const properties = await getAllProperties();
+  const properties = await getAllListedProperties();
   if (!properties) {
     return <>sorry couldn't fetch the properties</>;
   }

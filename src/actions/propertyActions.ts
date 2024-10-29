@@ -15,13 +15,19 @@ import { z } from "zod";
 import { getLocationById } from "./locationActions";
 import { revalidatePath } from "next/cache";
 
-export async function getAllProperties(): Promise<TProperty[] | null> {
+export async function getAllListedProperties(): Promise<TProperty[] | null> {
   try {
-    const properties = await prisma.property.findMany({
+    const listings = await prisma.listing.findMany({
       take: 12,
+      include: {
+        property: true,
+      },
     });
+
     const propertiesSchemaArray = z.array(propertySchema);
-    const validatedProperties = propertiesSchemaArray.parse(properties);
+    const validatedProperties = propertiesSchemaArray.parse(
+      listings.map((listing) => listing.property)
+    );
     return validatedProperties;
   } catch (error) {
     console.error("Error in getting properties: ", error);
