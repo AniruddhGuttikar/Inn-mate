@@ -43,7 +43,7 @@ export async function getAllPropertiesByUserId(
       include: {
         // amenities: true,
         // bookings: true,
-        // favorites: true,
+        // favourites: true,
         // images: true,
         // listings: true,
         // location: true,

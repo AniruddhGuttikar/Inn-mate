@@ -66,7 +66,7 @@ export default function PropertyCard({
           className="absolute top-2 right-2 rounded-full"
         >
           <Heart className="h-4 w-4" />
-          <span className="sr-only">Add to favorites</span>
+          <span className="sr-only">Add to favourites</span>
         </Button>
       </div>
       <CardContent className="p-4">

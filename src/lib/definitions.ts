@@ -103,8 +103,8 @@ export const reviewSchema = z.object({
   propertyId: z.string().cuid(),
 });
 
-// Favorite Schema
-export const favoriteSchema = z.object({
+// favourite Schema
+export const favouriteSchema = z.object({
   id: z.string().cuid(),
   userId: z.string().cuid(),
   propertyId: z.string().cuid(),
@@ -155,7 +155,7 @@ export type TProperty = z.infer<typeof propertySchema>;
 export type TImage = z.infer<typeof imageSchema>;
 export type TBooking = z.infer<typeof bookingSchema>;
 export type TReview = z.infer<typeof reviewSchema>;
-export type TFavorite = z.infer<typeof favoriteSchema>;
+export type Tfavourite = z.infer<typeof favouriteSchema>;
 export type TListing = z.infer<typeof listingSchema>;
 export type TAmenity = z.infer<typeof amenitySchema>;
 export type TLocation = z.infer<typeof locationSchema>;

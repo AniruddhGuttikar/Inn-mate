@@ -31,7 +31,7 @@ model User {
   listings   Listing[]
   bookings   Booking[]
   reviews    Review[]
-  favorites  Favorite[]
+  favourites favourite[]
 }
 
 enum Gender {
@@ -66,13 +66,13 @@ model Property {
   userId String
   user   User   @relation(fields: [userId], references: [id])
 
-  images    Image[]
-  rooms     Room[]
-  listings  Listing[]
-  bookings  Booking[]
-  reviews   Review[]
-  favorites Favorite[]
-  amenities Amenity[]
+  images     Image[]
+  rooms      Room[]
+  listings   Listing[]
+  bookings   Booking[]
+  reviews    Review[]
+  favourites favourite[]
+  amenities  Amenity[]
 }
 
 model Room {
@@ -148,7 +148,7 @@ model Review {
   property   Property @relation(fields: [propertyId], references: [id])
 }
 
-model Favorite {
+model favourite {
   id         String @id @default(cuid())
   userId     String
   propertyId String
