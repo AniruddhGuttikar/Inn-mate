@@ -141,13 +141,17 @@ export default function PropertyListingPage({
       if (!host.id || !property.id || !dates?.from || !dates.to) {
         throw new Error("couldn't get all the booking details");
       }
+      const msInDay = 1000 * 60 * 60 * 24;
+      const totalDays = Math.ceil(
+        (dates.to.getTime() - dates.from.getTime()) / msInDay
+      );
       const booking: TBooking = {
         userId: host?.id,
         propertyId: property.id,
         startDate: dates?.from,
         endDate: dates?.to,
         status: "CONFIRMED",
-        totalPrice: property.pricePerNight * dates.to - dates.from,
+        totalPrice: property.pricePerNight * totalDays,
       };
     } catch (error) {}
     console.log("Selected dates:", dates);
