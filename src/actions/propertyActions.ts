@@ -58,7 +58,7 @@ export async function getAllPropertiesByUserId(
       include: {
         // amenities: true,
         // bookings: true,
-        // favorites: true,
+        // favourites: true,
         // images: true,
         // listings: true,
         // location: true,
@@ -111,12 +111,13 @@ export async function addProperty(
         "User not authenticated, please register before proceeding"
       );
     }
+    console.log("PropData: ",propertyData)
     const imagesSchemaArray = z.array(imageSchema);
     const amenitiesSchemaArray = z.array(amenitySchema);
 
     const validatedLocation = locationSchema.parse(propertyData);
     const validatedProperty = propertySchema.parse(propertyData);
-    const validatedImages = imagesSchemaArray.parse(propertyData.images);
+    const validatedImages = imagesSchemaArray.parse(propertyData.image);
     const validatedAmenities = amenitiesSchemaArray.parse(
       propertyData.amenities
     );
@@ -139,7 +140,7 @@ export async function addProperty(
     }
 
     const isHotel = validatedProperty.propertyType === "Hotel";
-    console.log("propertyImage",propertyData.images)
+    console.log("propertyImage",propertyData.image)
 
     const property = await prisma.property.create({
       
@@ -148,7 +149,7 @@ export async function addProperty(
         isHotel,
         userId: user.id,
         locationId: location.id,
-        images: validatedImages?.length > 0
+        image: validatedImages?.length > 0
           ? {
               create: validatedImages.map((image) => ({
                 link: image.link,
@@ -193,11 +194,11 @@ export async function updateProperty(
         "User not authenticated, please register before proceeding"
       );
     }
-
+    console.log("PropData: ",propertyData)
     const imagesSchemaArray = z.array(imageSchema);
     const validatedLocation = locationSchema.parse(propertyData);
     const validatedProperty = propertySchema.parse(propertyData);
-    const validatedImages = imagesSchemaArray.parse(propertyData.images);
+    const validatedImages = imagesSchemaArray.parse(propertyData.image);
 
     // Check if the property exists
     const existingProperty = await prisma.property.findUnique({
@@ -226,14 +227,15 @@ export async function updateProperty(
 
     const isHotel = validatedProperty.propertyType === "Hotel";
 
-    // Update the property in the database
+    // Update the property in the database'5
+    console.log("Validated images: ",validatedImages)
     const property = await prisma.property.update({
       where: { id: propertyId },
       data: {
         ...validatedProperty,
         isHotel,
         locationId: location.id,
-        images: {
+        image: {
           deleteMany: {}, // Optionally delete old images if necessary
           create: validatedImages.map((image) => ({
             link: image.link,

@@ -1,7 +1,7 @@
 
 //handling the favotite action
 'use server'
-import {favoriteSchema , TFavorite} from "@/lib/definitions";
+import {favouriteSchema , TFavourite} from "@/lib/definitions";
 import { getUserByKindeId, isAuthenticatedUserInDb } from "./userActions";
 import cuid from "cuid";
 import prisma from "@/lib/db";
@@ -9,8 +9,8 @@ import prisma from "@/lib/db";
 
 export default async function addliked(
     user_id : string,
-    likedData : TFavorite
-): Promise<TFavorite | null>{
+    likedData : TFavourite
+): Promise<TFavourite | null>{
     try{
         // console.log("likedData:1 " ,user_id)
         // console.log("likedData user_id: ", user_id);
@@ -21,8 +21,8 @@ export default async function addliked(
             "User not authenticated, please register before proceeding"
             );
         }
-        const validatedFavorites=favoriteSchema.parse(likedData);
-        const liked=await prisma.favorite.create({
+        const validatedFavorites=favouriteSchema.parse(likedData);
+        const liked=await prisma.favourite.create({
             data:{
                 userId:validatedFavorites.userId,
                 propertyId : validatedFavorites.propertyId
@@ -37,10 +37,10 @@ export default async function addliked(
 
 }
 
-export  async function deleteLiked(likedData : TFavorite){
+export  async function deleteLiked(likedData : TFavourite){
     try{
-    const validatedFavorites=favoriteSchema.parse(likedData);
-    const favorite = await prisma.favorite.findMany({
+    const validatedFavorites=favouriteSchema.parse(likedData);
+    const favorite = await prisma.favourite.findMany({
         where: {
             AND: [
                 { userId: validatedFavorites.userId },
@@ -48,7 +48,7 @@ export  async function deleteLiked(likedData : TFavorite){
             ]
         }
     });
-    const delete_fav = await prisma.favorite.delete({
+    const delete_fav = await prisma.favourite.delete({
         where: {
             id: favorite[0].id, 
         },
@@ -64,7 +64,7 @@ export  async function deleteLiked(likedData : TFavorite){
 }
 
 export async function getIsFavorite(userId: string, propertyId: string | undefined){
-    const favorite = await prisma.favorite.findMany({
+    const favorite = await prisma.favourite.findMany({
         where: {
             AND: [
                 { userId: userId },
@@ -82,7 +82,7 @@ export async function getIsFavorite(userId: string, propertyId: string | undefin
 }
 
 
-export async function getAllFavorite(KindeId : string | ''): Promise<TFavorite[] | null>{
+export async function getAllFavorite(KindeId : string | ''): Promise<TFavourite[] | null>{
     const user_id = await getUserByKindeId(KindeId);
     if (!user_id) {
       console.error('User not found in the database.');
@@ -93,7 +93,7 @@ export async function getAllFavorite(KindeId : string | ''): Promise<TFavorite[]
         return null
     }
 
-    const favorites=await prisma.favorite.findMany({
+    const favorites=await prisma.favourite.findMany({
         where:{
             userId : user_id.id
         }

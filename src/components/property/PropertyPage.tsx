@@ -46,7 +46,7 @@ const property = {
     state: "California",
     country: "United States",
   },
-  images: [
+  image: [
     "/placeholder.svg?height=600&width=800",
     "/placeholder.svg?height=600&width=800",
     "/placeholder.svg?height=600&width=800",
@@ -62,14 +62,14 @@ export default function PropertyListingPage({
   location,
   amenities,
   reviews,
-  images,
+  image,
   host,
 }: {
   property: TProperty;
   location: TLocation;
   amenities: TAmenity[] | null;
   reviews: TReview[] | null;
-  images: TImage[] | null;
+  image: TImage[] | null;
   host: TUser;
 }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -78,8 +78,8 @@ export default function PropertyListingPage({
     return <>Sorry this property doesn't exist</>;
   }
   const displayedImages =
-    images && images.length > 0
-      ? images
+    image && image.length > 0
+      ? image
       : [
           {
             id: "default1",

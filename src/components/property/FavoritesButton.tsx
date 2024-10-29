@@ -2,9 +2,9 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Heart } from "lucide-react";
-import addliked, { deleteLiked, getIsFavorite } from "@/actions/favoritesAction";
+import addliked, { deleteLiked, getIsFavorite } from "@/actions/favouritesAction";
 import { useForm } from "react-hook-form";
-import { favoriteSchema, TFavorite } from "@/lib/definitions";
+import { favouriteSchema, TFavourite } from "@/lib/definitions";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
 import { useToast } from "@/hooks/use-toast";
@@ -22,8 +22,8 @@ export default function FavoriteButton({ propertyId }: FavoriteButtonProps) {
   const { user, isAuthenticated } = useKindeBrowserClient();
   const kindeId = user?.id || "";  
 
-  const favorites = useForm<TFavorite>({
-    resolver: zodResolver(favoriteSchema),
+  const favorites = useForm<TFavourite>({
+    resolver: zodResolver(favouriteSchema),
     defaultValues: { userId: "", propertyId: "" },
   });
 

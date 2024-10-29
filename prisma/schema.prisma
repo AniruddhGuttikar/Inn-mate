@@ -7,6 +7,33 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id        String   @id @default(cuid())
+  kindeId   String   @unique
+  email     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  name      String
+  dob       DateTime
+  gender    Gender
+  image     String?
+
+  addressId String
+  address   Address @relation(fields: [addressId], references: [id])
+
+  properties Property[]
+  listings   Listing[]
+  bookings   Booking[]
+  reviews    Review[]
+  favourites Favourite[]
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHERS
+}
+
 model Address {
   id      String @id
   city    String
@@ -48,14 +75,7 @@ model CheckInCheckOut {
   booking      Booking  @relation(fields: [bookingId], references: [id])
 }
 
-model Favorite {
-  id         String @id @default(cuid())
-  userId     String
-  propertyId String
-  user       User     @relation(fields: [userId], references: [id])
-  property   Property @relation(fields: [propertyId], references: [id])
-  @@unique([userId, propertyId])
-}
+
 
 model Image {
   id         String @id @default(cuid())
@@ -105,15 +125,15 @@ model Property {
   isDeleted     Boolean               @default(false)
   locationId    String
   userId        String
-  amenity       Amenity[]
+  amenities       Amenity[]
   booking       Booking[]
-  favorite      Favorite[]
+  favourite     Favourite[]
   image         Image[]
-  listing       Listing[]
+  listings       Listing[]
   location      Location @relation(fields: [locationId], references: [id])
   user          User     @relation(fields: [userId], references: [id])
-  review        Review[]
-  room          Room[]
+  reviews        Review[]
+  rooms          Room[]
 }
 
 model Review {
@@ -138,24 +158,7 @@ model Room {
   property      Property @relation(fields: [propertyId], references: [id])
 }
 
-model User {
-  id        String      @id @default(cuid())
-  kindeId   String      @unique
-  email     String      @unique
-  createdAt DateTime    @default(now())
-  updatedAt DateTime
-  name      String
-  dob       DateTime
-  gender    UserGender
-  image     String?
-  addressId String
-  booking   Booking[]
-  favorite  Favorite[]
-  listing   Listing[]
-  property  Property[]
-  review    Review[]
-  address   Address @relation(fields: [addressId], references: [id])
-}
+
 
 enum PropertyType {
   Hotel
@@ -172,6 +175,23 @@ enum BookingStatus {
   ACTIVE
   COMPLETED
 }
+
+
+
+model Favourite {
+  id         String @id @default(cuid())
+  userId     String
+  propertyId String
+
+  user     User     @relation(fields: [userId], references: [id])
+  property Property @relation(fields: [propertyId], references: [id])
+
+  @@unique([userId, propertyId])
+}
+
+
+
+
 
 enum AmenityType {
   WIFI

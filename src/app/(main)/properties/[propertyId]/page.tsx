@@ -12,7 +12,7 @@ const page = async ({ params }: { params: { propertyId: string } }) => {
     return <>Invalid property Id</>;
   }
 
-  const [amenities, images, location, reviews, user] = await Promise.all([
+  const [amenities, image, location, reviews, user] = await Promise.all([
     await getAllAmenitiesForProperty(property.id),
     await getAllImagesbyId(property.id),
     await getLocationById(property.locationId),
@@ -26,7 +26,7 @@ const page = async ({ params }: { params: { propertyId: string } }) => {
     <PropertyListingPage
       property={property}
       amenities={amenities}
-      images={images}
+      image={image}
       location={location}
       reviews={reviews}
       host={user}

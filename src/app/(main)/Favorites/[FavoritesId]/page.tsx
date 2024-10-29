@@ -1,5 +1,5 @@
 import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
-import { getAllFavorite } from "@/actions/favoritesAction";
+import { getAllFavorite } from "@/actions/favouritesAction";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { TKindeUser } from "@/lib/definitions";
 import { getAllAmenitiesForProperty } from "@/actions/amenitiesAction";
@@ -82,6 +82,7 @@ const Favorites = async ({ params: { userid } }: FavoritesProps) => {
             bookOrList="book"
             hostName={user.name}
             hostKindeId={property.userId}
+            favorites=""
           />
         );
       })

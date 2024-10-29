@@ -7,16 +7,14 @@ import PropertyCard from "@/components/property/Property";
 import { useScheduler } from "@/hooks/useScheduler";
 import { TKindeUser } from "@/lib/definitions";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
-import { toast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
 export default async function Home() {
+  // const {toast}=useToast();
   try{
   useScheduler();
   }
   catch{
-    toast({
-      title: 'Error',
-      description: 'could not load schedular',
-  });
+    console.log("Error in loading schedular")
   }
   const { getUser, isAuthenticated } = getKindeServerSession();
   const kindeUser = (await getUser()) as TKindeUser;

@@ -81,7 +81,7 @@ export const propertySchema = z.object({
   propertyType: PropertyTypeEnum,
   locationId: z.string().cuid().optional(),
   isHotel: z.boolean().default(false),
-  images: z.array(imageSchema).optional(),
+  image: z.array(imageSchema).optional(),
   isDeleted :z.boolean().default(false).optional(),
 });
 
@@ -107,8 +107,8 @@ export const reviewSchema = z.object({
   propertyId: z.string().cuid(),
 });
 
-// Favorite Schema
-export const favoriteSchema = z.object({
+// favourite Schema
+export const favouriteSchema = z.object({
   id: z.string().cuid().optional(),
   userId: z.string().cuid(),
   propertyId: z.string().cuid(),
@@ -159,7 +159,7 @@ export type TProperty = z.infer<typeof propertySchema>;
 export type TImage = z.infer<typeof imageSchema>;
 export type TBooking = z.infer<typeof bookingSchema>;
 export type TReview = z.infer<typeof reviewSchema>;
-export type TFavorite = z.infer<typeof favoriteSchema>;
+export type TFavourite = z.infer<typeof favouriteSchema>;
 export type TListing = z.infer<typeof listingSchema>;
 export type TAmenity = z.infer<typeof amenitySchema>;
 export type TLocation = z.infer<typeof locationSchema>;
@@ -171,7 +171,7 @@ export type TAmenityType = z.infer<typeof AmenityTypeEnum>;
 export const addPropertyFormValuesSchema = propertySchema
   .merge(locationSchema.omit({ id: true }))
   .extend({
-    images: z.array(imageSchema).optional(),
+    image: z.array(imageSchema).optional(),
     amenities: z.array(amenitySchema).optional(),
   });
 

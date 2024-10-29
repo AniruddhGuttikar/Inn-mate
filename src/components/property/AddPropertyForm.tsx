@@ -64,7 +64,7 @@ interface PropertyDet {
   city: string;
   state: string;
   country: string;
-  images: ImageObject[];
+  image_: ImageObject[];
 }
 
 export default function AddPropertyForm({ userId, propId }: AddPropertyFormProps) {
@@ -92,7 +92,7 @@ export default function AddPropertyForm({ userId, propId }: AddPropertyFormProps
       state: "",
       country: "",
       
-      images: [],
+      image: [],
       amenities: [],
     }),
   });
@@ -107,7 +107,7 @@ export default function AddPropertyForm({ userId, propId }: AddPropertyFormProps
           setImageUrls(imageLinks);
           setProp({
             ...property,
-            images: imageLinks,
+            image_: imageLinks,
             city: location?.city || "",
             state: location?.state || "",
             country: location?.country || ""
@@ -132,7 +132,7 @@ export default function AddPropertyForm({ userId, propId }: AddPropertyFormProps
         city: prop?.city || "",
         state: prop?.state || "",
         country: prop?.country || "",
-        images: prop?.images || [],
+        image: prop?.image_ || [],
       });
     }
   }, [prop, isEdit, form]);
@@ -210,7 +210,7 @@ export default function AddPropertyForm({ userId, propId }: AddPropertyFormProps
       }));
 
       const propertyWithImages = imageUrls.length > 0
-        ? { ...property, images: formattedImages }
+        ? { ...property, image: formattedImages }
         : { ...property };
 
       if (!isEdit) {

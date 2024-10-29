@@ -106,9 +106,11 @@ export async function createUser(user: TUser): Promise<TUser | null> {
     // add the address and user to our database
     const newAddress = await prisma.address.create({
       data: {
+        id:address.id || "",
         city: address.city,
         state: address.state,
         country: address.country,
+
       },
     });
 
