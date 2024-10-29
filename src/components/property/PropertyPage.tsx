@@ -43,6 +43,7 @@ export default function PropertyListingPage({
   images,
   host,
   listing,
+  bookings,
 }: {
   property: TProperty;
   location: TLocation;
@@ -51,9 +52,11 @@ export default function PropertyListingPage({
   images: TImage[] | null;
   host: TUser;
   listing: TListing;
+  bookings: TBooking[] | null;
 }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [selectedDates, setSelectedDates] = useState<DateRange>();
+  const [isSelectedDates, setIsSelectedDates] = useState(false);
 
   const { toast } = useToast();
 
@@ -157,6 +160,7 @@ export default function PropertyListingPage({
     // Handle the saved dates (e.g., update state, make API call, etc.)
     console.log("Selected dates:", dates);
     setSelectedDates(dates);
+    setIsSelectedDates(true);
   };
 
   return (
@@ -274,9 +278,14 @@ export default function PropertyListingPage({
                 <DateRangePicker
                   availabilityStart={listing.availabilityStart}
                   availabilityEnd={listing.availabilityEnd}
+                  bookings={bookings}
                   onSave={handleDateSave}
                 />
-                <Button className="w-full mt-4" onClick={handleSubmit}>
+                <Button
+                  className="w-full mt-4"
+                  onClick={handleSubmit}
+                  disabled={!isSelectedDates}
+                >
                   Reserve
                 </Button>
               </CardContent>

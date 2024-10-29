@@ -49,7 +49,7 @@ export default async function Home() {
           reviews={reviews}
           amenities={amenities}
           images={images}
-          bookOrList="book"
+          type="book"
           hostName={user.name}
           hostKindeId={property.userId}
         />

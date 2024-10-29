@@ -1,4 +1,5 @@
 import { getAllAmenitiesForProperty } from "@/actions/amenitiesAction";
+import { getAllBookingsForProperty } from "@/actions/bookingActions";
 import { getListing } from "@/actions/listingActions";
 import { getLocationById } from "@/actions/locationActions";
 import { getAllImagesbyId, getPropertyById } from "@/actions/propertyActions";
@@ -13,7 +14,7 @@ const page = async ({ params }: { params: { propertyId: string } }) => {
     return <>Invalid property Id</>;
   }
 
-  const [amenities, images, location, reviews, user, listing] =
+  const [amenities, images, location, reviews, user, listing, bookings] =
     await Promise.all([
       await getAllAmenitiesForProperty(property.id),
       await getAllImagesbyId(property.id),
@@ -21,6 +22,7 @@ const page = async ({ params }: { params: { propertyId: string } }) => {
       await getAllReviewsById(property.id),
       await getUserById(property.userId),
       await getListing(property.userId, property.id),
+      await getAllBookingsForProperty(property.id),
     ]);
   if (!user || !location || !listing) {
     return <>Sorry couldn't get all details about the property</>;
@@ -34,6 +36,7 @@ const page = async ({ params }: { params: { propertyId: string } }) => {
       reviews={reviews}
       host={user}
       listing={listing}
+      bookings={bookings}
     />
   );
 };

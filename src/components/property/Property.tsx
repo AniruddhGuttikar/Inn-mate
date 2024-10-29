@@ -12,6 +12,7 @@ import {
 } from "@/lib/definitions";
 import BookPropertyButton from "./BookPropertyButton";
 import ListPropertyButton from "./ListNowButton";
+import ViewPropertyButton from "./ViewPropertyButton";
 
 interface PropertyCardProps {
   property: TProperty;
@@ -19,7 +20,7 @@ interface PropertyCardProps {
   images: TImage[] | null;
   location: TLocation;
   amenities: TAmenity[];
-  bookOrList: "book" | "list";
+  type: "book" | "list" | "view";
   hostName: string;
   hostKindeId?: string;
 }
@@ -30,7 +31,7 @@ export default function PropertyCard({
   images,
   location,
   amenities,
-  bookOrList,
+  type,
   hostKindeId,
   hostName,
 }: PropertyCardProps) {
@@ -116,13 +117,15 @@ export default function PropertyCard({
           <span className="text-lg font-bold">${property.pricePerNight}</span>
           <span className="text-sm text-muted-foreground"> / night</span>
         </div>
-        {bookOrList === "book" ? (
+        {type === "book" ? (
           <BookPropertyButton propertyId={property.id} />
-        ) : (
+        ) : type === "list" ? (
           <ListPropertyButton
             propertyId={property.id}
             kindeUserId={hostKindeId}
           />
+        ) : (
+          <ViewPropertyButton propertyId={property.id} />
         )}
       </CardFooter>
     </Card>
