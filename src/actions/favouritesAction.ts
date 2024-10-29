@@ -1,13 +1,13 @@
 "use server";
 
-import { favouriteSchema, Tfavourite } from "@/lib/definitions";
+import { favouriteSchema, TFavorite } from "@/lib/definitions";
 import { getUserByKindeId, isAuthenticatedUserInDb } from "./userActions";
 import prisma from "@/lib/db";
 
 export default async function addfavourite(
   userId: string,
-  likedData: Tfavourite
-): Promise<Tfavourite | null> {
+  likedData: TFavorite
+): Promise<TFavorite | null> {
   try {
     const isAuthenticatedUser = await isAuthenticatedUserInDb(userId);
 
@@ -33,8 +33,8 @@ export default async function addfavourite(
 }
 
 export async function deletefavourite(
-  likedData: Tfavourite
-): Promise<Tfavourite | null> {
+  likedData: TFavorite
+): Promise<TFavorite | null> {
   try {
     const validatedfavourites = favouriteSchema.parse(likedData);
     const favourite = await prisma.favourite.findUniqueOrThrow({
@@ -79,7 +79,7 @@ export async function getIsfavourite(userId: string, propertyId: string) {
 
 export async function getAllfavourite(
   KindeId: string | ""
-): Promise<Tfavourite[] | null> {
+): Promise<TFavorite[] | null> {
   const user_id = await getUserByKindeId(KindeId);
   if (!user_id) {
     console.error("User not found in the database.");
