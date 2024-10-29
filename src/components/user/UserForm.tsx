@@ -88,7 +88,7 @@ export const UserForm = ({ user }: { user: TUser }) => {
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Name</FormLabel>
+              <FormLabel className="font-bold">Name</FormLabel>
               <FormControl>
                 <Input placeholder={user.name} {...field} />
               </FormControl>
@@ -102,7 +102,7 @@ export const UserForm = ({ user }: { user: TUser }) => {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel className="font-bold">Email</FormLabel>
               <FormControl>
                 <Input placeholder={user.email} {...field} />
               </FormControl>
@@ -117,7 +117,7 @@ export const UserForm = ({ user }: { user: TUser }) => {
           name="dob"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="font-bold">Name</FormLabel>
+              <FormLabel className="font-bold">Date of Birth</FormLabel>
               <FormControl>
                 <Input
                   type="date"
