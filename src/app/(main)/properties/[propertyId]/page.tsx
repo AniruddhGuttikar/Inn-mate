@@ -1,4 +1,6 @@
 import { getAllAmenitiesForProperty } from "@/actions/amenitiesAction";
+import { getAllBookingsForProperty } from "@/actions/bookingActions";
+import { getListing } from "@/actions/listingActions";
 import { getLocationById } from "@/actions/locationActions";
 import { getAllImagesbyId, getPropertyById } from "@/actions/propertyActions";
 import { getAllReviewsById } from "@/actions/reviewActions";
@@ -12,15 +14,18 @@ const page = async ({ params }: { params: { propertyId: string } }) => {
     return <>Invalid property Id</>;
   }
 
-  const [amenities, image, location, reviews, user] = await Promise.all([
-    await getAllAmenitiesForProperty(property.id),
-    await getAllImagesbyId(property.id),
-    await getLocationById(property.locationId),
-    await getAllReviewsById(property.id),
-    await getUserById(property.userId),
-  ]);
-  if (!user || !location) {
-    return <>Sorry couldn't get all details about the propery</>;
+  const [amenities, image, location, reviews, user, listing, bookings] =
+    await Promise.all([
+      await getAllAmenitiesForProperty(property.id),
+      await getAllImagesbyId(property.id),
+      await getLocationById(property.locationId),
+      await getAllReviewsById(property.id),
+      await getUserById(property.userId),
+      await getListing(property.userId, property.id),
+      await getAllBookingsForProperty(property.id),
+    ]);
+  if (!user || !location || !listing) {
+    return <>Sorry couldn't get all details about the property</>;
   }
   return (
     <PropertyListingPage
@@ -30,6 +35,8 @@ const page = async ({ params }: { params: { propertyId: string } }) => {
       location={location}
       reviews={reviews}
       host={user}
+      listing={listing}
+      bookings={bookings}
     />
   );
 };

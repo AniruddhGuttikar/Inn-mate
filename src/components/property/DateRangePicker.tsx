@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { format, addMonths, isBefore, isAfter, isSameDay } from "date-fns";
+import { format, isWithinInterval, startOfDay } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -12,27 +12,45 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { DateRange } from "react-day-picker";
+import { TBooking } from "@/lib/definitions";
 
 interface DateRangePickerProps {
   availabilityStart: Date;
   availabilityEnd: Date;
+  bookings: TBooking[] | null;
   onSave: (dates: DateRange | undefined) => void;
 }
 
 export default function DateRangePicker({
   availabilityStart,
   availabilityEnd,
+  bookings,
   onSave,
 }: DateRangePickerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [date, setDate] = useState<DateRange | undefined>();
 
-  const isDateInRange = (date: Date) => {
-    return (
-      (isSameDay(date, availabilityStart) ||
-        isAfter(date, availabilityStart)) &&
-      (isSameDay(date, availabilityEnd) || isBefore(date, availabilityEnd))
+  const isDateBooked = (date: Date) => {
+    if (!bookings) {
+      return false;
+    }
+    return bookings.some((booking) =>
+      isWithinInterval(startOfDay(date), {
+        start: startOfDay(booking.startDate),
+        end: startOfDay(booking.endDate),
+      })
     );
+  };
+
+  const isDateDisabled = (date: Date) => {
+    if (
+      date < startOfDay(availabilityStart) ||
+      date > startOfDay(availabilityEnd)
+    ) {
+      return true;
+    }
+
+    return isDateBooked(date);
   };
 
   return (
@@ -69,7 +87,7 @@ export default function DateRangePicker({
             selected={date}
             onSelect={setDate}
             numberOfMonths={2}
-            disabled={(date) => !isDateInRange(date)}
+            disabled={(date) => isDateDisabled(date)}
           />
           <div className="flex justify-end gap-2 p-4">
             <Button

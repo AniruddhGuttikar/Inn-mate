@@ -145,6 +145,7 @@ model Review {
   propertyId String
   user       User     @relation(fields: [userId], references: [id])
   property   Property @relation(fields: [propertyId], references: [id])
+  locationId String
 }
 
 model Room {

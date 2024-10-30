@@ -13,6 +13,7 @@ import {
 import BookPropertyButton from "./BookPropertyButton";
 import ListPropertyButton, { EditProperty } from "./ListNowButton";
 import FavoriteButton from './FavoritesButton';
+import ViewPropertyButton from "./ViewPropertyButton";
 
 interface PropertyCardProps {
   property: TProperty;
@@ -20,25 +21,22 @@ interface PropertyCardProps {
   images: TImage[] | null;
   location: TLocation;
   amenities: TAmenity[];
-  bookOrList: "book" | "list";
+  type: "book" | "list" | "view";
   hostName: string;
   hostKindeId?: string;
   favorites:string;
 
 }
 
-export default function PropertyCard(
-  {
-    property,
-    reviews,
-    images,
-    location,
-    amenities,
-    bookOrList,
-    hostKindeId,
-    hostName,
-    favorites,
-  
+export default function PropertyCard({
+  property,
+  reviews,
+  images,
+  location,
+  amenities,
+  type,
+  hostKindeId,
+  hostName,
 }: PropertyCardProps) {
 
   // If favorites is an empty string, show all properties
@@ -110,19 +108,27 @@ export default function PropertyCard(
         <h3>hosted by: {hostName}</h3>
       </CardContent>
       <CardFooter className="p-4 pt-0 flex justify-between items-center">
-        <div>
-          <span className="text-lg font-bold">${property.pricePerNight}</span>
-          <span className="text-sm text-muted-foreground"> / night</span>
-        </div>
-        {bookOrList === "book" ? (
-          <BookPropertyButton propertyId={property.id} />
-        ) : (
-          <>
-          <EditProperty propertyId={property.id} kindeUserId={hostKindeId} />
-          <ListPropertyButton propertyId={property.id} kindeUserId={hostKindeId} />
-          </>
-        )}
-      </CardFooter>
+  <div>
+    <span className="text-lg font-bold">${property.pricePerNight}</span>
+    <span className="text-sm text-muted-foreground"> / night</span>
+  </div>
+  {type === "book" ? (
+    <BookPropertyButton propertyId={property.id} />
+  ) : type === "list" ? (
+    <ListPropertyButton
+      propertyId={property.id}
+      kindeUserId={hostKindeId}
+    />
+  ) :  ( // Check if the type is "edit"
+    <>
+      <EditProperty propertyId={property.id} kindeUserId={hostKindeId} />
+      <ListPropertyButton propertyId={property.id} kindeUserId={hostKindeId} />
+    
+    <ViewPropertyButton propertyId={property.id} />
+    </>
+  )}
+</CardFooter>
+
     </Card>
   );
 }

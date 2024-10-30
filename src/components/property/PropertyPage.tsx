@@ -24,13 +24,17 @@ import DateRangePicker from "@/components/property/DateRangePicker";
 import { DateRange } from "react-day-picker";
 import {
   TAmenity,
+  TBooking,
   TImage,
+  TListing,
   TLocation,
   TProperty,
   TReview,
   TUser,
 } from "@/lib/definitions";
 
+import { createBooking } from "@/actions/bookingActions";
+import { useToast } from "@/hooks/use-toast";
 // Mock data (replace with actual data fetching in a real application)
 const property = {
   id: "1",
@@ -64,6 +68,8 @@ export default function PropertyListingPage({
   reviews,
   image,
   host,
+  listing,
+  bookings,
 }: {
   property: TProperty;
   location: TLocation;
@@ -71,10 +77,16 @@ export default function PropertyListingPage({
   reviews: TReview[] | null;
   image: TImage[] | null;
   host: TUser;
+  listing: TListing;
+  bookings: TBooking[] | null;
 }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [selectedDates, setSelectedDates] = useState<DateRange>();
+  const [isSelectedDates, setIsSelectedDates] = useState(false);
 
-  if (!property.id) {
+  const { toast } = useToast();
+
+  if (!property.id || !host) {
     return <>Sorry this property doesn't exist</>;
   }
   const displayedImages =
@@ -131,9 +143,50 @@ export default function PropertyListingPage({
     PET_FRIENDLY: Dog,
   };
 
-  const handleDateSave = (dates: DateRange | undefined) => {
+  const handleSubmit = async () => {
+    try {
+      if (
+        !host.id ||
+        !property.id ||
+        !selectedDates?.from ||
+        !selectedDates.to
+      ) {
+        throw new Error("couldn't get all the booking details");
+      }
+      const msInDay = 1000 * 60 * 60 * 24;
+      const totalDays = Math.ceil(
+        (selectedDates.to.getTime() - selectedDates.from.getTime()) / msInDay
+      );
+      const bookingValues: TBooking = {
+        userId: host?.id,
+        propertyId: property.id,
+        startDate: selectedDates?.from,
+        endDate: selectedDates?.to,
+        status: "CONFIRMED",
+        totalPrice: property.pricePerNight * totalDays,
+      };
+      const booking = await createBooking(bookingValues);
+      if (!booking) {
+        throw new Error("Error in creating the ");
+      }
+      toast({
+        title: "Booking created successfully",
+        description: "Successfully created the booking",
+      });
+    } catch (error) {
+      toast({
+        title: "Error in Creating the Booking",
+        variant: "destructive",
+        description: "Sorry we couldn't create the booking",
+      });
+    }
+  };
+
+  const handleDateSave = async (dates: DateRange | undefined) => {
     // Handle the saved dates (e.g., update state, make API call, etc.)
     console.log("Selected dates:", dates);
+    setSelectedDates(dates);
+    setIsSelectedDates(true);
   };
 
   return (
@@ -249,13 +302,18 @@ export default function PropertyListingPage({
               </CardHeader>
               <CardContent>
                 <DateRangePicker
-                  availabilityStart={new Date()}
-                  availabilityEnd={
-                    new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
-                  }
+                  availabilityStart={listing.availabilityStart}
+                  availabilityEnd={listing.availabilityEnd}
+                  bookings={bookings}
                   onSave={handleDateSave}
                 />
-                <Button className="w-full mt-4">Reserve</Button>
+                <Button
+                  className="w-full mt-4"
+                  onClick={handleSubmit}
+                  disabled={!isSelectedDates}
+                >
+                  Reserve
+                </Button>
               </CardContent>
             </Card>
           </div>

@@ -53,7 +53,7 @@ const MyProperties = async () => {
           reviews={reviews}
           amenities={amenities}
           images={images}
-          bookOrList="list"
+          type="list"
           hostKindeId={kindeUser.id}
           hostName={user.name}
         />
