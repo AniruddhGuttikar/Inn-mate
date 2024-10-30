@@ -3,6 +3,7 @@ import { getLocationById } from "@/actions/locationActions";
 import {
   getAllImagesbyId,
   getAllListedProperties,
+  getFilteredListings,
 } from "@/actions/propertyActions";
 import { getAllReviewsById } from "@/actions/reviewActions";
 import { getUserById, getUserByKindeId } from "@/actions/userActions";
@@ -10,9 +11,13 @@ import PropertyCard from "@/components/property/Property";
 import { TKindeUser } from "@/lib/definitions";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 
-export default async function Home() {
-  const { getUser, isAuthenticated } = getKindeServerSession();
-  const kindeUser = (await getUser()) as TKindeUser;
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: { [key: string]: string | undefined };
+}) {
+  // const { getUser, isAuthenticated } = getKindeServerSession();
+  // const kindeUser = (await getUser()) as TKindeUser;
 
   // if (!kindeUser || !isAuthenticated) {
   //   return <h2>Sorry You are not authorized to see this route</h2>;
@@ -24,9 +29,29 @@ export default async function Home() {
   //   return <>sorry couldn't fetch the user</>;
   // }
 
-  const properties = await getAllListedProperties();
+  const destination = searchParams.dest;
+  const checkIn = searchParams.ci;
+  const checkOut = searchParams.co;
+
+  console.log(destination, checkIn, checkOut);
+
+  const properties =
+    destination || checkIn || checkOut
+      ? await getFilteredListings(destination, checkIn, checkOut)
+      : await getAllListedProperties();
   if (!properties) {
     return <>sorry couldn't fetch the properties</>;
+  }
+
+  if (destination || checkIn || checkOut) {
+    console.log("Called getFilteredListings with:", {
+      destination,
+      checkIn,
+      checkOut,
+      properties,
+    });
+  } else {
+    console.log("Called getAllListedProperties, properties:", properties);
   }
 
   const propertyCards = await Promise.all(

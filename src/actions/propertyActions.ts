@@ -18,7 +18,7 @@ import { revalidatePath } from "next/cache";
 export async function getAllListedProperties(): Promise<TProperty[] | null> {
   try {
     const listings = await prisma.listing.findMany({
-      take: 12,
+      take: 20,
       include: {
         property: true,
       },
@@ -27,6 +27,89 @@ export async function getAllListedProperties(): Promise<TProperty[] | null> {
     const propertiesSchemaArray = z.array(propertySchema);
     const validatedProperties = propertiesSchemaArray.parse(
       listings.map((listing) => listing.property)
+    );
+    return validatedProperties;
+  } catch (error) {
+    console.error("Error in getting properties: ", error);
+    return null;
+  }
+}
+
+export async function getFilteredListings(
+  destination?: string,
+  checkIn?: string,
+  checkOut?: string
+): Promise<TProperty[] | null> {
+  try {
+    const filteredListings = await prisma.listing.findMany({
+      take: 20,
+      where: {
+        property: {
+          ...(destination
+            ? {
+                OR: [
+                  {
+                    name: {
+                      contains: destination,
+                      mode: "insensitive",
+                    },
+                  },
+                  {
+                    description: {
+                      contains: destination,
+                      mode: "insensitive",
+                    },
+                  },
+                  {
+                    location: {
+                      city: {
+                        contains: destination,
+                        mode: "insensitive",
+                      },
+                    },
+                  },
+                  {
+                    location: {
+                      state: {
+                        contains: destination,
+                        mode: "insensitive",
+                      },
+                    },
+                  },
+                  {
+                    location: {
+                      country: {
+                        contains: destination,
+                        mode: "insensitive",
+                      },
+                    },
+                  },
+                ],
+              }
+            : {}),
+        },
+        ...(checkIn && checkOut
+          ? {
+              AND: {
+                availabilityStart: {
+                  lte: new Date(checkIn),
+                },
+                availabilityEnd: {
+                  gte: new Date(checkOut),
+                },
+              },
+            }
+          : {}),
+      },
+
+      include: {
+        property: true,
+      },
+    });
+
+    const propertiesSchemaArray = z.array(propertySchema);
+    const validatedProperties = propertiesSchemaArray.parse(
+      filteredListings.map((listing) => listing.property)
     );
     return validatedProperties;
   } catch (error) {
