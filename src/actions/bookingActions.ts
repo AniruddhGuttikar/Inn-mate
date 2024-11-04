@@ -1,7 +1,7 @@
 "use server";
 
 import prisma from "@/lib/db";
-import { bookingSchema, TBooking } from "@/lib/definitions";
+import { bookingSchema, TBooking, TCheckInCheckOut } from "@/lib/definitions";
 import { z } from "zod";
 import { getUserByKindeId, isAuthenticatedUserInDb } from "./userActions";
 
@@ -10,14 +10,21 @@ export async function createBooking(
 ): Promise<TBooking | null> {
   try {
     const validatedBooking = bookingSchema.parse(booking);
-    const newBooking = prisma.booking.create({
+    const newBooking = await prisma.booking.create({
       data: {
         ...validatedBooking,
+        checkInOut: {
+          create: {
+            checkInDate: validatedBooking.startDate,
+            checkOutDate: validatedBooking.endDate,
+          },
+        },
       },
     });
-    if (!newBooking) {
+    if (!newBooking || !newBooking.id) {
       throw new Error("couldn't create the booking");
     }
+
     return newBooking;
   } catch (error) {
     console.error("Error in creating the booking ", error);
