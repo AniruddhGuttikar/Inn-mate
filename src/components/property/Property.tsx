@@ -2,7 +2,23 @@ import Image from "next/image";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Bed, Users, Star, Heart } from "lucide-react";
+import {
+  Bed,
+  Users,
+  Star,
+  Heart,
+  Wifi,
+  CarFront,
+  AirVent,
+  Coffee,
+  Shrub,
+  Waves,
+  Dumbbell,
+  Microwave,
+  Tv2,
+  WashingMachine,
+  Dog,
+} from "lucide-react";
 import {
   TProperty,
   TReview,
@@ -50,7 +66,20 @@ export default function PropertyCard({
     imageLink =
       "https://images.unsplash.com/photo-1579297206620-c410c4af42e4?q=80&w=1587&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D";
   }
-  console.log("Image link: ", imageLink);
+  const amenityIcons: { [key: string]: React.ElementType } = {
+    WIFI: Wifi,
+    PARKING: CarFront,
+    AIR_CONDITIONING: AirVent,
+    COFFEE: Coffee,
+    PARK: Shrub,
+    POOL: Waves,
+    GYM: Dumbbell,
+    KITCHEN: Microwave,
+    TV: Tv2,
+    LAUNDRY: WashingMachine,
+    PET_FRIENDLY: Dog,
+  };
+  // console.log("Image link: ", imageLink);
 
   return (
     <Card className="w-full max-w-sm mx-auto">
@@ -101,11 +130,17 @@ export default function PropertyCard({
           </div>
         </div>
         <div className="flex flex-wrap gap-1">
-          {amenities.slice(0, 3).map((amenity) => (
-            <Badge key={amenity.id} variant="secondary">
-              {amenity.name}
-            </Badge>
-          ))}
+          {amenities.slice(0, 3).map((amenity) => {
+            const Icon = amenityIcons[amenity.name];
+            return (
+              <div key={amenity.id} className="flex items-center">
+                {Icon && (
+                  <Icon className="h-5 w-5 mr-2 bg-secondary rounded-md " />
+                )}{" "}
+                {/* <span>{amenity.name}</span> */}
+              </div>
+            );
+          })}
           {amenities.length > 3 && (
             <Badge variant="secondary">+{amenities.length - 3} more</Badge>
           )}

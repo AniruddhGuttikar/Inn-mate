@@ -261,7 +261,7 @@ export default function PropertyListingPage({
                       <div key={amenity.id} className="flex items-center">
                         {Icon && <Icon className="h-5 w-5 mr-2" />}{" "}
                         {/* Render the icon if it exists */}
-                        <span>{amenity.name}</span>
+                        <span>{amenity.name.replace(/_/g, " ")}</span>
                       </div>
                     );
                   })}

@@ -175,6 +175,9 @@ CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 CREATE UNIQUE INDEX "Favourite_userId_propertyId_key" ON "Favourite"("userId", "propertyId");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "Listing_userId_propertyId_key" ON "Listing"("userId", "propertyId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "Payment_bookingId_key" ON "Payment"("bookingId");
 
 -- CreateIndex

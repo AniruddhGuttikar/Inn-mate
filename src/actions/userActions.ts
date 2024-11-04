@@ -48,7 +48,7 @@ export async function getUserByKindeId(kindeId: string): Promise<TUser | null> {
     }
     return user;
   } catch (error) {
-    console.error("Error finding the user: ", error);
+    console.error("Error finding the userByKindeId: ", error);
     return null;
   }
 }
