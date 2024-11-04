@@ -69,7 +69,8 @@ export async function getAllBookedProperties(
         userId: user.id,
       },
       include: {
-        property: true,
+        property: true, 
+        checkInOut: true,
       },
     });
     return bookings;

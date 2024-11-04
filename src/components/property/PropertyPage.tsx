@@ -34,6 +34,9 @@ import {
 } from "@/lib/definitions";
 import { createBooking } from "@/actions/bookingActions";
 import { useToast } from "@/hooks/use-toast";
+import ReviewCard from "./ReviewCard";
+import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
+import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
 
 export default function PropertyListingPage({
   property,
@@ -44,6 +47,7 @@ export default function PropertyListingPage({
   host,
   listing,
   bookings,
+  userId,
 }: {
   property: TProperty;
   location: TLocation;
@@ -53,6 +57,7 @@ export default function PropertyListingPage({
   host: TUser;
   listing: TListing;
   bookings: TBooking[] | null;
+  userId: string;
 }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [selectedDates, setSelectedDates] = useState<DateRange>();
@@ -60,7 +65,9 @@ export default function PropertyListingPage({
 
   const { toast } = useToast();
 
-  if (!property.id || !host) {
+  const { user: kindeUser } = useKindeBrowserClient();
+
+  if (!property.id || !host || !kindeUser) {
     return <>Sorry this property doesn't exist</>;
   }
   const displayedImages =
@@ -132,7 +139,7 @@ export default function PropertyListingPage({
         (selectedDates.to.getTime() - selectedDates.from.getTime()) / msInDay
       );
       const bookingValues: TBooking = {
-        userId: host?.id,
+        userId,
         propertyId: property.id,
         startDate: selectedDates?.from,
         endDate: selectedDates?.to,
@@ -249,7 +256,7 @@ export default function PropertyListingPage({
                 </div>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="mb-6">
               <CardHeader>
                 <CardTitle>Amenities</CardTitle>
               </CardHeader>
@@ -268,6 +275,7 @@ export default function PropertyListingPage({
                 </div>
               </CardContent>
             </Card>
+            <ReviewCard reviews={reviews} />
           </div>
           <div>
             <Card>

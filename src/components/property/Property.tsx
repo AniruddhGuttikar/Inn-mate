@@ -25,6 +25,7 @@ import {
   TImage,
   TLocation,
   TAmenity,
+  TCheckInCheckOut,
 } from "@/lib/definitions";
 import BookPropertyButton from "./BookPropertyButton";
 import ListPropertyButton from "./ListNowButton";
@@ -36,9 +37,10 @@ interface PropertyCardProps {
   images: TImage[] | null;
   location: TLocation;
   amenities: TAmenity[];
-  type: "book" | "list" | "view";
+  type: "book" | "list" | "view" | "status";
   hostName: string;
   hostKindeId?: string;
+  checkInCheckOutDetail?: TCheckInCheckOut;
 }
 
 export default function PropertyCard({
@@ -50,6 +52,7 @@ export default function PropertyCard({
   type,
   hostKindeId,
   hostName,
+  checkInCheckOutDetail,
 }: PropertyCardProps) {
   let averageRating;
   let imageLink;
@@ -80,6 +83,7 @@ export default function PropertyCard({
     PET_FRIENDLY: Dog,
   };
   // console.log("Image link: ", imageLink);
+  // console.log("CheckIn CheckOut in the Property Card: ", checkInCheckOutDetail);
 
   return (
     <Card className="w-full max-w-sm mx-auto">
@@ -145,7 +149,29 @@ export default function PropertyCard({
             <Badge variant="secondary">+{amenities.length - 3} more</Badge>
           )}
         </div>
-        <h3>hosted by: {hostName}</h3>
+        <h3>
+          Hosted by: <span className="font-semibold"> {hostName}</span>
+        </h3>
+        {type === "status" && (
+          <h3>
+            Booked from{" "}
+            <span className="font-semibold">
+              {checkInCheckOutDetail?.checkInDate.toLocaleDateString("en-US", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+              })}
+            </span>{" "}
+            to{" "}
+            <span className="font-semibold">
+              {checkInCheckOutDetail?.checkOutDate.toLocaleDateString("en-US", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+              })}
+            </span>
+          </h3>
+        )}
       </CardContent>
       <CardFooter className="p-4 pt-0 flex justify-between items-center">
         <div>
