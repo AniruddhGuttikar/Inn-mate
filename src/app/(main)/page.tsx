@@ -22,9 +22,9 @@ export default async function Home() {
   const { getUser, isAuthenticated } = getKindeServerSession();
   const kindeUser = (await getUser()) as TKindeUser;
 
-  // if (!kindeUser || !isAuthenticated) {
-  //   return <h2>Sorry You are not authorized to see this route</h2>;
-  // }
+  if (!kindeUser || !isAuthenticated) {
+    return <h2>Sorry You are not authorized to see this route</h2>;
+  }
 
   const user = await getUserByKindeId(kindeUser.id);
   if (!user || !user.id || !isAuthenticated) {

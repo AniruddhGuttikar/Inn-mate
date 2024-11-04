@@ -35,6 +35,7 @@ import {
 
 import { createBooking } from "@/actions/bookingActions";
 import { useToast } from "@/hooks/use-toast";
+import ReservationSummary from "../payment/orderSummary";
 // Mock data (replace with actual data fetching in a real application)
 const property = {
   id: "1",
@@ -83,6 +84,8 @@ export default function PropertyListingPage({
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [selectedDates, setSelectedDates] = useState<DateRange>();
   const [isSelectedDates, setIsSelectedDates] = useState(false);
+  const [isReserved,setisReserved]=useState(false)
+  const [reservationDetails , setreservationDetails]= useState<TBooking>();
 
   const { toast } = useToast();
 
@@ -165,13 +168,17 @@ export default function PropertyListingPage({
         status: "CONFIRMED",
         totalPrice: property.pricePerNight * totalDays,
       };
-      const booking = await createBooking(bookingValues);
-      if (!booking) {
-        throw new Error("Error in creating the ");
-      }
+      setreservationDetails(bookingValues)
+      // const booking = await createBooking(bookingValues);
+      // if (!booking) {
+      //   throw new Error("Error in creating the ");
+      // }
+      setisReserved(true);
+
+
       toast({
-        title: "Booking created successfully",
-        description: "Successfully created the booking",
+        title: "navigating to payment page",
+        description: "U will be redicted hold up a second",
       });
     } catch (error) {
       toast({
@@ -319,6 +326,9 @@ export default function PropertyListingPage({
           </div>
         </div>
       </main>
+      {isReserved && (
+        <ReservationSummary bookingDetails={reservationDetails}/>
+      )}
     </div>
   );
 }
