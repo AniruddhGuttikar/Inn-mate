@@ -8,12 +8,20 @@ import RegisterButton from "./RegisterButton";
 import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
 import Link from "next/link";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
+import {
+  getUserByKindeId,
+  isAuthenticatedUserInDb,
+  mapKindeUserToUser,
+} from "@/actions/userActions";
 
 export default async function Navbar() {
   // const { user, isAuthenticated } = useKindeBrowserClient();
   const { getUser, isAuthenticated } = getKindeServerSession();
-  const user = await getUser();
+
+  const kindeUser = await getUser();
   const isAuthenticatedUser = await isAuthenticated();
+  const user = await getUserByKindeId(kindeUser.id);
+  const isAuthenticatedInDatabase = await isAuthenticatedUserInDb(user?.id);
   console.log("user in navbar: ");
 
   return (

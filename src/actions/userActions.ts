@@ -54,7 +54,7 @@ export async function getUserByKindeId(kindeId: string): Promise<TUser | null> {
 }
 
 export async function isAuthenticatedUserInDb(
-  id: string
+  id: string | undefined
 ): Promise<TUser | null> {
   try {
     if (!id) {
