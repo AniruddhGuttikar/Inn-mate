@@ -67,8 +67,11 @@ export async function getAllBookingsForProperty(
 }
 
 
-export async function DeleteBookingsbyIds(bookingIds: string[]) {
+export async function DeleteBookingsbyIds(bookingIds: string[] | undefined) {
   try {
+    if(!bookingIds){
+      return null
+    }
     const result = await prisma.booking.deleteMany({
       where: {
         id: { in: bookingIds },
@@ -76,6 +79,7 @@ export async function DeleteBookingsbyIds(bookingIds: string[]) {
     });
     return result || null;
   } catch (error) {
+    
     console.error('Error deleting bookings:', error);
     return null;
   }

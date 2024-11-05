@@ -1,5 +1,5 @@
 import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
-import { getAllFavorite } from "@/actions/favouritesAction";
+import { getAllfavourite } from "@/actions/favouritesAction";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { TKindeUser } from "@/lib/definitions";
 import { getAllAmenitiesForProperty } from "@/actions/amenitiesAction";
@@ -28,7 +28,7 @@ const Favorites = async ({ params: { userid } }: FavoritesProps) => {
   }
 
   // Fetch favorites for the user
-  const favorites = await getAllFavorite(kindeUser.id);
+  const favorites = await getAllfavourite(kindeUser.id);
   console.log("Favorites Data:", favorites);
 
   if (!favorites || favorites.length === 0) {
@@ -79,7 +79,7 @@ const Favorites = async ({ params: { userid } }: FavoritesProps) => {
             reviews={reviews}
             amenities={amenities}
             images={images}
-            bookOrList="book"
+            type="book"
             hostName={user.name}
             hostKindeId={property.userId}
             favorites=""

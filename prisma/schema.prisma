@@ -1,3 +1,10 @@
+
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -35,131 +42,61 @@ enum Gender {
 }
 
 model Address {
-  id      String @id
+  id      String @id @default(cuid())
   city    String
   state   String
   country String
-  user    User[]
-}
 
-model Amenity {
-  id         String      @id @default(cuid())
-  name       AmenityType
-  propertyId String
-  property   Property @relation(fields: [propertyId], references: [id])
-}
-
-model Booking {
-  id              String           @id @default(cuid())
-  startDate       DateTime
-  endDate         DateTime
-  totalPrice      Float
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  userId          String
-  propertyId      String
-  roomId          String?
-  status          BookingStatus
-  property        Property @relation(fields: [propertyId], references: [id])
-  room            Room?    @relation(fields: [roomId], references: [id])
-  user            User     @relation(fields: [userId], references: [id])
-  payment         Payment?
-  checkInOut      CheckInCheckOut?
-}
-
-model CheckInCheckOut {
-  id           String   @id
-  checkInDate  DateTime
-  checkOutDate DateTime
-  bookingId    String   @unique
-  booking      Booking  @relation(fields: [bookingId], references: [id])
-}
-
-
-
-model Image {
-  id         String @id @default(cuid())
-  link       String
-  propertyId String
-  property   Property @relation(fields: [propertyId], references: [id])
-}
-
-model Listing {
-  id         String   @id @default(cuid())
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  userId     String
-  propertyId String
-  user       User     @relation(fields: [userId], references: [id])
-  property   Property @relation(fields: [propertyId], references: [id])
-}
-
-model Location {
-  id        String     @id @default(cuid())
-  city      String
-  state     String
-  country   String
-  latitude  Float?
-  longitude Float?
-  property  Property[]
-}
-
-model Payment {
-  id          String   @id @default(cuid())
-  amount      Float
-  paymentDate DateTime
-  bookingId   String   @unique
-  booking     Booking  @relation(fields: [bookingId], references: [id])
+  users User[]
 }
 
 model Property {
-  id            String                @id @default(cuid())
+  id            String       @id @default(cuid())
   name          String
   description   String
   pricePerNight Float
   maxGuests     Int
-  createdAt     DateTime              @default(now())
-  updatedAt     DateTime              @updatedAt
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
   propertyType  PropertyType
-  isHotel       Boolean               @default(false)
-  isDeleted     Boolean               @default(false)
-  locationId    String
-  userId        String
-  amenities       Amenity[]
-  booking       Booking[]
-  favourite     Favourite[]
-  image         Image[]
-  listings       Listing[]
-  location      Location @relation(fields: [locationId], references: [id])
-  user          User     @relation(fields: [userId], references: [id])
-  reviews        Review[]
-  rooms          Room[]
-}
+  isHotel       Boolean      @default(false)
+  isDeleted     Boolean      @default(false)
 
-model Review {
-  id         String   @id @default(cuid())
-  rating     Int
-  comment    String
-  createdAt  DateTime @default(now())
-  userId     String
-  propertyId String
-  user       User     @relation(fields: [userId], references: [id])
-  property   Property @relation(fields: [propertyId], references: [id])
   locationId String
+  location   Location @relation(fields: [locationId], references: [id])
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  images     Image[]
+  rooms      Room[]
+  listings   Listing[]
+  bookings   Booking[]
+  reviews    Review[]
+  favourites Favourite[]
+  amenities  Amenity[]
 }
 
 model Room {
-  id            String    @id @default(cuid())
+  id            String @id @default(cuid())
   name          String
   description   String
   capacity      Int
   pricePerNight Float
-  propertyId    String
-  booking       Booking[]
-  property      Property @relation(fields: [propertyId], references: [id])
+
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id])
+
+  bookings Booking[]
 }
 
+model Image {
+  id   String @id @default(cuid())
+  link String
 
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id])
+}
 
 enum PropertyType {
   Hotel
@@ -171,13 +108,45 @@ enum PropertyType {
   Apartment
 }
 
+model Booking {
+  id         String   @id @default(cuid())
+  totalPrice Float
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id])
+
+  roomId String?
+  room   Room?   @relation(fields: [roomId], references: [id])
+
+  status BookingStatus
+
+  payment    Payment?
+  checkInOut CheckInCheckOut?
+}
+
 enum BookingStatus {
   CONFIRMED
   ACTIVE
   COMPLETED
 }
 
+model Review {
+  id        String   @id @default(cuid())
+  rating    Int
+  comment   String
+  createdAt DateTime @default(now())
 
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id])
+}
 
 model Favourite {
   id         String @id @default(cuid())
@@ -190,9 +159,29 @@ model Favourite {
   @@unique([userId, propertyId])
 }
 
+model Listing {
+  id                String   @id @default(cuid())
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  availabilityStart DateTime
+  availabilityEnd   DateTime
 
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id])
 
+  @@unique([userId, propertyId])
+}
+
+model Amenity {
+  id   String      @id @default(cuid())
+  name AmenityType
+
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id])
+}
 
 enum AmenityType {
   WIFI
@@ -208,8 +197,41 @@ enum AmenityType {
   PET_FRIENDLY
 }
 
-enum UserGender {
-  MALE
-  FEMALE
-  OTHERS
+model Location {
+  id        String @id @default(cuid())
+  city      String
+  state     String
+  country   String
+  latitude  Float?
+  longitude Float?
+
+  properties Property[]
 }
+
+model Payment {
+  id          String   @id @default(cuid())
+  amount      Float
+  paymentDate DateTime
+
+  bookingId String  @unique
+  booking   Booking @relation(fields: [bookingId], references: [id])
+}
+
+model CheckInCheckOut {
+  id           String   @id @default(cuid())
+  checkInDate  DateTime
+  checkOutDate DateTime
+
+  bookingId String  @unique
+  booking   Booking @relation(fields: [bookingId], references: [id])
+}
+
+// model Admin {
+//   id        String   @id @default(cuid())
+//   name      String
+//   email     String   @unique
+//   password  String
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @updatedAt
+// }
+

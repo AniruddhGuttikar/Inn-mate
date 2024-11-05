@@ -55,7 +55,7 @@ export default function DeleteProperty({ bookings, userId, kindeId, propertyId }
 
             if (delType === 'delete') {
                 if (bookings.length > 0) {
-                    const bookingIds = bookings.map((booking) => booking.id);
+                    const bookingIds = bookings.map((booking) => booking.id).filter((id): id is string => id !== undefined);
                     const bookingData = bookings.map((booking) => ({
                         userId: booking.userId,
                         price: booking.totalPrice,
@@ -102,7 +102,8 @@ export default function DeleteProperty({ bookings, userId, kindeId, propertyId }
             } else {
                 console.log("here");
                 //Handle scheduled delete
-                const bookingIds = bookings.map((booking) => booking.id);
+                const bookingIds = bookings.map((booking) => booking.id).filter((id): id is string => id !== undefined);
+
                 const today = new Date();
                 const oneMonthLater = new Date(today.setMonth(today.getMonth() + 1)); // Today's date + 1 month
               

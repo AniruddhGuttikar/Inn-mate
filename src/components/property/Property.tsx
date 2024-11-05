@@ -37,6 +37,7 @@ export default function PropertyCard({
   type,
   hostKindeId,
   hostName,
+  favorites
 }: PropertyCardProps) {
 
   // If favorites is an empty string, show all properties

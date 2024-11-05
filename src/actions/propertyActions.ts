@@ -155,7 +155,7 @@ export async function addProperty(
         isHotel,
         userId: user.id,
         locationId: location.id,
-        image: validatedImages?.length > 0
+        images: validatedImages?.length > 0
           ? {
               create: validatedImages.map((image) => ({
                 link: image.link,
@@ -241,7 +241,7 @@ export async function updateProperty(
         ...validatedProperty,
         isHotel,
         locationId: location.id,
-        image: {
+        images: {
           deleteMany: {}, // Optionally delete old images if necessary
           create: validatedImages.map((image) => ({
             link: image.link,

@@ -10,11 +10,8 @@ import {
 } from "@/lib/definitions";
 import { KindeUser } from "@kinde-oss/kinde-auth-nextjs/types";
 import { revalidatePath } from "next/cache";
-import { getPropertyById } from "./propertyActions";
 import nodemailer from 'nodemailer' ;
-
-
-
+import { getPropertyById } from "./propertyActions";
 export async function getUserById(
   id: string | undefined
 ): Promise<TUser | null> {
@@ -53,7 +50,7 @@ export async function getUserByKindeId(kindeId: string): Promise<TUser | null> {
     }
     return user;
   } catch (error) {
-    console.error("Error finding the user: ", error);
+    console.error("Error finding the userByKindeId: ", error);
     return null;
   }
 }
@@ -106,11 +103,9 @@ export async function createUser(user: TUser): Promise<TUser | null> {
     // add the address and user to our database
     const newAddress = await prisma.address.create({
       data: {
-        id:address.id || "",
         city: address.city,
         state: address.state,
         country: address.country,
-
       },
     });
 
@@ -131,7 +126,7 @@ export async function createUser(user: TUser): Promise<TUser | null> {
     revalidatePath("/");
     return newUser;
   } catch (error) {
-    console.error("Error creating user:here:: ", error);
+    console.error("Error creating user:", error);
     return null;
   }
 }
@@ -244,7 +239,6 @@ export async function mapKindeUserToUser(
     return null;
   }
 }
-
 export default async function SendMailToUsers(bookingDataList: TBooking[]) {
   try {
     // Configure your SMTP transport (e.g., Gmail or other email service)
