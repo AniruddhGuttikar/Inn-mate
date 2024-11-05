@@ -170,6 +170,11 @@ export default function PropertyListingPage({
     setIsSelectedDates(true);
   };
 
+  const handleDateClose = async () => {
+    setSelectedDates(undefined);
+    setIsSelectedDates(false);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="relative h-[50vh] md:h-[60vh] lg:h-[70vh]">
@@ -288,6 +293,7 @@ export default function PropertyListingPage({
                   availabilityEnd={listing.availabilityEnd}
                   bookings={bookings}
                   onSave={handleDateSave}
+                  onClose={handleDateClose}
                 />
                 <Button
                   className="w-full mt-4"

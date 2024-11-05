@@ -43,8 +43,8 @@ export default function DateRangePicker({
     }
     return bookings.some((booking) =>
       isWithinInterval(startOfDay(date), {
-        start: startOfDay(booking.checkInOut.checkInDate),
-        end: startOfDay(booking.checkInOut.checkOutDate),
+        start: startOfDay(booking.startDate),
+        end: startOfDay(booking.endDate),
       })
     );
   };
