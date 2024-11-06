@@ -21,6 +21,7 @@ import {
   deleteFile,
   UploadcareSimpleAuthSchema,
 } from '@uploadcare/rest-client';
+import { PropertyType } from "@prisma/client";
 
 
 const uploadcareSimpleAuthSchema = new UploadcareSimpleAuthSchema({
@@ -53,9 +54,11 @@ export async function getAllListedProperties(): Promise<TProperty[] | null> {
 export async function getFilteredListings(
   destination?: string,
   checkIn?: string,
-  checkOut?: string
+  checkOut?: string,
+  type? :string
 ): Promise<TProperty[] | null> {
   try {
+    const propertyTypeValue = type ? PropertyType[type.charAt(0).toUpperCase() + type.slice(1).toLowerCase() as keyof typeof PropertyType] : undefined;
     const filteredListings = await prisma.listing.findMany({
       take: 20,
       where: {
@@ -125,6 +128,14 @@ export async function getFilteredListings(
               ],
             }
           : {}),
+          ...(propertyTypeValue ? {
+            property: {
+              propertyType: {
+                equals: propertyTypeValue
+              }
+            }
+          } : {})
+          
       },
       include: {
         property: true,
@@ -141,7 +152,6 @@ export async function getFilteredListings(
     return null;
   }
 }
-
 
 export async function getAllPropertiesByUserId(
   userId: string

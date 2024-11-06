@@ -32,19 +32,19 @@ export default async function Home({
   const { getUser, isAuthenticated } = getKindeServerSession();
   const kindeUser = (await getUser()) as TKindeUser;
   console.log(kindeUser)
-  if (!kindeUser) {
-    return <h2>Sorry no kinduser to see this route</h2>;
-  }
-  else if (!isAuthenticated){
-    return <h2>Sorry You are not authorized to see this route</h2>;
+  // if (!kindeUser) {
+  //   return <h2>Sorry no kinduser to see this route</h2>;
+  // }
+  // else if (!isAuthenticated){
+  //   return <h2>Sorry You are not authorized to see this route</h2>;
 
-  }
+  // }
 
-  const user = await getUserByKindeId(kindeUser.id);
-  if (!user || !user.id || !isAuthenticated) {
-    console.log("couldn't get the user in /user/userId/properties");
-    return <>sorry couldn't fetch the user</>;
-  }
+  // const user = await getUserByKindeId(kindeUser.id);
+  // if (!user || !user.id || !isAuthenticated) {
+  //   console.log("couldn't get the user in /user/userId/properties");
+  //   return <>sorry couldn't fetch the user</>;
+  // }
   
   //const user = await getUserByKindeId(kindeUser.id);
   // if (!user || !user.id || !isAuthenticated) {
@@ -55,12 +55,14 @@ export default async function Home({
   const destination = searchParams.dest;
   const checkIn = searchParams.ci;
   const checkOut = searchParams.co;
+  const type=searchParams.type === 'Any'? undefined :searchParams.type
+  
 
   console.log(destination, checkIn, checkOut);
 
   const properties = 
-    destination || checkIn || checkOut
-      ? await getFilteredListings(destination, checkIn, checkOut)
+    destination || checkIn || checkOut || type
+      ? await getFilteredListings(destination, checkIn, checkOut,type)
       : await getAllListedProperties();
   if (!properties) {
     return <>sorry couldn't fetch the properties</>;

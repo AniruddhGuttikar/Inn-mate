@@ -7,14 +7,19 @@ import {
   Leaf as Farmhouse,
   Sun as Beachhouse,
   Home as Cottage,
-  Building2 as Apartment
+  Building2 as Apartment,
+  Asterisk
+  
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 // Define the type for propertyTypes
 interface PropertyType {
   name: string;
   icon: React.ReactNode;
 }
+
+
 
 const propertyTypes: PropertyType[] = [
   { name: "Hotel", icon: <Hotel /> },
@@ -24,14 +29,20 @@ const propertyTypes: PropertyType[] = [
   { name: "Beachhouse", icon: <Beachhouse /> },
   { name: "Cottage", icon: <Cottage /> },
   { name: "Apartment", icon: <Apartment /> },
+  { name: "Any", icon: <Asterisk /> }, // Using a generic "AllInclusive" icon for "Any"
 ];
+
 
 const PropTypesSelect: React.FC = () => {
   const [selectedType, setSelectedType] = useState<string>("");
-
+  const router=useRouter()
   const handleClick = (propertyName: string): void => {
     setSelectedType(propertyName); // Set the selected property on click
     console.log(propertyName); // Log property name on click
+    const params = new URLSearchParams();
+    if(propertyName) params.append('type',propertyName)
+    router.push(`?${params.toString()}`)
+    
   };
 
   return (

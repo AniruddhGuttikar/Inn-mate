@@ -6,13 +6,23 @@ import { getAllImagesbyId, getPropertyById } from "@/actions/propertyActions";
 import { getAllReviewsById } from "@/actions/reviewActions";
 import { getUserById, getUserByKindeId } from "@/actions/userActions";
 import PropertyListingPage from "@/components/property/PropertyPage";
+// import { useToast } from "@/hooks/use-toast";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
+// import { useRouter } from "next/navigation";
 import React from "react";
 
 const page = async ({ params }: { params: { propertyId: string } }) => {
+  // const router=useRouter()
+  // const {toast}=useToast()
   const property = await getPropertyById(params.propertyId);
   const { getUser } = getKindeServerSession();
   const kindeUser = await getUser();
+
+  if(!kindeUser){
+    return <>No User Found</>
+    
+    
+  }
   const user = await getUserByKindeId(kindeUser.id);
   if (!property || !property.id || !property.locationId || !user?.id) {
     return <>Invalid property Id</>;
