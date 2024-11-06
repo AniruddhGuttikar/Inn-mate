@@ -62,6 +62,7 @@ export const locationSchema = z.object({
   country: z.string(),
   latitude: z.number().optional().nullable(),
   longitude: z.number().optional().nullable(),
+
 });
 // Property Schema
 
@@ -81,21 +82,28 @@ export const propertySchema = z.object({
   propertyType: PropertyTypeEnum,
   locationId: z.string().cuid().optional(),
   isHotel: z.boolean().default(false),
-  image: z.array(imageSchema).optional(),
+  images: z.array(imageSchema).optional(),
   isDeleted :z.boolean().default(false).optional(),
 });
 
-
+// CheckInCheckOut Schema
+export const checkInCheckOutSchema = z.object({
+  id: z.string().cuid().optional(),
+  checkInDate: z.coerce.date(),
+  checkOutDate: z.coerce.date(),
+  bookingId: z.string().cuid().optional(),
+});
 
 // Booking Schema
 export const bookingSchema = z.object({
   id: z.string().cuid().optional(),
-  startDate: z.coerce.date(),
-  endDate: z.coerce.date(),
+  // startDate: z.coerce.date(),
+  // endDate: z.coerce.date(),
   totalPrice: z.number().positive(),
   userId: z.string().cuid(),
   propertyId: z.string().cuid(),
   status: BookingStatusEnum,
+  checkInOut : checkInCheckOutSchema.nullable()
 });
 
 // Review Schema
@@ -143,13 +151,7 @@ export const paymentSchema = z.object({
   bookingId: z.string().cuid(),
 });
 
-// CheckInCheckOut Schema
-export const checkInCheckOutSchema = z.object({
-  id: z.string().cuid(),
-  checkInDate: z.coerce.date(),
-  checkOutDate: z.coerce.date(),
-  bookingId: z.string().cuid(),
-});
+
 
 // Export types
 export type TUser = z.infer<typeof userSchema>;

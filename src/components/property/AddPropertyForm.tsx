@@ -92,7 +92,7 @@ export default function AddPropertyForm({ userId, propId }: AddPropertyFormProps
       state: "",
       country: "",
       
-      image: [],
+      images: [],
       amenities: [],
     }),
   });
@@ -210,9 +210,9 @@ export default function AddPropertyForm({ userId, propId }: AddPropertyFormProps
       }));
 
       const propertyWithImages = imageUrls.length > 0
-        ? { ...property, image: formattedImages }
+        ? { ...property, images: formattedImages }
         : { ...property };
-
+      console.log("PropertyWithImages",propertyWithImages)
       if (!isEdit) {
         const result = await addProperty(kindeId, propertyWithImages);
         if (!result) {

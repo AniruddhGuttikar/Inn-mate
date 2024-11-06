@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import DateRangePicker from "@/components/property/DateRangePicker";
 import { DateRange } from "react-day-picker";
 import {
@@ -35,32 +36,10 @@ import {
 
 import { createBooking } from "@/actions/bookingActions";
 import { useToast } from "@/hooks/use-toast";
-import ReservationSummary from "../payment/orderSummary";
-// Mock data (replace with actual data fetching in a real application)
-const property = {
-  id: "1",
-  name: "Luxurious Beachfront Villa",
-  description:
-    "Experience the ultimate beachfront luxury in this stunning villa. Enjoy breathtaking ocean views, private beach access, and world-class amenities.",
-  pricePerNight: 500,
-  maxGuests: 8,
-  propertyType: "VILLA",
-  isHotel: false,
-  location: {
-    city: "Malibu",
-    state: "California",
-    country: "United States",
-  },
-  image: [
-    "/placeholder.svg?height=600&width=800",
-    "/placeholder.svg?height=600&width=800",
-    "/placeholder.svg?height=600&width=800",
-    "/placeholder.svg?height=600&width=800",
-  ],
-  amenities: ["Wifi", "TV", "Parking", "Kitchen", "Coffee maker"],
-  rating: 4.9,
-  reviewCount: 128,
-};
+import ReviewCard from "./ReviewCard";
+import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
+import { useRouter } from "next/navigation";
+import { loadStripe } from "@stripe/stripe-js";
 
 export default function PropertyListingPage({
   property,
@@ -71,7 +50,9 @@ export default function PropertyListingPage({
   host,
   listing,
   bookings,
+  userId,
 }: {
+
   property: TProperty;
   location: TLocation;
   amenities: TAmenity[] | null;
@@ -80,16 +61,22 @@ export default function PropertyListingPage({
   host: TUser;
   listing: TListing;
   bookings: TBooking[] | null;
+  userId: string;
 }) {
+  const router=useRouter()
+  const [loading, setLoading] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [selectedDates, setSelectedDates] = useState<DateRange>();
   const [isSelectedDates, setIsSelectedDates] = useState(false);
   const [isReserved,setisReserved]=useState(false)
   const [reservationDetails , setreservationDetails]= useState<TBooking>();
+  const [showDialog, setShowDialog] = useState(false);
 
   const { toast } = useToast();
 
-  if (!property.id || !host) {
+  const { user: kindeUser } = useKindeBrowserClient();
+
+  if (!property.id || !host || !kindeUser) {
     return <>Sorry this property doesn't exist</>;
   }
   const displayedImages =
@@ -147,6 +134,7 @@ export default function PropertyListingPage({
   };
 
   const handleSubmit = async () => {
+    
     try {
       if (
         !host.id ||
@@ -161,10 +149,12 @@ export default function PropertyListingPage({
         (selectedDates.to.getTime() - selectedDates.from.getTime()) / msInDay
       );
       const bookingValues: TBooking = {
-        userId: host?.id,
+        userId,
         propertyId: property.id,
-        startDate: selectedDates?.from,
-        endDate: selectedDates?.to,
+        checkInOut:{
+          checkInDate:selectedDates?.from,
+          checkOutDate:selectedDates?.to
+        },
         status: "CONFIRMED",
         totalPrice: property.pricePerNight * totalDays,
       };
@@ -174,12 +164,9 @@ export default function PropertyListingPage({
       //   throw new Error("Error in creating the ");
       // }
       setisReserved(true);
+      setShowDialog(true);
 
 
-      toast({
-        title: "navigating to payment page",
-        description: "U will be redicted hold up a second",
-      });
     } catch (error) {
       toast({
         title: "Error in Creating the Booking",
@@ -194,6 +181,48 @@ export default function PropertyListingPage({
     console.log("Selected dates:", dates);
     setSelectedDates(dates);
     setIsSelectedDates(true);
+  };
+  const handleClose = () => setShowDialog(false);
+
+  const handleContinue = async () => {
+    setShowDialog(true);
+    //Handle the stripe booking part
+    // router.push(`/bookings/${kindeUser.id}/${property.id}/payments`)
+    setLoading(true);
+
+    try {
+      console.log(reservationDetails?.totalPrice ? reservationDetails?.totalPrice : 0)
+      const res = await fetch("/api/create-checkout-session", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ 
+          amount: reservationDetails?.totalPrice ? reservationDetails?.totalPrice *100: 0,
+          PropName: property.name,
+          checkIn: reservationDetails?.checkInOut ? reservationDetails.checkInOut.checkInDate.toLocaleDateString() : "N/A",
+          checkOut: reservationDetails?.checkInOut ? reservationDetails.checkInOut.checkOutDate.toLocaleDateString() : "N/A",
+          propDetails: reservationDetails,
+        
+        }), // Convert to cents
+      });
+      
+      const { sessionId } = await res.json();
+
+      if (sessionId) {
+        const stripe = await loadStripe(
+          process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
+        );
+        await stripe?.redirectToCheckout({ sessionId });
+      }
+    } catch (error) {
+      console.error("Payment failed:", error);
+      alert("Payment failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+    
+    
   };
 
   return (
@@ -233,8 +262,49 @@ export default function PropertyListingPage({
           ))}
         </div>
       </div>
+      
 
       <main className="container mx-auto px-4 py-8">
+      <Dialog open={showDialog} onOpenChange={setShowDialog}>
+  <DialogContent className="max-w-lg p-6 rounded-lg bg-white shadow-lg">
+    <DialogHeader>
+      <DialogTitle className="text-2xl font-semibold text-gray-800 border-b border-gray-300 pb-4">
+        Reservation Summary
+      </DialogTitle>
+    </DialogHeader>
+    <div className="mt-4 space-y-4 text-gray-700">
+      <p className="text-lg">
+        <strong className="font-medium">Property:</strong> {property.name}
+      </p>
+      <p className="text-lg">
+        <strong className="font-medium">Check-in:</strong> {reservationDetails?.checkInOut ? reservationDetails.checkInOut.checkInDate.toLocaleDateString() : "N/A"}
+      </p>
+      <p className="text-lg">
+        <strong className="font-medium">Check-out:</strong> {reservationDetails?.checkInOut ? reservationDetails.checkInOut.checkOutDate.toLocaleDateString() : "N/A"}
+      </p>
+      <div className="flex justify-between items-center pt-2 border-t border-gray-300 mt-4">
+        <p className="text-xl font-semibold">
+          <strong>Total Price:</strong> ₹{reservationDetails?.totalPrice}
+        </p>
+      </div>
+    </div>
+    <DialogFooter className="mt-6 flex justify-between gap-4">
+      <Button variant="secondary" onClick={handleClose} className="w-full py-2 text-lg">
+        Close
+      </Button>
+      <Button 
+          variant="default" 
+          onClick={handleContinue} 
+          className={`w-full py-2 text-lg ${loading ? "cursor-not-allowed opacity-50" : "hover:bg-gray-700 hover:text-white"}`}
+          disabled={loading}
+        >
+          {loading ? "Processing..." : "Pay Now"}
+        </Button>
+
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="md:col-span-2">
             <h1 className="text-3xl font-bold mb-4">{property.name}</h1>
@@ -273,7 +343,7 @@ export default function PropertyListingPage({
                   </div>
                   <div>
                     <h3 className="font-semibold">Price per Night</h3>
-                    <p>${property.pricePerNight}</p>
+                    <p>₹{property.pricePerNight}</p>
                   </div>
                   <div>
                     <h3 className="font-semibold">Hotel</h3>
@@ -282,7 +352,7 @@ export default function PropertyListingPage({
                 </div>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="mb-6">
               <CardHeader>
                 <CardTitle>Amenities</CardTitle>
               </CardHeader>
@@ -294,13 +364,14 @@ export default function PropertyListingPage({
                       <div key={amenity.id} className="flex items-center">
                         {Icon && <Icon className="h-5 w-5 mr-2" />}{" "}
                         {/* Render the icon if it exists */}
-                        <span>{amenity.name}</span>
+                        <span>{amenity.name.replace(/_/g, " ")}</span>
                       </div>
                     );
                   })}
                 </div>
               </CardContent>
             </Card>
+            <ReviewCard reviews={reviews} />
           </div>
           <div>
             <Card>
@@ -313,6 +384,7 @@ export default function PropertyListingPage({
                   availabilityEnd={listing.availabilityEnd}
                   bookings={bookings}
                   onSave={handleDateSave}
+                  onClose={handleClose}
                 />
                 <Button
                   className="w-full mt-4"
@@ -324,11 +396,9 @@ export default function PropertyListingPage({
               </CardContent>
             </Card>
           </div>
+
         </div>
       </main>
-      {isReserved && (
-        <ReservationSummary bookingDetails={reservationDetails}/>
-      )}
     </div>
   );
 }

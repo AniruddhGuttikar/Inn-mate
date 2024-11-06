@@ -1,6 +1,6 @@
 "use server";
 import prisma from "@/lib/db";
-import { bookingSchema, TBooking } from "@/lib/definitions";
+import { bookingSchema, checkInCheckOutSchema, TBooking, TCheckInCheckOut } from "@/lib/definitions";
 import { z } from "zod";
 import { getUserByKindeId, isAuthenticatedUserInDb } from "./userActions";
 
@@ -17,33 +17,53 @@ export default async function getBookingDetailsByPropertyId(
           in: ["ACTIVE", "CONFIRMED"], // Use 'in' for multiple status values
         },
       },
+      include:{
+        property: true,
+        checkInOut: true
+      }
     });
-
+    
     return bookings.length > 0 ? bookings : null; // Return null if no bookings found
   } catch (error) {
     console.error("Error fetching bookings:", error);
     return null;
   }
 }
+
+
+
 export async function createBooking(
   booking: TBooking
 ): Promise<TBooking | null> {
   try {
     const validatedBooking = bookingSchema.parse(booking);
-    const newBooking = prisma.booking.create({
+
+    const newBooking = await prisma.booking.create({
       data: {
         ...validatedBooking,
+        checkInOut: {
+          create: validatedBooking.checkInOut ? {
+            checkInDate: validatedBooking.checkInOut.checkInDate ,
+            checkOutDate: validatedBooking.checkInOut.checkOutDate,
+          } : undefined,
+        },
+      },
+      include: {
+        checkInOut: true,
       },
     });
-    if (!newBooking) {
-      throw new Error("couldn't create the booking");
+
+    if (!newBooking || !newBooking.id) {
+      throw new Error("Couldn't create the booking");
     }
+
     return newBooking;
   } catch (error) {
-    console.error("Error in creating the booking ", error);
+    console.error("Error in creating the booking", error);
     return null;
   }
 }
+
 
 export async function getAllBookingsForProperty(
   propertyId?: string
@@ -101,7 +121,8 @@ export async function getAllBookedProperties(
         userId: user.id,
       },
       include: {
-        property: true,
+        property: true, 
+        checkInOut: true,
       },
     });
     return bookings;

@@ -1,4 +1,5 @@
 import { getAllAmenitiesForProperty } from "@/actions/amenitiesAction";
+import { getListing } from "@/actions/listingActions";
 import { getLocationById } from "@/actions/locationActions";
 import {
   getAllImagesbyId,
@@ -40,6 +41,7 @@ const MyProperties = async () => {
       const amenities = await getAllAmenitiesForProperty(property.id);
       const images = await getAllImagesbyId(property.id);
       const location = await getLocationById(property.locationId);
+      const isListed = await getListing(user.id, property.id);
 
       if (!amenities || !location) {
         console.error("couldn't get all the props for property: ", property);
@@ -53,9 +55,10 @@ const MyProperties = async () => {
           reviews={reviews}
           amenities={amenities}
           images={images}
-          type="list"
+          type={isListed ? "view" : "list"}
           hostKindeId={kindeUser.id}
           hostName={user.name}
+          favorites={''}
         />
       );
     })

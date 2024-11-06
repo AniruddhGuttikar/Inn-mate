@@ -3,6 +3,7 @@ import { getLocationById } from "@/actions/locationActions";
 import {
   getAllImagesbyId,
   getAllListedProperties,
+  getFilteredListings,
 } from "@/actions/propertyActions";
 import { getAllReviewsById } from "@/actions/reviewActions";
 import { getUserById, getUserByKindeId } from "@/actions/userActions";
@@ -11,19 +12,32 @@ import { useScheduler } from "@/hooks/useScheduler";
 import { TKindeUser } from "@/lib/definitions";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { useToast } from "@/hooks/use-toast";
-export default async function Home() {
-  // const {toast}=useToast();
-  try{
-  useScheduler();
-  }
-  catch{
-    console.log("Error in loading schedular")
-  }
+import PropTypesSelect from "@/components/propertyTypes/propTypes";
+// export default async function Home() {
+//   // const {toast}=useToast();
+//   try{
+//   useScheduler();
+//   }
+//   catch{
+//     console.log("Error in loading schedular")
+//   }
+//   const { getUser, isAuthenticated } = getKindeServerSession();
+//   const kindeUser = (await getUser()) as TKindeUser;
+
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: { [key: string]: string | undefined };
+}) {
   const { getUser, isAuthenticated } = getKindeServerSession();
   const kindeUser = (await getUser()) as TKindeUser;
-
-  if (!kindeUser || !isAuthenticated) {
+  console.log(kindeUser)
+  if (!kindeUser) {
+    return <h2>Sorry no kinduser to see this route</h2>;
+  }
+  else if (!isAuthenticated){
     return <h2>Sorry You are not authorized to see this route</h2>;
+
   }
 
   const user = await getUserByKindeId(kindeUser.id);
@@ -38,9 +52,29 @@ export default async function Home() {
   //   return <>sorry couldn't fetch the user</>;
   // }
 
-  const properties = await getAllListedProperties();
+  const destination = searchParams.dest;
+  const checkIn = searchParams.ci;
+  const checkOut = searchParams.co;
+
+  console.log(destination, checkIn, checkOut);
+
+  const properties = 
+    destination || checkIn || checkOut
+      ? await getFilteredListings(destination, checkIn, checkOut)
+      : await getAllListedProperties();
   if (!properties) {
     return <>sorry couldn't fetch the properties</>;
+  }
+
+  if (destination || checkIn || checkOut) {
+    console.log("Called getFilteredListings with:", {
+      destination,
+      checkIn,
+      checkOut,
+      properties,
+    });
+  } else {
+    console.log("Called getAllListedProperties, properties:", properties);
   }
 
   const propertyCards = await Promise.all(
@@ -59,6 +93,8 @@ export default async function Home() {
         return null;
       }
       return (
+        <>
+        
         <PropertyCard
           key={property.id}
           property={property}
@@ -71,11 +107,13 @@ export default async function Home() {
           hostKindeId={property.userId}
           favorites={''}
         />
+        </>
       );
     })
   );
   return (
     <>
+    <PropTypesSelect/>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
         {propertyCards.filter(Boolean)}
       </div>

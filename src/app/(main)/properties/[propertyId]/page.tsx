@@ -4,17 +4,21 @@ import { getListing } from "@/actions/listingActions";
 import { getLocationById } from "@/actions/locationActions";
 import { getAllImagesbyId, getPropertyById } from "@/actions/propertyActions";
 import { getAllReviewsById } from "@/actions/reviewActions";
-import { getUserById } from "@/actions/userActions";
+import { getUserById, getUserByKindeId } from "@/actions/userActions";
 import PropertyListingPage from "@/components/property/PropertyPage";
+import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import React from "react";
 
 const page = async ({ params }: { params: { propertyId: string } }) => {
   const property = await getPropertyById(params.propertyId);
-  if (!property || !property.id || !property.locationId) {
+  const { getUser } = getKindeServerSession();
+  const kindeUser = await getUser();
+  const user = await getUserByKindeId(kindeUser.id);
+  if (!property || !property.id || !property.locationId || !user?.id) {
     return <>Invalid property Id</>;
   }
 
-  const [amenities, image, location, reviews, user, listing, bookings] =
+  const [amenities, images, location, reviews, host, listing, bookings] =
     await Promise.all([
       await getAllAmenitiesForProperty(property.id),
       await getAllImagesbyId(property.id),
@@ -24,19 +28,20 @@ const page = async ({ params }: { params: { propertyId: string } }) => {
       await getListing(property.userId, property.id),
       await getAllBookingsForProperty(property.id),
     ]);
-  if (!user || !location || !listing) {
+  if (!host || !location || !listing) {
     return <>Sorry couldn't get all details about the property</>;
   }
   return (
     <PropertyListingPage
       property={property}
       amenities={amenities}
-      image={image}
+      image={images}  
       location={location}
       reviews={reviews}
-      host={user}
+      host={host}
       listing={listing}
       bookings={bookings}
+      userId={user.id}
     />
   );
 };

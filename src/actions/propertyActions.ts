@@ -33,7 +33,7 @@ const uploadcareSimpleAuthSchema = new UploadcareSimpleAuthSchema({
 export async function getAllListedProperties(): Promise<TProperty[] | null> {
   try {
     const listings = await prisma.listing.findMany({
-      take: 12,
+      take: 20,
       include: {
         property: true,
       },
@@ -49,6 +49,99 @@ export async function getAllListedProperties(): Promise<TProperty[] | null> {
     return null;
   }
 }
+
+export async function getFilteredListings(
+  destination?: string,
+  checkIn?: string,
+  checkOut?: string
+): Promise<TProperty[] | null> {
+  try {
+    const filteredListings = await prisma.listing.findMany({
+      take: 20,
+      where: {
+        OR: destination
+          ? [
+              {
+                property: {
+                  name: {
+                    contains: destination?.toLowerCase(),
+                    // mode: "insensitive",
+                  },
+                },
+              },
+              {
+                property: {
+                  description: {
+                    contains: destination?.toLowerCase(),
+                    // mode: "insensitive",
+                  },
+                },
+              },
+              {
+                property: {
+                  location: {
+                    city: {
+                      contains: destination?.toLowerCase(),
+                      // mode: "insensitive",
+                    },
+                  },
+                },
+              },
+              {
+                property: {
+                  location: {
+                    state: {
+                      contains: destination?.toLowerCase(),
+                      // mode: "insensitive",
+                    },
+                  },
+                },
+              },
+              {
+                property: {
+                  location: {
+                    country: {
+                      contains: destination?.toLowerCase(),
+                      // mode: "insensitive",
+                    },
+                  },
+                },
+              },
+            ]
+          : undefined,
+        ...(checkIn && checkOut
+          ? {
+              AND: [
+                {
+                  availabilityStart: {
+                    lte: new Date(checkIn),
+                  },
+                },
+                {
+                  availabilityEnd: {
+                    gte: new Date(checkOut),
+                  },
+                },
+              ],
+            }
+          : {}),
+      },
+      include: {
+        property: true,
+      },
+    });
+
+    const propertiesSchemaArray = z.array(propertySchema);
+    const validatedProperties = propertiesSchemaArray.parse(
+      filteredListings.map((listing) => listing.property)
+    );
+    return validatedProperties;
+  } catch (error) {
+    console.error("Error in getting properties: ", error);
+    return null;
+  }
+}
+
 
 export async function getAllPropertiesByUserId(
   userId: string
@@ -120,13 +213,22 @@ export async function addProperty(
     console.log("PropData: ",propertyData)
     const imagesSchemaArray = z.array(imageSchema);
     const amenitiesSchemaArray = z.array(amenitySchema);
-
-    const validatedLocation = locationSchema.parse(propertyData);
-    const validatedProperty = propertySchema.parse(propertyData);
-    const validatedImages = imagesSchemaArray.parse(propertyData.image);
-    const validatedAmenities = amenitiesSchemaArray.parse(
-      propertyData.amenities
-    );
+    console.log("Here")
+    const normalizedPropertyData = {
+      ...propertyData,
+      country: propertyData.country?.toLowerCase(),
+      state: propertyData.state?.toLowerCase(),
+      city: propertyData.city?.toLowerCase(),
+      images: propertyData.images || [],      // Default to empty array if undefined
+      amenities: propertyData.amenities || []  // Default to empty array if undefined
+    };
+    
+    // Validate data
+    const validatedLocation = locationSchema.parse(normalizedPropertyData);
+    const validatedProperty = propertySchema.parse(normalizedPropertyData);
+    const validatedImages = imagesSchemaArray.parse(normalizedPropertyData.images);
+    const validatedAmenities = amenitiesSchemaArray.parse(normalizedPropertyData.amenities);
+    
 
     // check if the location already exists
 
@@ -146,7 +248,7 @@ export async function addProperty(
     }
 
     const isHotel = validatedProperty.propertyType === "Hotel";
-    console.log("propertyImage",propertyData.image)
+    console.log("propertyImage",validatedProperty.images)
 
     const property = await prisma.property.create({
       
@@ -157,8 +259,8 @@ export async function addProperty(
         locationId: location.id,
         images: validatedImages?.length > 0
           ? {
-              create: validatedImages.map((image) => ({
-                link: image.link,
+              create: validatedImages.map((images) => ({
+                link: images.link,
               })),
             }
           : undefined,

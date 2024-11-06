@@ -39,7 +39,7 @@ export function EditProperty ({
         router.push(`/user/${kindeUserId}/edit-property/${propertyId}`);
       }}
     >
-      Edit  .
+      Edit Property
     </Button>
   );
 };

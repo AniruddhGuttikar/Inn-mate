@@ -1,7 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { format, isWithinInterval, startOfDay } from "date-fns";
+import {
+  eachDayOfInterval,
+  format,
+  isWithinInterval,
+  startOfDay,
+} from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -19,6 +24,7 @@ interface DateRangePickerProps {
   availabilityEnd: Date;
   bookings: TBooking[] | null;
   onSave: (dates: DateRange | undefined) => void;
+  onClose: () => void;
 }
 
 export default function DateRangePicker({
@@ -26,6 +32,7 @@ export default function DateRangePicker({
   availabilityEnd,
   bookings,
   onSave,
+  onClose,
 }: DateRangePickerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [date, setDate] = useState<DateRange | undefined>();
@@ -36,8 +43,8 @@ export default function DateRangePicker({
     }
     return bookings.some((booking) =>
       isWithinInterval(startOfDay(date), {
-        start: startOfDay(booking.startDate),
-        end: startOfDay(booking.endDate),
+        start: startOfDay(booking.checkInOut?.checkInDate?? ''),
+        end: startOfDay(booking.checkInOut?.checkOutDate?? ''),
       })
     );
   };
@@ -51,6 +58,26 @@ export default function DateRangePicker({
     }
 
     return isDateBooked(date);
+  };
+
+  const handleSelect = (newDate: DateRange | undefined) => {
+    if (!newDate?.from || !newDate?.to) {
+      setDate(newDate);
+      return;
+    }
+
+    const datesInRange = eachDayOfInterval({
+      start: newDate.from,
+      end: newDate.to,
+    });
+
+    const hasDisabledDate = datesInRange.some(isDateDisabled);
+
+    if (hasDisabledDate) {
+      setDate({ from: newDate.from, to: undefined });
+    } else {
+      setDate(newDate);
+    }
   };
 
   return (
@@ -85,7 +112,7 @@ export default function DateRangePicker({
             mode="range"
             defaultMonth={availabilityStart}
             selected={date}
-            onSelect={setDate}
+            onSelect={handleSelect}
             numberOfMonths={2}
             disabled={(date) => isDateDisabled(date)}
           />
@@ -95,6 +122,7 @@ export default function DateRangePicker({
               onClick={() => {
                 setDate(undefined);
                 setIsOpen(false);
+                onClose();
               }}
             >
               Clear
@@ -102,6 +130,8 @@ export default function DateRangePicker({
             <Button
               variant="outline"
               onClick={() => {
+                onClose();
+                setDate(undefined);
                 setIsOpen(false);
               }}
             >

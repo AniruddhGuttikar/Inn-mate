@@ -2,13 +2,30 @@ import Image from "next/image";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Bed, Users, Star, Heart } from "lucide-react";
+import {
+  Bed,
+  Users,
+  Star,
+  Heart,
+  Wifi,
+  CarFront,
+  AirVent,
+  Coffee,
+  Shrub,
+  Waves,
+  Dumbbell,
+  Microwave,
+  Tv2,
+  WashingMachine,
+  Dog,
+} from "lucide-react";
 import {
   TProperty,
   TReview,
   TImage,
   TLocation,
   TAmenity,
+  TCheckInCheckOut,
 } from "@/lib/definitions";
 import BookPropertyButton from "./BookPropertyButton";
 import ListPropertyButton, { EditProperty } from "./ListNowButton";
@@ -21,11 +38,12 @@ interface PropertyCardProps {
   images: TImage[] | null;
   location: TLocation;
   amenities: TAmenity[];
-  type: "book" | "list" | "view";
+  type: "book" | "list" | "view" | "status" | "edit";
   hostName: string;
   hostKindeId?: string;
   favorites:string;
 
+  checkInCheckOutDetail?: TCheckInCheckOut;
 }
 
 export default function PropertyCard({
@@ -37,7 +55,8 @@ export default function PropertyCard({
   type,
   hostKindeId,
   hostName,
-  favorites
+  favorites,
+  checkInCheckOutDetail,
 }: PropertyCardProps) {
 
   // If favorites is an empty string, show all properties
@@ -51,9 +70,27 @@ export default function PropertyCard({
         ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
         : null;
   }
-
-  imageLink = images?.[0]?.link || "https://th.bing.com/th/id/OIP.7uysmPeeGjhBNLLTiZc6fAHaLb?w=115&h=180&c=7&r=0&o=5&dpr=1.3&pid=1.7";
-  console.log("Image link: ", imageLink);
+  if (images && images?.length !== 0) {
+    imageLink = images[0].link;
+  } else {
+    imageLink =
+      "https://images.unsplash.com/photo-1579297206620-c410c4af42e4?q=80&w=1587&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D";
+  }
+  const amenityIcons: { [key: string]: React.ElementType } = {
+    WIFI: Wifi,
+    PARKING: CarFront,
+    AIR_CONDITIONING: AirVent,
+    COFFEE: Coffee,
+    PARK: Shrub,
+    POOL: Waves,
+    GYM: Dumbbell,
+    KITCHEN: Microwave,
+    TV: Tv2,
+    LAUNDRY: WashingMachine,
+    PET_FRIENDLY: Dog,
+  };
+  // console.log("Image link: ", imageLink);
+  // console.log("CheckIn CheckOut in the Property Card: ", checkInCheckOutDetail);
 
   return (
     <Card className="w-full max-w-sm mx-auto">
@@ -97,38 +134,78 @@ export default function PropertyCard({
           </div>
         </div>
         <div className="flex flex-wrap gap-1">
-          {amenities.slice(0, 3).map((amenity) => (
-            <Badge key={amenity.id} variant="secondary">
-              {amenity.name}
-            </Badge>
-          ))}
+          {amenities.slice(0, 3).map((amenity) => {
+            const Icon = amenityIcons[amenity.name];
+            return (
+              <div key={amenity.id} className="flex items-center">
+                {Icon && (
+                  <Icon className="h-5 w-5 mr-2 bg-secondary rounded-md " />
+                )}{" "}
+                {/* <span>{amenity.name}</span> */}
+              </div>
+            );
+          })}
           {amenities.length > 3 && (
             <Badge variant="secondary">+{amenities.length - 3} more</Badge>
           )}
         </div>
-        <h3>hosted by: {hostName}</h3>
+        <h3>
+          Hosted by: <span className="font-semibold"> {hostName}</span>
+        </h3>
+        {type === "status" && (
+          <>
+          <h3>
+            Booked from{" "}
+            <span className="font-semibold">
+              {checkInCheckOutDetail?.checkInDate.toLocaleDateString("en-US", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+              })}
+            </span>{"   "}
+            to{" "}
+            <span className="font-semibold">
+              {checkInCheckOutDetail?.checkOutDate.toLocaleDateString("en-US", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+              })}
+            
+            </span>
+          </h3>
+          </>
+        )}
       </CardContent>
       <CardFooter className="p-4 pt-0 flex justify-between items-center">
   <div>
-    <span className="text-lg font-bold">${property.pricePerNight}</span>
+    <span className="text-lg font-bold">₹{property.pricePerNight}</span>
     <span className="text-sm text-muted-foreground"> / night</span>
   </div>
-  {type === "book" ? (
-    <BookPropertyButton propertyId={property.id} />
-  ) : type === "list" ? (
-    <ListPropertyButton
-      propertyId={property.id}
-      kindeUserId={hostKindeId}
-    />
-  ) :  ( // Check if the type is "edit"
-    <>
-      <EditProperty propertyId={property.id} kindeUserId={hostKindeId} />
-      <ListPropertyButton propertyId={property.id} kindeUserId={hostKindeId} />
-    
-    <ViewPropertyButton propertyId={property.id} />
-    </>
-  )}
-</CardFooter>
+        {type === "book" && (
+          <BookPropertyButton propertyId={property.id} />
+        )}
+        {type === "list" && (
+          <ListPropertyButton
+            propertyId={property.id}
+            kindeUserId={hostKindeId}
+          />
+        )}
+
+        </CardFooter>
+        {(type !='book' && type!='list' && type!='status') &&(
+                  <>
+          <div className="flex justify-center space-x-2">
+            <EditProperty propertyId={property.id} kindeUserId={hostKindeId} />
+            <ListPropertyButton propertyId={property.id} kindeUserId={hostKindeId} />
+            <ViewPropertyButton propertyId={property.id} />
+          </div>
+
+          
+                  </>
+
+        )}
+
+      
 
     </Card>
   );

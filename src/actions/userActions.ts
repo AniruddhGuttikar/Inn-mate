@@ -10,7 +10,7 @@ import {
 } from "@/lib/definitions";
 import { KindeUser } from "@kinde-oss/kinde-auth-nextjs/types";
 import { revalidatePath } from "next/cache";
-import nodemailer from 'nodemailer' ;
+import nodemailer from 'nodemailer';
 import { getPropertyById } from "./propertyActions";
 export async function getUserById(
   id: string | undefined
@@ -273,8 +273,8 @@ export default async function SendMailToUsers(bookingDataList: TBooking[]) {
           <ul style="list-style-type: none; padding: 0;">
             <li><strong>Booking ID:</strong> ${bookingData.id}</li>
             <li><strong>Property:</strong> ${propName}</li>
-            <li><strong>Check-in:</strong> ${bookingData.startDate}</li>
-            <li><strong>Check-out:</strong> ${bookingData.endDate}</li>
+            <li><strong>Check-in:</strong> ${bookingData.checkInOut?.checkInDate}</li>
+            <li><strong>Check-out:</strong> ${bookingData.checkInOut?.checkOutDate}</li>
             <li><strong>Total Price:</strong> $${bookingData.totalPrice}</li>
           </ul>
           
@@ -310,5 +310,96 @@ export default async function SendMailToUsers(bookingDataList: TBooking[]) {
   } catch (error) {
     console.error('Error processing bookings:', error);
     return null
+  }
+}
+
+// Assuming TBooking type is defined elsewhere in your project
+export async function BookingCnfMail(bookingData: TBooking, transactionId: string) {
+  try {
+    // Configure SMTP transport
+    const transporter = nodemailer.createTransport({
+      service: 'Gmail',
+      auth: {
+        user: process.env.SMTP_USER, // Your email address
+        pass: process.env.SMTP_PASS, // Your email password or app-specific password
+      },
+    });
+
+    const userId = bookingData.userId;
+    const user = await getUserById(userId); // Assume this function fetches user details
+    const prop = await getPropertyById(bookingData.propertyId); // Assume this function fetches property details
+    const propName = prop?.name;
+    const currentDateTime = new Date().toLocaleString();
+
+    if (!user || !user.email) {
+      console.error(`User not found or email not available for user ID ${userId}`);
+      return;
+    }
+
+    const userEmail = user.email;
+    const subject = 'Booking Confirmation';
+
+    // Parsing and formatting dates
+    const checkInDate = bookingData.checkInOut?.checkInDate
+      ? new Date(bookingData.checkInOut.checkInDate).toLocaleDateString()
+      : "N/A";
+    const checkOutDate = bookingData.checkInOut?.checkOutDate
+      ? new Date(bookingData.checkInOut.checkOutDate).toLocaleDateString()
+      : "N/A";
+
+    // HTML content with CSS styling
+    const htmlContent = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 8px; background-color: #f9f9f9;">
+
+      <div style="display: flex; align-items: left; margin-bottom: 20px;">
+      <h2 style="color: #4CAF50; font-size: 24px; margin: 0;">INNMATE</h2>
+    </div>
+
+        <h1 style="color: #4CAF50; text-align: center;">Booking Confirmation</h1>
+        
+        <p style="color: #333; text-align: center;">Dear ${user?.name},</p>
+        <p style="color: #555; text-align: center;">We are excited to let you know that your booking was successful! Here are your booking details:</p>
+        
+        <div style="background-color: #fff; padding: 15px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+          <h2 style="color: #333; border-bottom: 1px solid #ddd; padding-bottom: 10px;">Booking Details</h2>
+          <ul style="list-style-type: none; padding: 0;">
+            <li><strong>Booking ID:</strong> ${bookingData.id ? bookingData.id : ''}</li>
+            <li><strong>Transaction ID:</strong> ${transactionId}</li>
+            <li><strong>Property:</strong> ${propName}</li>
+            <li><strong>Check-in Date:</strong> ${checkInDate}</li>
+            <li><strong>Check-out Date:</strong> ${checkOutDate}</li>
+            <li><strong>Total Price:</strong> $${bookingData.totalPrice}</li>
+            <li><strong>Booking Date:</strong> ${currentDateTime}</li>
+          </ul>
+        </div>
+        
+        <p style="color: #555; margin-top: 20px;">Thank you for choosing our service. We look forward to making your stay comfortable and memorable.</p>
+        
+        <p style="color: #555; margin-top: 20px; text-align: center;">Best regards,</p>
+        <p style="color: #333; text-align: center;"><strong>The Team</strong></p>
+
+        <footer style="margin-top: 20px; text-align: center; color: #888;">
+          <p>Contact us: support@example.com | Phone: +1 234 567 890</p>
+          <p>Follow us on <a href="https://twitter.com/example" style="color: #1DA1F2; text-decoration: none;">Twitter</a> and <a href="https://facebook.com/example" style="color: #1877F2; text-decoration: none;">Facebook</a></p>
+        </footer>
+      </div>
+    `;
+
+    const mailOptions = {
+      from: 'no-reply@example.com', // Your email or service email
+      to: userEmail,
+      subject,
+      html: htmlContent,
+    };
+
+    try {
+      await transporter.sendMail(mailOptions);
+      console.log('Booking confirmation email sent successfully to:', userEmail);
+    } catch (error) {
+      console.error(`Error sending email to ${userEmail}:`, error);
+    }
+
+  } catch (error) {
+    console.error('Error processing booking confirmations:', error);
   }
 }

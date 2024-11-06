@@ -108,7 +108,7 @@ export default function DeleteProperty({ bookings, userId, kindeId, propertyId }
                 const oneMonthLater = new Date(today.setMonth(today.getMonth() + 1)); // Today's date + 1 month
               
                 bookings.forEach(async (booking) => {
-                  if (booking.startDate > oneMonthLater) {
+                  if (booking.checkInOut?.checkInDate && booking.checkInOut?.checkInDate  > oneMonthLater) {
                     console.log(`Deleting 1 month booking with ID: ${booking.id}`);
                     const result_prop = await DeletePropertyByIdAdmin(propertyId);
                         if (!result_prop) {
@@ -131,8 +131,11 @@ export default function DeleteProperty({ bookings, userId, kindeId, propertyId }
                   else {
                     // Calculate the maximum end date from the bookings
                     const maxDate = bookings.reduce((max, booking) => {
-                      return booking.endDate > max ? booking.endDate : max;
-                    }, new Date(0));
+                        if (booking.checkInOut?.checkOutDate) {
+                            return booking.checkInOut.checkOutDate > max ? booking.checkInOut.checkOutDate : max;
+                        }
+                        return max;
+                    }, new Date(0)); 
                   
                     if (kindeId) {
                       await updatePropertyDelete(kindeId, propertyId, true);
@@ -146,7 +149,7 @@ export default function DeleteProperty({ bookings, userId, kindeId, propertyId }
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({
                         id: propertyId, // use the actual property ID here
-                        maxDate: maxDate.toISOString(), // send the maxDate as an ISO string
+                        maxDate: maxDate.toString(), // send the maxDate as an ISO string
                       }),
                     })
                       .then(response => response.json())
@@ -179,10 +182,10 @@ export default function DeleteProperty({ bookings, userId, kindeId, propertyId }
                             <CardContent className="mt-4">
                                 <div className="text-gray-700">
                                     <p>
-                                        <span className="font-semibold">Start Date:</span> {format(new Date(booking.startDate), "MMM dd, yyyy")}
+                                        <span className="font-semibold">Start Date:</span> {format(new Date(booking.checkInOut?.checkInDate? booking.checkInOut?.checkInDate : ''), "MMM dd, yyyy")}
                                     </p>
                                     <p>
-                                        <span className="font-semibold">End Date:</span> {format(new Date(booking.endDate), "MMM dd, yyyy")}
+                                        <span className="font-semibold">End Date:</span> {format(new Date(booking.checkInOut?.checkOutDate? booking.checkInOut?.checkOutDate : ''), "MMM dd, yyyy")}
                                     </p>
                                     <p>
                                         <span className="font-semibold">Total Price:</span> ${booking.totalPrice.toFixed(2)}

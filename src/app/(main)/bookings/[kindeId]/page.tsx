@@ -5,14 +5,14 @@ import { getAllImagesbyId } from "@/actions/propertyActions";
 import { getAllReviewsById } from "@/actions/reviewActions";
 import { getUserById } from "@/actions/userActions";
 import PropertyCard from "@/components/property/Property";
-import { TBooking, TProperty } from "@/lib/definitions";
+import { TBooking, TCheckInCheckOut, TProperty } from "@/lib/definitions";
 import React from "react";
 
 const Bookings = async ({ params }: { params: { kindeId: string } }) => {
   const kindeId = params.kindeId;
   const bookings = (await getAllBookedProperties(kindeId)) as (TBooking & {
     property: TProperty;
-  })[];
+  } & { checkInOut: TCheckInCheckOut })[];
   // console.log(bookings);
   const propertyCards = await Promise.all(
     bookings.map(async (booking) => {
@@ -32,6 +32,8 @@ const Bookings = async ({ params }: { params: { kindeId: string } }) => {
         );
         return null;
       }
+      // console.log("checkIn CheckOut details: ", booking.checkInOut);
+
       return (
         <PropertyCard
           key={booking.property.id}
@@ -40,10 +42,12 @@ const Bookings = async ({ params }: { params: { kindeId: string } }) => {
           reviews={reviews}
           amenities={amenities}
           images={images}
-          type="view"
+          type="status"
           hostName={user.name}
           hostKindeId={booking.property.userId}
-        />
+          checkInCheckOutDetail={booking.checkInOut}
+          favorites={''}
+         />
       );
     })
   );

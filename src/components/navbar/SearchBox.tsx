@@ -32,7 +32,7 @@ export default function SearchBox() {
     if (checkIn) params.append("ci", format(checkIn, "yyyy-MM-dd"));
     if (checkOut) params.append("co", format(checkOut, "yyyy-MM-dd"));
 
-    router.push(params.toString());
+    router.push(`?${params.toString()}`);
   }
 
   return (
