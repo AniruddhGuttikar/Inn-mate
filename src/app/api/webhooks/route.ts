@@ -31,6 +31,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ status: "Failed", message: "Failed to add to database" });
         }
           const resM=await BookingCnfMail(propertyDetailsData,sig ||' ')
+          
 
 
 

@@ -146,6 +146,9 @@ export async function getFilteredListings(
     const validatedProperties = propertiesSchemaArray.parse(
       filteredListings.map((listing) => listing.property)
     );
+    if(!validatedProperties){
+      return null
+    }
     return validatedProperties;
   } catch (error) {
     console.error("Error in getting properties: ", error);

@@ -8,24 +8,11 @@ import {
 import { getAllReviewsById } from "@/actions/reviewActions";
 import { getUserById, getUserByKindeId } from "@/actions/userActions";
 import PropertyCard from "@/components/property/Property";
-import { useScheduler } from "@/hooks/useScheduler";
 import { TKindeUser } from "@/lib/definitions";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
-import { useToast } from "@/hooks/use-toast";
 import PropTypesSelect from "@/components/propertyTypes/propTypes";
 import Footer from "@/components/footer/footer";
 import AboutUs from "@/components/contents/Aboutus";
-
-// export default async function Home() {
-//   // const {toast}=useToast();
-//   try{
-//   useScheduler();
-//   }
-//   catch{
-//     console.log("Error in loading schedular")
-//   }
-//   const { getUser, isAuthenticated } = getKindeServerSession();
-//   const kindeUser = (await getUser()) as TKindeUser;
 
 export default async function Home({
   searchParams,
@@ -34,42 +21,19 @@ export default async function Home({
 }) {
   const { getUser, isAuthenticated } = getKindeServerSession();
   const kindeUser = (await getUser()) as TKindeUser;
-  console.log(kindeUser)
-  // if (!kindeUser) {
-  //   return <h2>Sorry no kinduser to see this route</h2>;
-  // }
-  // else if (!isAuthenticated){
-  //   return <h2>Sorry You are not authorized to see this route</h2>;
-
-  // }
-
-  // const user = await getUserByKindeId(kindeUser.id);
-  // if (!user || !user.id || !isAuthenticated) {
-  //   console.log("couldn't get the user in /user/userId/properties");
-  //   return <>sorry couldn't fetch the user</>;
-  // }
-  
-  //const user = await getUserByKindeId(kindeUser.id);
-  // if (!user || !user.id || !isAuthenticated) {
-  //   console.log("couldn't get the user in /user/userId/properties");
-  //   return <>sorry couldn't fetch the user</>;
-  // }
+  console.log(kindeUser);
 
   const destination = searchParams.dest;
   const checkIn = searchParams.ci;
   const checkOut = searchParams.co;
-  const type=searchParams.type === 'Any'? undefined :searchParams.type
-  
+  const type = searchParams.type === 'Any' ? undefined : searchParams.type;
 
   console.log(destination, checkIn, checkOut);
 
-  const properties = 
+  const properties =
     destination || checkIn || checkOut || type
-      ? await getFilteredListings(destination, checkIn, checkOut,type)
+      ? await getFilteredListings(destination, checkIn, checkOut, type)
       : await getAllListedProperties();
-  if (!properties) {
-    return <>sorry couldn't fetch the properties</>;
-  }
 
   if (destination || checkIn || checkOut) {
     console.log("Called getFilteredListings with:", {
@@ -80,6 +44,17 @@ export default async function Home({
     });
   } else {
     console.log("Called getAllListedProperties, properties:", properties);
+  }
+
+  // Check if properties is null or undefined before proceeding
+  if (!properties) {
+    return (
+<div className="text-red-600 text-center font-semibold text-lg w-full mt-8 flex justify-center items-center absolute top-0 left-0 right-0 bottom-0 z-50">
+  No property available
+</div>
+
+
+    );
   }
 
   const propertyCards = await Promise.all(
@@ -98,8 +73,6 @@ export default async function Home({
         return null;
       }
       return (
-        <>
-        
         <PropertyCard
           key={property.id}
           property={property}
@@ -110,23 +83,28 @@ export default async function Home({
           type="book"
           hostName={user.name}
           hostKindeId={property.userId}
-          favorites={''}
+          favorites=""
         />
-        </>
       );
     })
   );
+
   return (
     <>
-    <PropTypesSelect/>
+      <PropTypesSelect />
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
-        {propertyCards.filter(Boolean)}
+        {propertyCards.length > 0 ? (
+          propertyCards.filter(Boolean)
+        ) : (
+          <div className="text-red-600 text-center font-semibold text-lg w-full mt-8">
+            No property available
+          </div>
+        )}
       </div>
-      <h1>Previous Bookings</h1>
-      hey buddy here we will show your prevv boookings if available
-      <AboutUs/>
-      <Footer/>
-
+      {/* <h1 className="text-2xl font-bold mt-12">Previous Bookings</h1>
+      <p className="text-gray-600 mt-4 mb-8">Here we will show your previous bookings if available.</p> */}
+      <AboutUs />
+      <Footer />
     </>
   );
 }
