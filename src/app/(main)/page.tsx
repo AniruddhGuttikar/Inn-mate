@@ -13,6 +13,9 @@ import { TKindeUser } from "@/lib/definitions";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { useToast } from "@/hooks/use-toast";
 import PropTypesSelect from "@/components/propertyTypes/propTypes";
+import Footer from "@/components/footer/footer";
+import AboutUs from "@/components/contents/Aboutus";
+
 // export default async function Home() {
 //   // const {toast}=useToast();
 //   try{
@@ -119,6 +122,11 @@ export default async function Home({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
         {propertyCards.filter(Boolean)}
       </div>
+      <h1>Previous Bookings</h1>
+      hey buddy here we will show your prevv boookings if available
+      <AboutUs/>
+      <Footer/>
+
     </>
   );
 }

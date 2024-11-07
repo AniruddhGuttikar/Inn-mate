@@ -130,8 +130,21 @@ export default function PropertyCard({
           </div>
           <div className="flex items-center">
             <Users className="h-4 w-4 mr-1" />
-            <span>Up to {property.maxGuests} guests</span>
+            <span>
+                {property.isHotel 
+                  ? (property.maxGuests !== 0 ? 'Rooms Available' : 'No Rooms Available') 
+                  : `Up to ${property.maxGuests} guests`}
+            </span>
           </div>
+        { property.isHotel && property.RoomType &&(
+        <div className="flex items-center">
+              <Bed className="h-4 w-4 mr-1 text-blue-500" /> {/* Bed icon with custom color */}
+                  <span className="text-blue-500 font-semibold bg-blue-100 px-1 rounded">
+                         Room Type: {property.RoomType}
+                  </span>
+          </div>
+        )
+                }
         </div>
         <div className="flex flex-wrap gap-1">
           {amenities.slice(0, 3).map((amenity) => {
@@ -199,8 +212,6 @@ export default function PropertyCard({
             <ListPropertyButton propertyId={property.id} kindeUserId={hostKindeId} />
             <ViewPropertyButton propertyId={property.id} />
           </div>
-
-          
                   </>
 
         )}
@@ -208,5 +219,6 @@ export default function PropertyCard({
       
 
     </Card>
+    
   );
 }

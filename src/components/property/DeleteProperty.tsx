@@ -60,15 +60,7 @@ export default function DeleteProperty({ bookings, userId, kindeId, propertyId }
                         userId: booking.userId,
                         price: booking.totalPrice,
                     }));
-                    const result = await SendMailToUsers(bookings);
-                    if (!result) {
-                        toast({
-                            title: 'error',
-                            description: 'could not send mail try again',
-                        });
 
-                        return null;
-                    }
                     //Delete the bookings
                     const result_user = await DeleteBookingsbyIds(bookingIds);
                     if (!result_user) {
@@ -86,6 +78,16 @@ export default function DeleteProperty({ bookings, userId, kindeId, propertyId }
                             title: 'error',
                             description: 'could delete property try again',
                         });
+                        return null;
+
+                    }
+                    const result = await SendMailToUsers(bookings);
+                    if (!result) {
+                        toast({
+                            title: 'error',
+                            description: 'could not send mail try again',
+                        });
+
                         return null;
                     }
                 } else {

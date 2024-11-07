@@ -1,9 +1,5 @@
-
-// This is your Prisma schema file,
+// This is your Prisma schema file
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
   provider = "prisma-client-js"
@@ -15,7 +11,6 @@ datasource db {
 }
 
 model User {
-  
   id        String   @id @default(cuid())
   kindeId   String   @unique
   email     String   @unique
@@ -62,6 +57,7 @@ model Property {
   propertyType  PropertyType
   isHotel       Boolean      @default(false)
   isDeleted     Boolean      @default(false)
+  RoomType      String       @default("")
 
   locationId String
   location   Location @relation(fields: [locationId], references: [id])
@@ -86,7 +82,7 @@ model Room {
   pricePerNight Float
 
   propertyId String
-  property   Property @relation(fields: [propertyId], references: [id])
+  property   Property @relation(fields: [propertyId], references: [id],onDelete: Cascade)
 
   bookings Booking[]
 }
@@ -96,7 +92,7 @@ model Image {
   link String
 
   propertyId String
-  property   Property @relation(fields: [propertyId], references: [id])
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
 }
 
 enum PropertyType {
@@ -119,7 +115,7 @@ model Booking {
   user   User   @relation(fields: [userId], references: [id])
 
   propertyId String
-  property   Property @relation(fields: [propertyId], references: [id])
+  property   Property @relation(fields: [propertyId], references: [id],onDelete: Cascade)
 
   roomId String?
   room   Room?   @relation(fields: [roomId], references: [id])
@@ -146,7 +142,7 @@ model Review {
   user   User   @relation(fields: [userId], references: [id])
 
   propertyId String
-  property   Property @relation(fields: [propertyId], references: [id])
+  property   Property @relation(fields: [propertyId], references: [id],onDelete: Cascade)
 }
 
 model Favourite {
@@ -155,7 +151,7 @@ model Favourite {
   propertyId String
 
   user     User     @relation(fields: [userId], references: [id])
-  property Property @relation(fields: [propertyId], references: [id])
+  property Property @relation(fields: [propertyId], references: [id],onDelete: Cascade)
 
   @@unique([userId, propertyId])
 }
@@ -171,7 +167,7 @@ model Listing {
   user   User   @relation(fields: [userId], references: [id])
 
   propertyId String
-  property   Property @relation(fields: [propertyId], references: [id])
+  property   Property @relation(fields: [propertyId], references: [id],onDelete: Cascade)
 
   @@unique([userId, propertyId])
 }
@@ -181,7 +177,7 @@ model Amenity {
   name AmenityType
 
   propertyId String
-  property   Property @relation(fields: [propertyId], references: [id])
+  property   Property @relation(fields: [propertyId], references: [id],onDelete: Cascade)
 }
 
 enum AmenityType {
@@ -215,7 +211,7 @@ model Payment {
   paymentDate DateTime
 
   bookingId String  @unique
-  booking   Booking @relation(fields: [bookingId], references: [id])
+  booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
 }
 
 model CheckInCheckOut {
@@ -224,7 +220,7 @@ model CheckInCheckOut {
   checkOutDate DateTime
 
   bookingId String  @unique
-  booking   Booking @relation(fields: [bookingId], references: [id])
+  booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
 }
 
 // model Admin {
@@ -235,4 +231,3 @@ model CheckInCheckOut {
 //   createdAt DateTime @default(now())
 //   updatedAt DateTime @updatedAt
 // }
-

@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE `property` ADD COLUMN `RoomType` VARCHAR(191) NOT NULL DEFAULT '';

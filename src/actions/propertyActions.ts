@@ -281,6 +281,10 @@ export async function addProperty(
             })),
           },
         }),
+        ...(isHotel && {
+          RoomType: validatedProperty.RoomType
+        })
+
       },
     });
     
@@ -359,6 +363,10 @@ export async function updateProperty(
             link: image.link,
           })),
         },
+        ...(isHotel && {
+          RoomType: validatedProperty.RoomType
+        })
+        ,
       },
     });
 
@@ -414,6 +422,8 @@ export async function getAllImagesbyId(
 
 
 export async function DeletePropertyByIdAdmin(propertyId : string){
+
+  try{
   const result= await prisma.property.delete({
     where:{
       id:propertyId,
@@ -425,6 +435,10 @@ export async function DeletePropertyByIdAdmin(propertyId : string){
   else{
     return null;
   }
+
+}catch(error){
+  console.log('Error in deleting property:', error)
+}
 }
 
 

@@ -1,5 +1,4 @@
-"use client";
-
+'use client'
 import { useState } from "react";
 import { CalendarIcon, MapPinIcon, SearchIcon } from "lucide-react";
 import { format } from "date-fns";
@@ -12,8 +11,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
-import { redirect, useRouter } from "next/navigation";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function SearchBox() {
   const router = useRouter();
@@ -24,7 +22,11 @@ export default function SearchBox() {
 
   const [isDestinationPopOverOpen, setDestinationPopOverOpen] = useState(false);
   const [isCheckInPopOverOpen, setCheckInPopOverOpen] = useState(false);
-  const [ischeckOutPopOverOpen, setCheckOutPopOverOpen] = useState(false);
+  const [isCheckOutPopOverOpen, setCheckOutPopOverOpen] = useState(false);
+
+  // Get today's date
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // Set to start of the day for accurate comparison
 
   function handleClick() {
     const params = new URLSearchParams();
@@ -94,9 +96,12 @@ export default function SearchBox() {
             mode="single"
             selected={checkIn}
             onSelect={(day) => {
-              if (!day || (checkOut && checkOut < day)) {
-                // TODO: change alert with toast error
-                alert("choose a day before checkout date");
+              if (!day || day < today) {
+                alert("Please choose a date that is today or later.");
+                return;
+              }
+              if (checkOut && checkOut < day) {
+                alert("Check-in date cannot be after the check-out date.");
                 return;
               }
               setCheckIn(day);
@@ -107,10 +112,10 @@ export default function SearchBox() {
         </PopoverContent>
       </Popover>
 
-      <div className="h-8 w-px bg-gray-300  hidden sm:block" />
+      <div className="h-8 w-px bg-gray-300 hidden sm:block" />
 
       <Popover
-        open={ischeckOutPopOverOpen}
+        open={isCheckOutPopOverOpen}
         onOpenChange={setCheckOutPopOverOpen}
       >
         <PopoverTrigger asChild>
@@ -131,8 +136,12 @@ export default function SearchBox() {
             mode="single"
             selected={checkOut}
             onSelect={(day) => {
-              if (!day || (checkIn && checkIn > day)) {
-                alert("choose a day after checkin date");
+              if (!day || day < today) {
+                alert("Please choose a date that is today or later.");
+                return;
+              }
+              if (checkIn && checkIn > day) {
+                alert("Check-out date cannot be before the check-in date.");
                 return;
               }
               setCheckOut(day);

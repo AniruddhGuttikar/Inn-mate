@@ -78,6 +78,8 @@ export default function AddPropertyForm({ userId, propId }: AddPropertyFormProps
   const [prop, setProp] = useState<PropertyDet>();
   const [isEdit, setIsEdit] = useState(false);
   const [imageUrls, setImageUrls] = useState<ImageObject[]>([]);
+  const [isHotel,sethotel] = useState(false)
+  const [roomType,setroomType]=useState('1 bed')
 
   const form = useForm<TAddPropertyFormvaluesSchema>({
     resolver: zodResolver(addPropertyFormValuesSchema),
@@ -209,9 +211,17 @@ export default function AddPropertyForm({ userId, propId }: AddPropertyFormProps
         propertyId: propertyId,
       }));
 
-      const propertyWithImages = imageUrls.length > 0
-        ? { ...property, images: formattedImages }
-        : { ...property };
+      const propertyWithImages = imageUrls.length > 0 
+    ? (isHotel 
+        ? { ...property, images: formattedImages, RoomType: roomType } 
+        : { ...property, images: formattedImages }
+      ) 
+    : (isHotel 
+        ? { ...property, RoomType: roomType } 
+        : { ...property }
+      );
+
+
       console.log("PropertyWithImages",propertyWithImages)
       if (!isEdit) {
         const result = await addProperty(kindeId, propertyWithImages);
@@ -248,6 +258,10 @@ export default function AddPropertyForm({ userId, propId }: AddPropertyFormProps
       });
     }
   };
+
+  function handleRoomTypeChange(value: string): void {
+    setroomType(value)
+  }
 
   return (
     <>
@@ -305,47 +319,82 @@ export default function AddPropertyForm({ userId, propId }: AddPropertyFormProps
               </FormItem>
             )}
           />
-          <FormField
-            control={form.control}
-            name="maxGuests"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="font-bold">Maximum Guests</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    {...field}
-                    onChange={(e) => field.onChange(parseInt(e.target.value))}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="propertyType"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="font-bold">Property Type</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+    <FormField
+      control={form.control}
+      name="propertyType"
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel className="font-bold">Property Type</FormLabel>
+          <Select 
+            onValueChange={(value) => {
+              field.onChange(value);
+              if (value === "Hotel") {
+                sethotel(true); // Set isHotel to true if the selected value is "Hotel"
+              } else {
+                sethotel(false); // Set isHotel to false for other selections
+              }
+            }} 
+            defaultValue={field.value}
+          >
+            <FormControl>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a property type" />
+              </SelectTrigger>
+            </FormControl>
+            <SelectContent>
+              {Object.values(PropertyTypeEnum.enum).map((type) => (
+                <SelectItem key={type} value={type}>
+                  {type}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+            <FormField
+              control={form.control}
+              name="maxGuests"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="font-bold">{isHotel? 'Total Rooms': 'Maximum Guests'}</FormLabel>
                   <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a property type" />
-                    </SelectTrigger>
+                    <Input
+                      type="number"
+                      {...field}
+                      onChange={(e) => field.onChange(parseInt(e.target.value))}
+                    />
                   </FormControl>
-                  <SelectContent>
-                    {Object.values(PropertyTypeEnum.enum).map((type) => (
-                      <SelectItem key={type} value={type}>
-                        {type}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+          { isHotel &&(
+          <FormItem>
+            <FormLabel className="font-bold">Room Type</FormLabel>
+            <Select 
+              value={roomType} 
+              onValueChange={handleRoomTypeChange} 
+            >
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select room type" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                <SelectItem value="1 bed">1 Bed</SelectItem>
+                <SelectItem value="2 bed">2 Beds</SelectItem>
+                <SelectItem value="3 bed">3 Beds</SelectItem>
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+          )
+}
+
+
 
         <FormField
           control={form.control}

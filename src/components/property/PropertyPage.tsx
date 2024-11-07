@@ -17,6 +17,7 @@ import {
   Microwave,
   Tv2,
   Dog,
+  Bed,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -63,13 +64,13 @@ export default function PropertyListingPage({
   bookings: TBooking[] | null;
   userId: string;
 }) {
-  const router=useRouter()
+  const router = useRouter()
   const [loading, setLoading] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [selectedDates, setSelectedDates] = useState<DateRange>();
   const [isSelectedDates, setIsSelectedDates] = useState(false);
-  const [isReserved,setisReserved]=useState(false)
-  const [reservationDetails , setreservationDetails]= useState<TBooking>();
+  const [isReserved, setisReserved] = useState(false)
+  const [reservationDetails, setreservationDetails] = useState<TBooking>();
   const [showDialog, setShowDialog] = useState(false);
 
   const { toast } = useToast();
@@ -83,17 +84,17 @@ export default function PropertyListingPage({
     image && image.length > 0
       ? image
       : [
-          {
-            id: "default1",
-            propertyId: property.id,
-            link: "https://images.unsplash.com/photo-1579297206620-c410c4af42e4?q=80&w=1587&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-          },
-          {
-            id: "default2",
-            propertyId: property.id,
-            link: "https://images.unsplash.com/photo-1579297206620-c410c4af42e4?q=80&w=1587&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-          },
-        ];
+        {
+          id: "default1",
+          propertyId: property.id,
+          link: "https://images.unsplash.com/photo-1579297206620-c410c4af42e4?q=80&w=1587&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+        },
+        {
+          id: "default2",
+          propertyId: property.id,
+          link: "https://images.unsplash.com/photo-1579297206620-c410c4af42e4?q=80&w=1587&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+        },
+      ];
 
   const nextImage = () => {
     setCurrentImageIndex(
@@ -134,7 +135,7 @@ export default function PropertyListingPage({
   };
 
   const handleSubmit = async () => {
-    
+
     try {
       if (
         !host.id ||
@@ -151,9 +152,9 @@ export default function PropertyListingPage({
       const bookingValues: TBooking = {
         userId,
         propertyId: property.id,
-        checkInOut:{
-          checkInDate:selectedDates?.from,
-          checkOutDate:selectedDates?.to
+        checkInOut: {
+          checkInDate: selectedDates?.from,
+          checkOutDate: selectedDates?.to
         },
         status: "CONFIRMED",
         totalPrice: property.pricePerNight * totalDays,
@@ -197,16 +198,16 @@ export default function PropertyListingPage({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ 
-          amount: reservationDetails?.totalPrice ? reservationDetails?.totalPrice *100: 0,
+        body: JSON.stringify({
+          amount: reservationDetails?.totalPrice ? reservationDetails?.totalPrice * 100 : 0,
           PropName: property.name,
           checkIn: reservationDetails?.checkInOut ? reservationDetails.checkInOut.checkInDate.toLocaleDateString() : "N/A",
           checkOut: reservationDetails?.checkInOut ? reservationDetails.checkInOut.checkOutDate.toLocaleDateString() : "N/A",
           propDetails: reservationDetails,
-        
+
         }), // Convert to cents
       });
-      
+
       const { sessionId } = await res.json();
 
       if (sessionId) {
@@ -221,8 +222,8 @@ export default function PropertyListingPage({
     } finally {
       setLoading(false);
     }
-    
-    
+
+
   };
 
   return (
@@ -255,55 +256,54 @@ export default function PropertyListingPage({
           {displayedImages.map((_, index) => (
             <div
               key={index}
-              className={`h-2 w-2 rounded-full ${
-                index === currentImageIndex ? "bg-white" : "bg-white/50"
-              }`}
+              className={`h-2 w-2 rounded-full ${index === currentImageIndex ? "bg-white" : "bg-white/50"
+                }`}
             />
           ))}
         </div>
       </div>
-      
+
 
       <main className="container mx-auto px-4 py-8">
-      <Dialog open={showDialog} onOpenChange={setShowDialog}>
-  <DialogContent className="max-w-lg p-6 rounded-lg bg-white shadow-lg">
-    <DialogHeader>
-      <DialogTitle className="text-2xl font-semibold text-gray-800 border-b border-gray-300 pb-4">
-        Reservation Summary
-      </DialogTitle>
-    </DialogHeader>
-    <div className="mt-4 space-y-4 text-gray-700">
-      <p className="text-lg">
-        <strong className="font-medium">Property:</strong> {property.name}
-      </p>
-      <p className="text-lg">
-        <strong className="font-medium">Check-in:</strong> {reservationDetails?.checkInOut ? reservationDetails.checkInOut.checkInDate.toLocaleDateString() : "N/A"}
-      </p>
-      <p className="text-lg">
-        <strong className="font-medium">Check-out:</strong> {reservationDetails?.checkInOut ? reservationDetails.checkInOut.checkOutDate.toLocaleDateString() : "N/A"}
-      </p>
-      <div className="flex justify-between items-center pt-2 border-t border-gray-300 mt-4">
-        <p className="text-xl font-semibold">
-          <strong>Total Price:</strong> ₹{reservationDetails?.totalPrice}
-        </p>
-      </div>
-    </div>
-    <DialogFooter className="mt-6 flex justify-between gap-4">
-      <Button variant="secondary" onClick={handleClose} className="w-full py-2 text-lg">
-        Close
-      </Button>
-      <Button 
-          variant="default" 
-          onClick={handleContinue} 
-          className={`w-full py-2 text-lg ${loading ? "cursor-not-allowed opacity-50" : "hover:bg-gray-700 hover:text-white"}`}
-          disabled={loading}
-        >
-          {loading ? "Processing..." : "Pay Now"}
-        </Button>
+        <Dialog open={showDialog} onOpenChange={setShowDialog}>
+          <DialogContent className="max-w-lg p-6 rounded-lg bg-white shadow-lg">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-semibold text-gray-800 border-b border-gray-300 pb-4">
+                Reservation Summary
+              </DialogTitle>
+            </DialogHeader>
+            <div className="mt-4 space-y-4 text-gray-700">
+              <p className="text-lg">
+                <strong className="font-medium">Property:</strong> {property.name}
+              </p>
+              <p className="text-lg">
+                <strong className="font-medium">Check-in:</strong> {reservationDetails?.checkInOut ? reservationDetails.checkInOut.checkInDate.toLocaleDateString() : "N/A"}
+              </p>
+              <p className="text-lg">
+                <strong className="font-medium">Check-out:</strong> {reservationDetails?.checkInOut ? reservationDetails.checkInOut.checkOutDate.toLocaleDateString() : "N/A"}
+              </p>
+              <div className="flex justify-between items-center pt-2 border-t border-gray-300 mt-4">
+                <p className="text-xl font-semibold">
+                  <strong>Total Price:</strong> ₹{reservationDetails?.totalPrice}
+                </p>
+              </div>
+            </div>
+            <DialogFooter className="mt-6 flex justify-between gap-4">
+              <Button variant="secondary" onClick={handleClose} className="w-full py-2 text-lg">
+                Close
+              </Button>
+              <Button
+                variant="default"
+                onClick={handleContinue}
+                className={`w-full py-2 text-lg ${loading ? "cursor-not-allowed opacity-50" : "hover:bg-gray-700 hover:text-white"}`}
+                disabled={loading}
+              >
+                {loading ? "Processing..." : "Pay Now"}
+              </Button>
 
-    </DialogFooter>
-  </DialogContent>
-</Dialog>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="md:col-span-2">
@@ -338,8 +338,12 @@ export default function PropertyListingPage({
                     <p>{property.propertyType}</p>
                   </div>
                   <div>
-                    <h3 className="font-semibold">Max Guests</h3>
-                    <p>{property.maxGuests}</p>
+                    <h3 className="font-semibold">{property.isHotel ? 'Rooms Availability' : ''}</h3>
+                    <span>
+                      {property.isHotel
+                        ? (property.maxGuests !== 0 ? 'Rooms Available' : 'No Rooms Available')
+                        : `Up to ${property.maxGuests} guests`}
+                    </span>
                   </div>
                   <div>
                     <h3 className="font-semibold">Price per Night</h3>
@@ -349,6 +353,15 @@ export default function PropertyListingPage({
                     <h3 className="font-semibold">Hotel</h3>
                     <p>{property.isHotel ? "Yes" : "No"}</p>
                   </div>
+                  {property.isHotel && property.RoomType && (
+                    <div className="flex items-center">
+                      <Bed className="h-4 w-4 mr-1 text-blue-500" /> {/* Bed icon with custom color */}
+                      <span className="text-blue-500 font-semibold bg-blue-100 px-1 rounded">
+                        Room Type: {property.RoomType}
+                      </span>
+                    </div>
+                  )
+                  }
                 </div>
               </CardContent>
             </Card>
