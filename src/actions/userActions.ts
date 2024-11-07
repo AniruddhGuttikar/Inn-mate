@@ -3,6 +3,7 @@
 import prisma from "@/lib/db";
 import {
   kindeUserSchema,
+  TAddress,
   TBooking,
   TKindeUser,
   TUser,
@@ -12,233 +13,226 @@ import { KindeUser } from "@kinde-oss/kinde-auth-nextjs/types";
 import { revalidatePath } from "next/cache";
 import nodemailer from 'nodemailer';
 import { getPropertyById } from "./propertyActions";
-export async function getUserById(
-  id: string | undefined
-): Promise<TUser | null> {
-  try {
-    const user = await prisma.user.findUniqueOrThrow({
-      where: {
-        id,
-      },
-      include: {
-        address: true,
-      },
-    });
+import cuid from "cuid";
 
-    if (!user) {
-      return null;
-    }
-    return user;
-  } catch (error) {
-    console.error("Error finding the user: ", error);
+export async function getUserById(id: string | undefined): Promise<TUser | null> {
+  if (!id) return null;
+
+  const result:TUser[] = await prisma.$queryRaw`
+    SELECT * 
+    FROM User
+    WHERE id = ${id}
+  `;
+  
+  if (!result) {
     return null;
   }
+
+  const user = result[0]; // Assuming you expect a single user result.
+  return user;
 }
+
 export async function getUserByKindeId(kindeId: string): Promise<TUser | null> {
-  try {
-    const user = await prisma.user.findUniqueOrThrow({
-      where: {
-        kindeId,
-      },
-      include: {
-        address: true,
-      },
-    });
-
-    if (!user) {
-      return null;
-    }
-    return user;
-  } catch (error) {
-    console.error("Error finding the userByKindeId: ", error);
+  const result:TUser[] = await prisma.$queryRaw`
+    SELECT * 
+    FROM User
+    WHERE kindeId = ${kindeId}
+  `;
+  
+  if (!result) {
     return null;
   }
+
+  const user = result[0];
+  return user;
 }
 
-export async function isAuthenticatedUserInDb(
-  id: string
-): Promise<TUser | null> {
-  try {
-    if (!id) {
-      return null;
-    }
 
-    const newUser = await prisma.user.findUniqueOrThrow({
-      where: {
-        id,
-      },
-      include: {
-        address: true,
-      },
-    });
+export async function isAuthenticatedUserInDb(id: string): Promise<TUser | null> {
+  if (!id) return null;
 
-    if (!newUser) {
-      return null;
-    }
-    return newUser;
-  } catch (error) {
-    console.error("Error finding the user: ", error);
+  const result:TUser[] = await prisma.$queryRaw`
+    SELECT * 
+    FROM User
+    WHERE id = ${id}
+  `;
+  
+  if (!result) {
     return null;
   }
+
+  const user = result[0];
+  return user;
 }
+
 
 export async function createUser(user: TUser): Promise<TUser | null> {
-  try {
-    const validatedUser = userSchema.parse(user);
-    const { name, email, dob, gender, address, kindeId } = validatedUser;
+  const { name, email, dob, gender, address, kindeId } = user;
 
-    // const isUser = await prisma.user.findUniqueOrThrow({
-    //   where: {
-    //     id: user.id,
-    //   },
-    // });
-    // if (isUser) {
-    //   throw new Error("User already exists, try upadating");
-    // }
+  // Check if the user already exists based on the email
+  const existingUser = await prisma.user.findUnique({
+    where: { email },
+  });
 
-    if (user.id) {
+  if (existingUser) {
+    // If the user already exists, return the existing user
       throw new Error("User already exists, try upadating");
-    }
+  }
 
-    // add the address and user to our database
-    const newAddress = await prisma.address.create({
-      data: {
-        city: address.city,
-        state: address.state,
-        country: address.country,
-      },
-    });
+  // Generate a cuid for the address
+  const addressId = cuid();
 
-    const newUser = await prisma.user.create({
-      data: {
-        name,
-        email,
-        dob,
-        gender,
-        kindeId,
-        addressId: newAddress.id,
-      },
-      include: {
-        address: true,
-      },
-    });
-    console.log(newUser, `was successfuly created`);
-    revalidatePath("/");
-    return newUser;
-  } catch (error) {
-    console.error("Error creating user:", error);
+  // Insert into address table first
+  const addressResult : TAddress[]= await prisma.$queryRaw`
+    INSERT INTO "Address" (id, city, state, country)
+    VALUES (${addressId}, ${address.city}, ${address.state}, ${address.country})
+    RETURNING id
+  `;
+
+  // If the address insertion failed, return null
+  if (!addressResult || addressResult.length === 0) {
     return null;
   }
+
+  // Generate a cuid for the user
+  const userId = cuid();
+
+  // Insert into user table
+  const userResult:TUser[] = await prisma.$queryRaw`
+    INSERT INTO "User" (id, name, email, dob, gender, kindeId, addressId)
+    VALUES (${userId}, ${name}, ${email}, ${dob}, ${gender}, ${kindeId}, ${addressId})
+    RETURNING *
+  `;
+
+  // If the user insertion failed, return null
+  if (!userResult || userResult.length === 0) {
+    return null;
+  }
+
+  const newUser = userResult[0];
+  return newUser;
 }
+
 
 export async function updateUser(user: TUser): Promise<TUser | null> {
-  try {
-    const validatedUser = userSchema.parse(user);
+  const { id, name, email, dob, gender, address } = user;
 
-    const { id, name, email, dob, gender, address } = validatedUser;
+  // Update the address
+  const addressResult:TAddress[] = await prisma.$queryRaw`
+    UPDATE "Address"
+    SET city = ${address.city}, state = ${address.state}, country = ${address.country}
+    WHERE id = ${address.id}
+    RETURNING id
+  `;
+  
+  const updatedAddressId = addressResult[0].id;
 
-    const newAddress = await prisma.address.update({
-      where: {
-        id: address.id,
-      },
-
-      data: {
-        ...address,
-      },
-    });
-
-    const newUser = await prisma.user.update({
-      where: {
-        id,
-        email,
-      },
-      data: {
-        id,
-        name,
-        email,
-        dob,
-        gender,
-        addressId: newAddress.id,
-      },
-      include: {
-        address: true,
-      },
-    });
-    console.log("User updated: ", newUser);
-    return newUser;
-  } catch (error) {
-    console.error("Error in updating the user", error);
+  // Update the user
+  const userResult:TUser[] = await prisma.$queryRaw`
+    UPDATE "User"
+    SET name = ${name}, email = ${email}, dob = ${dob}, gender = ${gender}, addressId = ${updatedAddressId}
+    WHERE id = ${id}
+    RETURNING *
+  `;
+  
+  if (!userResult) {
     return null;
   }
+
+  const updatedUser = userResult[0];
+  return updatedUser;
 }
+
 
 export async function deleteUser(user: TUser): Promise<TUser | null> {
-  try {
-    const validatedUser = userSchema.parse(user);
-    const { id, address } = validatedUser;
-    const addressId = address.id;
+  const { id, address } = user;
 
-    prisma.address.delete({
-      where: {
-        id: addressId,
-      },
-    });
+  // Delete the address
+  await prisma.$queryRaw`
+    DELETE FROM "Address"
+    WHERE id = ${address.id}
+  `;
 
-    const newUser = prisma.user.delete({
-      where: {
-        id,
-      },
-      include: {
-        address: true,
-      },
-    });
-
-    return newUser;
-  } catch (error) {
-    console.error("Error deleting the user: ", error);
+  // Delete the user
+  const userResult : TUser[]= await prisma.$queryRaw`
+    DELETE FROM "User"
+    WHERE id = ${id}
+    RETURNING *
+  `;
+  
+  if (!userResult) {
     return null;
   }
+
+  const deletedUser = userResult[0];
+  return deletedUser;
 }
 
-export async function mapKindeUserToUser(
-  user: TKindeUser
-): Promise<TUser | null> {
-  const kindeUser = user as KindeUser<TKindeUser>;
-  console.log("kinde user in server action", kindeUser);
+
+export async function mapKindeUserToUser(user: TKindeUser): Promise<TUser | null> {
+  // const { kindeId, email, given_name, dob, gender } = user;
+
   try {
-    const validatedKindeUser = kindeUserSchema.parse(kindeUser);
+    // Validate the incoming user data using the schema
+    const validatedKindeUser = kindeUserSchema.parse(user);
 
-    const alreadyUser = await prisma.user.findUnique({
-      where: {
-        kindeId: kindeUser.id,
-      },
-      include: {
-        address: true,
-      },
-    });
+    // Check if the user already exists by kindeId
+    const existingUserResult : TUser[]= await prisma.$queryRaw`
+      SELECT * FROM "User"
+      WHERE kindeId = ${user.id}
+    `;
 
-    if (alreadyUser) {
-      return alreadyUser;
+    if (existingUserResult.length > 0) {
+      // Return the existing user with address data
+      const existingUser = existingUserResult[0];
+
+      // Fetch the address associated with this user
+      const existingAddressResult: TAddress[] = await prisma.$queryRaw`
+        SELECT * FROM "Address" WHERE id = ${existingUser.address.id}
+      `;
+
+      if (existingAddressResult.length > 0) {
+        existingUser.address = existingAddressResult[0];
+      }
+
+      return existingUser;
     }
 
-    const user: TUser = {
-      address: {
-        city: "",
-        country: "",
-        state: "",
-      },
-      kindeId: validatedKindeUser.id,
-      dob: new Date(),
-      email: validatedKindeUser.email,
-      name: validatedKindeUser.given_name,
-      gender: "OTHERS",
+    // If the user does not exist, create a new user and insert into database
+    // Insert address into the "Address" table first (with default values)
+    const addressId = cuid(); // Generate a unique address ID
+    await prisma.$queryRaw`
+      INSERT INTO "Address" (id, city, state, country)
+      VALUES (${addressId}, '', '', '')
+    `;
+
+    // Insert the new user into the "User" table
+    const newUserId = cuid(); // Generate a unique user ID
+    const newUserResult : TUser[]= await prisma.$queryRaw`
+      INSERT INTO "User" (id, name, email,gender, kindeId, addressId)
+      VALUES (${newUserId}, ${user.given_name}, ${user.email}, ${'OTHERS'}, ${user.id}, ${addressId})
+      RETURNING *
+    `;
+
+    if (newUserResult.length === 0) {
+      return null;
+    }
+
+    // Construct the newly created user object with address
+    const newUser = newUserResult[0];
+    newUser.address = {
+      city: "",
+      country: "",
+      state: "",
     };
-    return user;
+
+    return newUser;
   } catch (error) {
     console.error("Error in mapping the user to kindeUser: ", error);
     return null;
   }
 }
+
 export default async function SendMailToUsers(bookingDataList: TBooking[]) {
   try {
     // Configure your SMTP transport (e.g., Gmail or other email service)

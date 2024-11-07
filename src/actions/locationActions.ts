@@ -10,13 +10,16 @@ export async function getLocationById(
     if (!locationId) {
       throw new Error("Couldn't get the locationId");
     }
-    const location = await prisma.location.findUnique({
-      where: {
-        id: locationId,
-      },
-    });
 
-    const validatedLocation = locationSchema.parse(location);
+    // Raw SQL query to get location by locationId
+    const location = await prisma.$queryRaw<TLocation[]>`
+      SELECT * FROM location WHERE id = ${locationId};`;
+
+    if (location.length === 0) {
+      return null; // Return null if location not found
+    }
+
+    const validatedLocation = locationSchema.parse(location[0]);
     return validatedLocation;
   } catch (error) {
     console.error("Error in getting the locationById: ", error);
