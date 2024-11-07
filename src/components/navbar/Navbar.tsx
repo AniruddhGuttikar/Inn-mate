@@ -20,9 +20,8 @@ export default async function Navbar() {
 
   const kindeUser = await getUser();
   const isAuthenticatedUser = await isAuthenticated();
-  const user = await getUserByKindeId(kindeUser.id);
+  const user = await getUserByKindeId(kindeUser?.id);
   const isAuthenticatedInDatabase = await isAuthenticatedUserInDb(user?.id);
-  console.log("user in navbar: ");
 
   return (
     <nav className="flex flex-col w-full border-b-2 items-center mx-auto justify-between p-6 md:flex-row ">
@@ -31,7 +30,11 @@ export default async function Navbar() {
       </Link>
       <SearchBox />
       <ListPropertyButton userId={user?.id} />
-      {isAuthenticatedUser ? <ProfileButton /> : <RegisterButton />}
+      {isAuthenticatedUser && isAuthenticatedInDatabase ? (
+        <ProfileButton />
+      ) : (
+        <RegisterButton />
+      )}
     </nav>
   );
 }
