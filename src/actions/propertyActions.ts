@@ -30,131 +30,78 @@ const uploadcareSimpleAuthSchema = new UploadcareSimpleAuthSchema({
 
 });
 
-
+//========================================================================================================================================
 export async function getAllListedProperties(): Promise<TProperty[] | null> {
   try {
-    const listings = await prisma.listing.findMany({
-      take: 20,
-      include: {
-        property: true,
-      },
-    });
+    // Ensure correct JOIN condition (assuming `l.propertyId` exists in `listing` table)
+    const listings = await prisma.$queryRaw<TProperty[]>`
+      SELECT p.*, l.availabilityStart, l.availabilityEnd 
+      FROM listing AS l
+      JOIN property AS p ON p.id = l.propertyId
+      LIMIT 20
+    `;
 
     const propertiesSchemaArray = z.array(propertySchema);
+    console.log("listings",listings)
     const validatedProperties = propertiesSchemaArray.parse(
-      listings.map((listing) => listing.property)
+      listings.map((listing) => listing)
     );
+    console.log("Validated properties:", validatedProperties);
+
     return validatedProperties;
   } catch (error) {
     console.error("Error in getting properties: ", error);
     return null;
   }
 }
+//============================================================================================================================================
+import { Prisma } from "@prisma/client";
+import cuid from "cuid";
 
 export async function getFilteredListings(
   destination?: string,
   checkIn?: string,
   checkOut?: string,
-  type? :string
+  type?: string
 ): Promise<TProperty[] | null> {
   try {
-    const propertyTypeValue = type ? PropertyType[type.charAt(0).toUpperCase() + type.slice(1).toLowerCase() as keyof typeof PropertyType] : undefined;
-    const filteredListings = await prisma.listing.findMany({
-      take: 20,
-      where: {
-        OR: destination
-          ? [
-              {
-                property: {
-                  name: {
-                    contains: destination?.toLowerCase(),
-                    // mode: "insensitive",
-                  },
-                },
-              },
-              {
-                property: {
-                  description: {
-                    contains: destination?.toLowerCase(),
-                    // mode: "insensitive",
-                  },
-                },
-              },
-              {
-                property: {
-                  location: {
-                    city: {
-                      contains: destination?.toLowerCase(),
-                      // mode: "insensitive",
-                    },
-                  },
-                },
-              },
-              {
-                property: {
-                  location: {
-                    state: {
-                      contains: destination?.toLowerCase(),
-                      // mode: "insensitive",
-                    },
-                  },
-                },
-              },
-              {
-                property: {
-                  location: {
-                    country: {
-                      contains: destination?.toLowerCase(),
-                      // mode: "insensitive",
-                    },
-                  },
-                },
-              },
-            ]
-          : undefined,
-        ...(checkIn && checkOut
-          ? {
-              AND: [
-                {
-                  availabilityStart: {
-                    lte: new Date(checkIn),
-                  },
-                },
-                {
-                  availabilityEnd: {
-                    gte: new Date(checkOut),
-                  },
-                },
-              ],
-            }
-          : {}),
-          ...(propertyTypeValue ? {
-            property: {
-              propertyType: {
-                equals: propertyTypeValue
-              }
-            }
-          } : {})
-          
-      },
-      include: {
-        property: true,
-      },
-    });
+    const propertyTypeValue = type
+      ? PropertyType[type.charAt(0).toUpperCase() + type.slice(1).toLowerCase() as keyof typeof PropertyType]
+      : undefined;
+
+    // Build the query string and dynamically add parameters
+    const query = Prisma.sql`
+      SELECT p.*, l.availabilityStart, l.availabilityEnd
+      FROM listing AS l
+      JOIN property AS p ON p.id = l.propertyId
+      WHERE 1=1
+      ${destination ? Prisma.sql`AND match_destination(p.name, p.description, p.city, p.state, p.country, ${destination})` : Prisma.empty}
+      ${checkIn && checkOut ? Prisma.sql`AND l.availabilityStart <= ${new Date(checkIn)} AND l.availabilityEnd >= ${new Date(checkOut)}` : Prisma.empty}
+      ${propertyTypeValue ? Prisma.sql`AND p.propertyType = ${propertyTypeValue}` : Prisma.empty}
+      LIMIT 20;
+    `;
+
+    const filteredListings = await prisma.$queryRaw<TProperty[]>(query);
 
     const propertiesSchemaArray = z.array(propertySchema);
     const validatedProperties = propertiesSchemaArray.parse(
-      filteredListings.map((listing) => listing.property)
+      filteredListings.map((listing) => listing)
     );
-    if(!validatedProperties){
-      return null
+
+    if (!validatedProperties) {
+      return null;
     }
+
     return validatedProperties;
   } catch (error) {
     console.error("Error in getting properties: ", error);
     return null;
   }
 }
+
+
+
+//============================================================================================================================================
 
 export async function getAllPropertiesByUserId(
   userId: string
@@ -187,7 +134,7 @@ export async function getAllPropertiesByUserId(
     return null;
   }
 }
-
+//============================================================================================================================================
 export async function getPropertyById(
   propertyId: string
 ): Promise<TProperty | null> {
@@ -207,7 +154,7 @@ export async function getPropertyById(
 
 
 
-
+//============================================================================================================================================
 export async function addProperty(
   kindeId: string,
   propertyData: TAddPropertyFormvaluesSchema
@@ -215,92 +162,76 @@ export async function addProperty(
   try {
     const user = await getUserByKindeId(kindeId);
     if (!user || !user.id) {
-      throw new Error(`couldn't find the user with kindeID ${kindeId}`);
+      throw new Error(`Couldn't find the user with kindeID ${kindeId}`);
     }
+
     const isAuthenticatedUser = await isAuthenticatedUserInDb(user.id);
     if (!isAuthenticatedUser) {
-      throw new Error(
-        "User not authenticated, please register before proceeding"
-      );
+      throw new Error("User not authenticated, please register before proceeding");
     }
-    console.log("PropData: ",propertyData)
-    const imagesSchemaArray = z.array(imageSchema);
-    const amenitiesSchemaArray = z.array(amenitySchema);
-    console.log("Here")
+
+    // Normalize and validate input data
     const normalizedPropertyData = {
       ...propertyData,
       country: propertyData.country?.toLowerCase(),
       state: propertyData.state?.toLowerCase(),
       city: propertyData.city?.toLowerCase(),
-      images: propertyData.images || [],      // Default to empty array if undefined
-      amenities: propertyData.amenities || []  // Default to empty array if undefined
+      images: propertyData.images || [],
+      amenities: propertyData.amenities || [],
     };
-    
-    // Validate data
+
+    // Validate data with schemas
     const validatedLocation = locationSchema.parse(normalizedPropertyData);
     const validatedProperty = propertySchema.parse(normalizedPropertyData);
-    const validatedImages = imagesSchemaArray.parse(normalizedPropertyData.images);
-    const validatedAmenities = amenitiesSchemaArray.parse(normalizedPropertyData.amenities);
-    
+    const validatedImages = normalizedPropertyData.images.map((image) => ({
+      ...image,
+      imageId: cuid(), // Generate cuid for each image
+    }));
+    const validatedAmenities = normalizedPropertyData.amenities.map((amenity) => ({
+      ...amenity,
+      amenityId: cuid(), // Generate cuid for each amenity
+    }));
 
-    // check if the location already exists
+    // Validate and stringify
+    const validatedImagesJson = JSON.stringify(validatedImages);
+    const validatedAmenitiesJson = JSON.stringify(validatedAmenities);
 
-    let location = await prisma.location.findFirst({
-      where: {
-        city: validatedLocation.city,
-        country: validatedLocation.country,
-        state: validatedLocation.state,
-      },
-    });
-    if (!location) {
-      location = await prisma.location.create({
-        data: {
-          ...validatedLocation,
-        },
-      });
-    }
+    // Call stored procedure to insert data
+    const result: TProperty = await prisma.$queryRaw`
+      CALL AddProperty(
+        ${cuid()},
+        ${user.id},
+        ${validatedProperty.name},
+        ${validatedProperty.description},
+        ${false},
+        ${validatedProperty.pricePerNight},
+        ${validatedProperty.maxGuests},
+        ${new Date()},
 
-    const isHotel = validatedProperty.propertyType === "Hotel";
-    console.log("propertyImage",validatedProperty.images)
+        ${validatedLocation.country},
+        ${validatedLocation.state},
+        ${validatedLocation.city},
+        ${validatedProperty.propertyType},
+        ${validatedProperty.RoomType ?? 'N/A'},
+        ${validatedProperty.propertyType === 'Hotel'},
 
-    const property = await prisma.property.create({
-      
-      data: {
-        ...validatedProperty,
-        isHotel,
-        userId: user.id,
-        locationId: location.id,
-        images: validatedImages?.length > 0
-          ? {
-              create: validatedImages.map((images) => ({
-                link: images.link,
-              })),
-            }
-          : undefined,
-        ...(validatedAmenities.length > 0 && {
-          amenities: {
-            create: validatedAmenities.map((amenity) => ({
-              name: amenity.name,
-            })),
-          },
-        }),
-        ...(isHotel && {
-          RoomType: validatedProperty.RoomType
-        })
+        --Now there is error here ..just rectify it 
+        ${validatedImagesJson},
+        ${validatedAmenitiesJson}
+      )
+    `;
 
-      },
-    });
-    
-
+    // Revalidate paths (if applicable)
     revalidatePath(`/user/${kindeId}/properties`);
     revalidatePath("/");
-    return property;
+    return result;
   } catch (error) {
     console.error("Error in adding the property: ", error);
     return null;
   }
 }
 
+//============================================================================================================================================
 
 export async function updateProperty(
   kindeId: string,
@@ -380,6 +311,7 @@ export async function updateProperty(
   }
 }
 
+//============================================================================================================================================
 export async function Delete_UploadCare(urlToDelete : string){
   try {
     // Delete the image from Uploadcare
@@ -401,7 +333,10 @@ catch (error) {
     console.error('Error deleting image from Uploadcare:', error);
   }
 
+  
 }
+//============================================================================================================================================
+
 export async function getAllImagesbyId(
   propertyId: string | undefined
 ): Promise<TImage[] | null> {
@@ -409,13 +344,16 @@ export async function getAllImagesbyId(
     if (!propertyId) {
       throw new Error("couldn't get the property");
     }
-    const images = await prisma.image.findMany({
-      where: {
-        propertyId,
-      },
-    });
+
+    // Raw SQL query to fetch images based on propertyId
+    const images = await prisma.$queryRaw<TImage[]>`
+      SELECT * FROM image WHERE propertyId = ${propertyId}
+    `;
+
+    // Assuming the imageSchema validates the result structure
     const imagesSchemaArray = z.array(imageSchema);
     const validatedImages = imagesSchemaArray.parse(images);
+    
     return validatedImages;
   } catch (error) {
     console.error("Error in getting images: ", error);
@@ -424,27 +362,27 @@ export async function getAllImagesbyId(
 }
 
 
-export async function DeletePropertyByIdAdmin(propertyId : string){
+//============================================================================================================================================
+export async function DeletePropertyByIdAdmin(propertyId: string) {
+  try {
+    // Raw SQL query to delete a property by its ID
+    const result = await prisma.$queryRaw`
+      DELETE FROM property WHERE id = ${propertyId}
+    `;
 
-  try{
-  const result= await prisma.property.delete({
-    where:{
-      id:propertyId,
-    },
-  })
-  if (result){
-    return result;
-  }
-  else{
+    // Check if a row was affected
+    if (result) {
+      return result;
+    } else {
+      return null;
+    }
+  } catch (error) {
+    console.error("Error in deleting property:", error);
     return null;
   }
-
-}catch(error){
-  console.log('Error in deleting property:', error)
-}
 }
 
-
+//============================================================================================================================================
 export async function updatePropertyDelete(
   kindeId: string,
   propertyId: string,
@@ -471,19 +409,29 @@ export async function updatePropertyDelete(
       throw new Error(`Property with ID ${propertyId} not found`);
     }
 
-    // Update only the isDeleted field
-    const property = await prisma.property.update({
-      where: {
-        id: propertyId,
-      },
-      data: {
-        isDeleted: isDelete,
-      },
-    });
+    // Update the property with raw SQL query
+    const updatedProperty = await prisma.$executeRaw`
+      UPDATE property
+      SET isDeleted = ${isDelete}
+      WHERE id = ${propertyId}
+    `;
 
-    return property;
+    if (updatedProperty) {
+      // Optionally, query the property after update to return the full record
+      const property = await prisma.property.findUnique({
+        where: {
+          id: propertyId,
+        },
+      });
+
+      return property;
+    }
+
+    return null;
   } catch (error) {
     console.error("Error in updating the property: ", error);
     return null;
   }
 }
+
+//============================================================================================================================================

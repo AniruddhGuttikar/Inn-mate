@@ -8,11 +8,10 @@ export async function getAllReviewsById(
   propertyId: string
 ): Promise<TReview[] | null> {
   try {
-    const reviews = await prisma.review.findMany({
-      where: {
-        propertyId,
-      },
-    });
+    const reviews = await prisma.$queryRaw`
+      SELECT * FROM review AS R WHERE  R.propertyId = ${propertyId}
+    
+    `
 
     const reviewSchemaArray = z.array(reviewSchema);
 

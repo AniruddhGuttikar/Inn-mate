@@ -60,6 +60,7 @@ export default async function Home({
   const propertyCards = await Promise.all(
     properties.map(async (property) => {
       if (!property.id || !property.locationId) {
+        console.log("could'nt get props")
         return null;
       }
       const reviews = await getAllReviewsById(property.id);
@@ -72,6 +73,7 @@ export default async function Home({
         console.error("couldn't get all the props for property: ", property);
         return null;
       }
+      console.log(property)
       return (
         <PropertyCard
           key={property.id}

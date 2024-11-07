@@ -23,11 +23,13 @@ export async function createListing(
     const newListingId = cuid(); 
 
     // Raw SQL query to insert a new listing, including the generated 'id'
-    const newListing = await prisma.$queryRaw<TListing[]>`
+    await prisma.$queryRaw`
       INSERT INTO listing (id, availabilityStart, availabilityEnd, userId, propertyId)
-      VALUES (${newListingId}, ${validatedListing.availabilityStart}, ${validatedListing.availabilityEnd}, ${validatedListing.userId}, ${validatedListing.propertyId})
-      RETURNING *;`;
+      VALUES (${newListingId}, ${validatedListing.availabilityStart}, ${validatedListing.availabilityEnd}, ${validatedListing.userId}, ${validatedListing.propertyId})`
 
+    const newListing = await prisma.$queryRaw<TListing[]>`
+        SELECT * FROM listing as l WHERE l.id=${newListingId}
+    `
     if (!newListing || newListing.length === 0) {
       throw new Error("couldn't create the listing");
     }
@@ -41,7 +43,6 @@ export async function createListing(
     return null;
   }
 }
-
 export async function getListing(
   userId?: string,
   propertyId?: string
@@ -50,25 +51,20 @@ export async function getListing(
     if (!propertyId || !userId) {
       throw new Error("couldn't get the user or property");
     }
-
     console.log("property, userId:", propertyId, userId);
-
-    // Raw SQL query to find the listing by userId and propertyId
-    const listing = await prisma.$queryRaw<TListing[]>`
-      SELECT * FROM listing
-      WHERE userId = ${userId} AND propertyId = ${propertyId};`;
-
-    if (listing.length === 0) {
-      return null; // Return null if listing not found
-    }
-
+    const listing = await prisma.listing.findUnique({
+      where: {
+        userId_propertyId: {
+          userId,
+          propertyId,
+        },
+      },
+    });
     console.log("Listing in getListing: ", listing);
 
-    const validatedListing = listingSchema.parse(listing[0]);
+    const validatedListing = listingSchema.parse(listing);
 
-    // Revalidate path after fetching the listing
     revalidatePath("/");
-
     return validatedListing;
   } catch (error) {
     console.error("Error in finding the listing: ", error);

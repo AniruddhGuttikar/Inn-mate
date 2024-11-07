@@ -169,7 +169,7 @@ export const UserForm = ({ user }: { user: TUser }) => {
             <FormItem>
               <FormLabel className="font-bold">City</FormLabel>
               <FormControl>
-                <Input placeholder={user.address.city} {...field} />
+                <Input placeholder={user.address?.city} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -183,7 +183,7 @@ export const UserForm = ({ user }: { user: TUser }) => {
             <FormItem>
               <FormLabel className="font-bold">State</FormLabel>
               <FormControl>
-                <Input placeholder={user.address.state} {...field} />
+                <Input placeholder={user.address?.state} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -197,7 +197,7 @@ export const UserForm = ({ user }: { user: TUser }) => {
             <FormItem>
               <FormLabel className="font-bold">Country</FormLabel>
               <FormControl>
-                <Input placeholder={user.address.country} {...field} />
+                <Input placeholder={user.address?.country} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

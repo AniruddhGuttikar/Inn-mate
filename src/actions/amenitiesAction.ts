@@ -6,11 +6,10 @@ export async function getAllAmenitiesForProperty(
   propertyId: string
 ): Promise<TAmenity[] | null> {
   try {
-    const amenities = await prisma.amenity.findMany({
-      where: {
-        propertyId,
-      },
-    });
+    const amenities = await prisma.$queryRaw`
+      SELECT * FROM amenity as a WHERE a.propertyId=${propertyId}
+    
+    `
     const amenitySchemaArray = z.array(amenitySchema);
     const validatedAmenities = amenitySchemaArray.parse(amenities);
     return validatedAmenities;

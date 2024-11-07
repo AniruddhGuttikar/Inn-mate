@@ -81,10 +81,16 @@ export const propertySchema = z.object({
   maxGuests: z.number().int().positive(),
   propertyType: PropertyTypeEnum,
   locationId: z.string().cuid().optional(),
-  isHotel: z.boolean().default(false),
   RoomType: z.string().optional(),
   images: z.array(imageSchema).optional(),
-  isDeleted :z.boolean().default(false).optional(),
+  isHotel: z
+    .union([z.boolean(), z.number()])
+    .transform((val) => Boolean(val))
+    .default(false), // Default to false if missing
+  isDeleted: z
+    .union([z.boolean(), z.number()])
+    .transform((val) => Boolean(val))
+    .default(false),
 });
 
 // CheckInCheckOut Schema
