@@ -225,6 +225,7 @@ export default function AddPropertyForm({ userId, propId }: AddPropertyFormProps
       console.log("PropertyWithImages",propertyWithImages)
       if (!isEdit) {
         const result = await addProperty(kindeId, propertyWithImages);
+        console.log("Result: ", result)
         if (!result) {
           throw new Error("Couldn't create the property");
         }

@@ -100,7 +100,7 @@ export async function createUser(user: TUser): Promise<TUser | null> {
 
   // Insert into address table first
   await prisma.$queryRaw`
-    INSERT INTO "Address" (id, city, state, country)
+    INSERT INTO Address (id, city, state, country)
     VALUES (${addressId}, ${address.city}, ${address.state}, ${address.country})
   `;
   const addressResult : any=  prisma.$queryRaw`
@@ -117,8 +117,8 @@ export async function createUser(user: TUser): Promise<TUser | null> {
 
   // Insert into user table
   await prisma.$queryRaw`
-    INSERT INTO "User" (id, name, email, dob, gender, kindeId, addressId)
-    VALUES (${userId}, ${name}, ${email}, ${dob}, ${gender}, ${kindeId}, ${addressId})
+    INSERT INTO User (id, name, email, dob, gender, UpdatedAt,kindeId, addressId)
+    VALUES (${userId}, ${name}, ${email}, ${dob}, ${gender},${new Date()}, ${kindeId}, ${addressId})
   `;
   const userResult: TUser[]= await prisma.$queryRaw`
     SELECT u.*, city, state, country FROM user as u 

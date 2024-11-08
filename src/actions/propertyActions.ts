@@ -6,6 +6,7 @@ import {
   locationSchema,
   propertySchema,
   TAddPropertyFormvaluesSchema,
+  TBooking,
   TImage,
   TProperty,
 } from "@/lib/definitions";
@@ -176,30 +177,33 @@ export async function addProperty(
       country: propertyData.country?.toLowerCase(),
       state: propertyData.state?.toLowerCase(),
       city: propertyData.city?.toLowerCase(),
-      images: propertyData.images || [],
-      amenities: propertyData.amenities || [],
+      images: propertyData.images || [],  // Default to empty array if no images
+      amenities: propertyData.amenities || [],  // Default to empty array if no amenities
     };
 
     // Validate data with schemas
     const validatedLocation = locationSchema.parse(normalizedPropertyData);
     const validatedProperty = propertySchema.parse(normalizedPropertyData);
-    const validatedImages = normalizedPropertyData.images.map((image) => ({
-      ...image,
-      imageId: cuid(), // Generate cuid for each image
-    }));
-    const validatedAmenities = normalizedPropertyData.amenities.map((amenity) => ({
-      ...amenity,
-      amenityId: cuid(), // Generate cuid for each amenity
-    }));
+
+    // Filter images to ensure each has a valid 'link' and assign cuid for each image
+    const validatedImages = normalizedPropertyData.images
+      .filter(image => image.link && image.link.trim() !== '')  // Ensure valid link
+      .map(image => ({
+        ...image,
+        imageId: cuid(), // Generate cuid for each image
+      }));
 
     // Validate and stringify
     const validatedImagesJson = JSON.stringify(validatedImages);
-    const validatedAmenitiesJson = JSON.stringify(validatedAmenities);
-
-    // Call stored procedure to insert data
-    const result: TProperty = await prisma.$queryRaw`
+    const validatedAmenitiesJson = JSON.stringify(normalizedPropertyData.amenities);
+    const propertyId = await cuid();
+    const imageId = await cuid();
+    const amenityId = await cuid();
+    const locationId = await cuid();
+    
+    const result = await prisma.$queryRaw<TProperty>`
       CALL AddProperty(
-        ${cuid()},
+        ${propertyId},
         ${user.id},
         ${validatedProperty.name},
         ${validatedProperty.description},
@@ -207,29 +211,33 @@ export async function addProperty(
         ${validatedProperty.pricePerNight},
         ${validatedProperty.maxGuests},
         ${new Date()},
-
         ${validatedLocation.country},
         ${validatedLocation.state},
         ${validatedLocation.city},
         ${validatedProperty.propertyType},
         ${validatedProperty.RoomType ?? 'N/A'},
         ${validatedProperty.propertyType === 'Hotel'},
-
-        --Now there is error here ..just rectify it 
         ${validatedImagesJson},
-        ${validatedAmenitiesJson}
+        ${validatedAmenitiesJson},
+        ${imageId},
+        ${amenityId},
+        ${locationId}  -- Pass generated ID here
       )
     `;
+    
+  
 
     // Revalidate paths (if applicable)
     revalidatePath(`/user/${kindeId}/properties`);
     revalidatePath("/");
+
     return result;
   } catch (error) {
     console.error("Error in adding the property: ", error);
     return null;
   }
 }
+
 
 //============================================================================================================================================
 
