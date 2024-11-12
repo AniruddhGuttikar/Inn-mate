@@ -19,6 +19,13 @@ export async function createListing(
       throw new Error("couldn't get the user");
     }
 
+    //check if listing exists
+    const result = await prisma.$queryRaw<TListing>`
+      SELECT * FROM listing WHERE userId = ${listingValues.userId} AND propertyId = ${listingValues.propertyId}
+    `
+    if (result){
+      throw new Error('Listing Already exists!!')
+    }
     // Generate a unique 'id' using cuid
     const newListingId = cuid(); 
 

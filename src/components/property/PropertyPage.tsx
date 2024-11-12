@@ -160,10 +160,10 @@ export default function PropertyListingPage({
         totalPrice: property.pricePerNight * totalDays,
       };
       setreservationDetails(bookingValues)
-      // const booking = await createBooking(bookingValues);
-      // if (!booking) {
-      //   throw new Error("Error in creating the ");
-      // }
+      const booking = await createBooking(bookingValues);
+      if (!booking) {
+        throw new Error("Error in creating the ");
+      }
       setisReserved(true);
       setShowDialog(true);
 
@@ -384,7 +384,7 @@ export default function PropertyListingPage({
                 </div>
               </CardContent>
             </Card>
-            <ReviewCard reviews={reviews} />
+            <ReviewCard reviews={reviews}  propertyId={property.id} user={host} />
           </div>
           <div>
             <Card>

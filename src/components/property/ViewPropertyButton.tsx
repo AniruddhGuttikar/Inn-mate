@@ -11,8 +11,11 @@ const ViewPropertyButton = ({
 }) => {
   const router = useRouter();
 
+  async function HandleClick(){
+    router.push(`/properties/${propertyId}`)
+  }
   return (
-    <Button onClick={() => router.push(`/properties/${propertyId}`)}>
+    <Button onClick={HandleClick}>
       View Property
     </Button>
   );

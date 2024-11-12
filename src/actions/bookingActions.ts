@@ -83,7 +83,7 @@ export async function createBooking(
     // Create the check-in/check-out if provided
     if (validatedBooking.checkInOut) {
       await prisma.$queryRaw`
-        INSERT INTO checkInOut (id, checkInDate, checkOutDate, bookingId)
+        INSERT INTO checkIncheckOut (id, checkInDate, checkOutDate, bookingId)
         VALUES (${cuid()}, ${validatedBooking.checkInOut.checkInDate}, ${validatedBooking.checkInOut.checkOutDate}, ${bookingid});
       `;
     }
@@ -92,7 +92,7 @@ export async function createBooking(
     const fullBookingData = await prisma.$queryRaw<TBooking[]>`
       SELECT b.*, c.checkInDate, c.checkOutDate 
       FROM booking AS b
-      LEFT JOIN checkInOut AS c ON b.id = c.bookingId
+      LEFT JOIN checkIncheckOut AS c ON b.id = c.bookingId
       WHERE b.id = ${bookingid};
     `;
 
@@ -130,7 +130,7 @@ export async function getAllBookingsForProperty(
     }
     const bookings = await prisma.$queryRaw<TBooking[]>`
       SELECT b.* , c.checkInDate , c.checkOutDate  FROM booking as b JOIN 
-        chekincheckout as c ON b.id=c.bookingId
+        checkincheckout as c ON b.id=c.bookingId
         WHERE b.propertyId = ${propertyId}
     `
     const bookingSchemaArray = z.array(bookingSchema);

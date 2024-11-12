@@ -6,6 +6,7 @@ import { reviewSchema, TReview } from "@/lib/definitions";
 import cuid from "cuid";
 import { z } from "zod";
 import { getUserById } from './userActions';
+import { revalidatePath } from 'next/cache';
 
 
 export async function getAllReviewsById(
@@ -50,6 +51,7 @@ export async function AddReviews(
       INSERT INTO review(id,rating,comment,userId,propertyId,createdAt)
       values(${cuid()}, ${data.rating}, ${data.comment} ,${data.userId}, ${data.propertyId},${data.createdAt})
     `
+    revalidatePath(`/properties/${data.propertyId}`)
     return 200
   }catch(error){
     console.log('Error Something went wrong.. :(')

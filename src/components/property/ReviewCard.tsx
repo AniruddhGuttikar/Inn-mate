@@ -1,40 +1,50 @@
-import React, { useState } from "react";
+'use client'
+import React, { useEffect, useState } from "react";
 import { Star } from "lucide-react";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { TKindeUser, TReview } from "@/lib/definitions";
+import { TKindeUser, TReview, TUser } from "@/lib/definitions";
 import cuid from "cuid";
-import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { getUserByKindeId } from "@/actions/userActions";
 import { AddReviews, getAllReviewsById } from "@/actions/reviewActions";
 import { useToast } from "@/hooks/use-toast";
+import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
 
 
-const ReviewCard = async ({reviews}: {reviews: TReview[] | null} , propertyId: string) => {
+const ReviewCard =  ({
+  reviews,
+  propertyId,
+  user,
+}: {
+  reviews: TReview[] | null;
+  propertyId: string;
+  user: TUser | null;
+}) => {
 
   const {toast}= useToast()
-  const { getUser, isAuthenticated } = getKindeServerSession();
-  const kindeUser = (await getUser()) as TKindeUser;
 
-  if (!isAuthenticated){
-    console.log('user Not Authenticated')
-    return null
-  }
 
-  if(!kindeUser){
+  if(!user){
     return <h1>OOps!! Some thing Went wrong !!</h1>
   }
 
-  const user = await getUserByKindeId(kindeUser.id)
-  if (!user?.id){
-    return null
-  }
+
+
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
-
-  const existingReviews= await getAllReviewsById(propertyId)
+  const [existingReviews, setExistingReviews] = useState<Array<TReview & { name: string }> | null>(null);
+  useEffect(() => {
+    const fetchReviews = async () => {
+      const review = await getAllReviewsById(propertyId); // Type inferred as Array<TReview & { name: string }> | null
+      setExistingReviews(review);
+    };
+  
+    fetchReviews();
+  },[]);
+  
+  
   // Assume we have these existing reviews
   
 

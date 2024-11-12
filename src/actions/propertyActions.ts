@@ -244,7 +244,7 @@ export async function addProperty(
 
     return result;
   } catch (error) {
-    console.error("Error in adding the property: ", error);
+    console.error("Error in adding the property: here", error);
     return null;
   }
 }

@@ -209,7 +209,7 @@ export default function PropertyCard({
                   <>
           <div className="flex justify-center space-x-2">
             <EditProperty propertyId={property.id} kindeUserId={hostKindeId} />
-            <ListPropertyButton propertyId={property.id} kindeUserId={hostKindeId} />
+            {/* <ListPropertyButton propertyId={property.id} kindeUserId={hostKindeId} /> */}
             <ViewPropertyButton propertyId={property.id} />
           </div>
                   </>
