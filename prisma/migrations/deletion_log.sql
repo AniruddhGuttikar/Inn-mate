@@ -5,17 +5,15 @@ CREATE TABLE IF NOT EXISTS deletion_log (
   deletedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Create the trigger to log updates to the isDeleted field
+-- Create the trigger to log deletions
 DELIMITER $$
 
 CREATE TRIGGER log_property_deletion
-BEFORE UPDATE ON property
+BEFORE DELETE ON property
 FOR EACH ROW
 BEGIN
-  -- Only log when the isDeleted status changes
-  IF OLD.isDeleted <> NEW.isDeleted THEN
-    INSERT INTO deletion_log (propertyId) VALUES (OLD.id);
-  END IF;
+  -- Log the deletion of the property
+  INSERT INTO deletion_log (propertyId) VALUES (OLD.id);
 END $$
 
 DELIMITER ;

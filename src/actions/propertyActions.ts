@@ -508,3 +508,82 @@ export async function updatePropertyDelete(
 }
 
 //============================================================================================================================================
+
+export async function isUserHasProperties(kindId: string) {
+  console.log("isUserHasProperties");
+  const userId = await getUserByKindeId(kindId)
+  console.log("UserId: ",userId)
+
+  const res= await prisma.$queryRaw<TProperty[]>`
+    SELECT P.* FROM property p WHERE P.userId = ${userId?.id} 
+  `
+  console.log("Result: ",res)
+  if(res && res.length > 0){
+    return res
+  }
+
+
+  return null;
+}
+
+
+export async function AllBookingPropertyDetails(userId: string){
+    //Here we fetch all the details like 
+    /*
+    1.PropertyID
+    2.Property Name
+    3.BookingID
+    4.Booked User Name
+    5.Price
+    6.BookedOn
+    7.Remaining Space
+    8.CheckIn date
+    9.checkOut date
+    10.status
+    */
+    const res : any[] =await prisma.$queryRaw`
+        SELECT 
+          p.id AS propertyId,
+          p.name AS PropertyName,
+          b.id AS bookingID,
+          u.name AS BookedUser,
+          u.email AS BookedUserEmail,
+          b.totalprice,
+          b.updatedAt,
+          b.roomId,
+          b.status,
+          r.avg_rating AS review
+        FROM property AS p
+        JOIN booking AS b ON b.propertyId = p.id
+        JOIN user AS u ON u.id = b.userId
+        LEFT JOIN (
+            SELECT propertyId, AVG(rating) AS avg_rating
+            FROM review
+            GROUP BY propertyId
+        ) AS r ON r.propertyId = p.id
+        WHERE p.userId = ${userId}
+        ORDER BY avg_rating;
+      `;
+
+      console.log("ALL Prop Details" ,res)
+
+      if(res && res.length >0 ){
+        return res
+      }
+
+}
+
+
+export async function getDeleteProplogs(userId: string, sortOrder: "asc" | "desc" = "asc") {
+  const res: any[] = await prisma.$queryRaw`
+    SELECT dl.*, p.name, p.pricePerNight as price
+    FROM deletion_log dl
+    JOIN property p 
+      ON dl.propertyId = p.id
+    WHERE p.userId = ${userId} COLLATE utf8mb4_unicode_ci
+  `;
+  
+  return res.length > 0 ? res : null;
+}
+
+

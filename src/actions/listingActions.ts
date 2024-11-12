@@ -1,5 +1,4 @@
 "use server";
-
 import { listingSchema, TListing } from "@/lib/definitions";
 import { isAuthenticatedUserInDb } from "./userActions";
 import prisma from "@/lib/db";

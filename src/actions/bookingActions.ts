@@ -13,19 +13,21 @@ export default async function getBookingDetailsByPropertyId(
 ): Promise<TBooking[] | null> {
   try {
     const bookings : any = await prisma.$queryRaw`
-      SELECT 
-        b.*, 
-        p.name, p.description, p.Pricepernight, p.maxGuests, 
-        p.propertytype, p.isHotel, p.isDeleted, p.RoomType, 
-        p.locationId, 
-        c.checkInDate, c.checkOutDate,
-        b.totalPrice, b.userId
-      FROM booking AS b
-      JOIN property AS p ON b.propertyId = p.id
-      JOIN checkIncheckOut AS c ON b.id = c.bookingId
-      WHERE b.status IN ('ACTIVE', 'CONFIRMED') 
-      AND b.propertyId = ${propertyId}
-    `;
+    SELECT 
+      b.*, 
+      p.name, p.description, p.Pricepernight, p.maxGuests, 
+      p.propertytype, p.isHotel, p.isDeleted, p.RoomType, 
+      p.locationId, 
+      c.checkInDate, c.checkOutDate,
+      b.totalPrice, b.userId
+    FROM booking AS b
+    JOIN (
+      SELECT * FROM property WHERE id = ${propertyId} AND isDeleted = false
+    ) AS p ON b.propertyId = p.id
+    JOIN checkIncheckOut AS c ON b.id = c.bookingId
+    WHERE b.status IN ('ACTIVE', 'CONFIRMED') 
+  `;
+  
     // console.log("Bookings: ",bookings)
     // Map the raw query result to the desired structure
 
@@ -78,6 +80,15 @@ export async function createBooking(
       ${validatedBooking.status}
     )
   `;
+   await prisma.$queryRaw`
+    INSERT INTO payment (id,amount,paymentDate ,bookingId)
+    VALUES(
+      ${cuid()},
+      ${validatedBooking.totalPrice},
+      ${new Date()},
+      ${bookingid}
+    )
+   `
   
 
     // Create the check-in/check-out if provided
@@ -153,10 +164,14 @@ export async function DeleteBookingsbyIds(bookingIds: string[] | undefined) {
     }
 
     // Safely interpolate booking IDs into the raw query using Prisma's built-in parameterization
-    const result = await prisma.$queryRaw`
-      DELETE FROM booking
-      WHERE id IN (${Prisma.join(bookingIds)})
-    `;
+const result = await prisma.$queryRaw`
+  DELETE FROM booking
+  WHERE id IN (
+    SELECT id FROM booking WHERE id IN (${Prisma.join(bookingIds)}) 
+    AND propertyId IN (SELECT id FROM property WHERE isDeleted = false)
+  )
+`;
+
 
     return result || null;
   } catch (error) {
@@ -179,18 +194,20 @@ export async function getAllBookedProperties(
     }
     const bookings: any = await prisma.$queryRaw`
     SELECT 
-          b.*, p.userId AS propUser,
-          p.name, p.description, p.Pricepernight, p.maxGuests, 
-          p.propertytype, p.isHotel, p.isDeleted, p.RoomType, 
-          p.locationId, 
-          c.checkInDate, c.checkOutDate,
-          b.totalPrice, b.userId
-        FROM booking AS b
-      JOIN property AS p ON b.propertyId = p.id
-      JOIN checkIncheckOut AS c ON b.id = c.bookingId
-      WHERE b.status IN ('ACTIVE', 'CONFIRMED') 
-      AND b.userId = ${user.id}
+      b.*, p.userId AS propUser,
+      p.name, p.description, p.Pricepernight, p.maxGuests, 
+      p.propertytype, p.isHotel, p.isDeleted, p.RoomType, 
+      p.locationId, 
+      c.checkInDate, c.checkOutDate,
+      b.totalPrice, b.userId
+    FROM booking AS b
+    JOIN property AS p ON b.propertyId = p.id
+    JOIN checkIncheckOut AS c ON b.id = c.bookingId
+    WHERE b.status IN ('ACTIVE', 'CONFIRMED') 
+      AND b.userId = ${user.id} 
+      AND p.id IN (SELECT propertyId FROM booking WHERE status IN ('ACTIVE', 'CONFIRMED'))
   `;
+  
       const formattedBookings : (TBooking & {property: TProperty} )[] = bookings.map((rawBooking: any) => ({ 
         status: rawBooking.status as "ACTIVE" | "CONFIRMED" | "COMPLETED",
           totalPrice: rawBooking.totalPrice ?? 0, // Default to 0 if null

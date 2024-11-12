@@ -42,7 +42,7 @@ interface PropertyCardProps {
   hostName: string;
   hostKindeId?: string;
   favorites:string;
-
+  status: "CONFIRMED" | 'ACTIVE' | 'COMPLETED' | null;
   checkInCheckOutDetail?: TCheckInCheckOut;
 }
 
@@ -57,6 +57,7 @@ export default function PropertyCard({
   hostName,
   favorites,
   checkInCheckOutDetail,
+  status,
 }: PropertyCardProps) {
 
   // If favorites is an empty string, show all properties
@@ -119,8 +120,26 @@ export default function PropertyCard({
               <span className="text-sm font-medium">
                 {averageRating?.toFixed(1)}
               </span>
+
             </div>
           )}
+
+          {
+          status && (
+          <div>
+            <h1>Status: </h1>
+            <span 
+              style={{
+                color: status === 'CONFIRMED' ? 'green' : 
+                      status === 'ACTIVE' ? 'red' : 
+                      status === 'COMPLETED' ? 'brown' : 'black' 
+              }}
+            >
+              {status}
+            </span>
+          </div>
+          )
+            }
         </div>
         <p className="text-sm line-clamp-2 mb-2">{property.description}</p>
         <div className="flex items-center gap-4 text-sm text-muted-foreground mb-2">
@@ -128,6 +147,8 @@ export default function PropertyCard({
             <Bed className="h-4 w-4 mr-1" />
             <span>{property.propertyType}</span>
           </div>
+
+          
 
           <div className="flex items-center">
             <Users className="h-4 w-4 mr-1" />
@@ -207,18 +228,24 @@ export default function PropertyCard({
         )}
 
         </CardFooter>
-        {(type !='book' && type!='list' && type!='status') &&(
-                  <>
-          <div className="flex justify-center space-x-2">
-            <EditProperty propertyId={property.id} kindeUserId={hostKindeId} />
-            {/* <ListPropertyButton propertyId={property.id} kindeUserId={hostKindeId} /> */}
-            <ViewPropertyButton propertyId={property.id} />
-          </div>
-                  </>
-
-        )}
-
-      
+        {(type !== 'book' && type !== 'list' && type !== 'status') ? (
+  <>
+    <div className="flex justify-center space-x-2">
+      <EditProperty propertyId={property.id} kindeUserId={hostKindeId} />
+      {/* <ListPropertyButton propertyId={property.id} kindeUserId={hostKindeId} /> */}
+      <ViewPropertyButton propertyId={property.id} />
+    </div>
+  </>
+) : (
+  <>
+    { 
+    (status && ['CONFIRMED', 'ACTIVE'].includes(status)) && (
+    
+      <ViewPropertyButton propertyId={property.id} />
+    )}
+    <div></div>
+  </>
+)}
 
     </Card>
     

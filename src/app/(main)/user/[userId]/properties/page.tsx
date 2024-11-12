@@ -59,6 +59,7 @@ const MyProperties = async () => {
           hostKindeId={kindeUser.id}
           hostName={user.name}
           favorites={''}
+          status = {null}
         />
       );
     })

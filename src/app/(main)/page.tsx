@@ -13,6 +13,7 @@ import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import PropTypesSelect from "@/components/propertyTypes/propTypes";
 import Footer from "@/components/footer/footer";
 import AboutUs from "@/components/contents/Aboutus";
+import NoPropertyAvailable from "@/components/property/noProps";
 
 export default async function Home({
   searchParams,
@@ -43,15 +44,14 @@ export default async function Home({
       properties,
     });
   } else {
-    console.log("Called getAllListedProperties, properties:", properties);
+    // console.log("Called getAllListedProperties, properties:", properties);
+    console.log("Called getAllListedProperties")
   }
 
   // Check if properties is null or undefined before proceeding
   if (!properties) {
     return (
-<div className="text-red-600 text-center font-semibold text-lg w-full mt-8 flex justify-center items-center absolute top-0 left-0 right-0 bottom-0 z-50">
-  No property available
-</div>
+      <NoPropertyAvailable/>
 
 
     );
@@ -86,6 +86,7 @@ export default async function Home({
           hostName={user.name}
           hostKindeId={property.userId}
           favorites=""
+          status={null}
         />
       );
     })
