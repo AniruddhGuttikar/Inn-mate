@@ -11,6 +11,7 @@ import { getUserByKindeId } from "@/actions/userActions";
 import { AddReviews, getAllReviewsById } from "@/actions/reviewActions";
 import { useToast } from "@/hooks/use-toast";
 import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
+import { revalidatePath } from "next/cache";
 
 
 const ReviewCard =  ({
@@ -42,7 +43,7 @@ const ReviewCard =  ({
     };
   
     fetchReviews();
-  },[]);
+  },[rating]);
   
   
   // Assume we have these existing reviews
@@ -74,6 +75,7 @@ const ReviewCard =  ({
         title: 'Successful',
         description: 'Review Added'
       })
+      // revalidatePath(`/properties/${propertyId}`)
     }
     else{
       toast({

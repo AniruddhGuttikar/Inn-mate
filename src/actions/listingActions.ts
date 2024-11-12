@@ -20,10 +20,10 @@ export async function createListing(
     }
 
     //check if listing exists
-    const result = await prisma.$queryRaw<TListing>`
+    const result = await prisma.$queryRaw<TListing[]>`
       SELECT * FROM listing WHERE userId = ${listingValues.userId} AND propertyId = ${listingValues.propertyId}
     `
-    if (result){
+    if (result.length > 0){
       throw new Error('Listing Already exists!!')
     }
     // Generate a unique 'id' using cuid
@@ -59,14 +59,17 @@ export async function getListing(
       throw new Error("couldn't get the user or property");
     }
     console.log("property, userId:", propertyId, userId);
-    const listing = await prisma.listing.findUnique({
-      where: {
-        userId_propertyId: {
-          userId,
-          propertyId,
+      const listing = await prisma.listing.findUnique({
+        where: {
+          userId_propertyId: {
+            userId,
+            propertyId},
+            availabilityEnd: {
+              gte: new Date(),
         },
-      },
-    });
+      }
+    }
+      );
     console.log("Listing in getListing: ", listing);
 
     const validatedListing = listingSchema.parse(listing);

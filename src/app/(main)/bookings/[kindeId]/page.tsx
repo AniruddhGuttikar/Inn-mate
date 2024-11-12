@@ -13,11 +13,13 @@ const Bookings = async ({ params }: { params: { kindeId: string } }) => {
   const bookings = (await getAllBookedProperties(kindeId)) as (TBooking & {
     property: TProperty;
   } & { checkInOut: TCheckInCheckOut })[];
-  // console.log(bookings);
+
+
+  console.log("Booekd:",bookings);
   const propertyCards = await Promise.all(
     bookings.map(async (booking) => {
       if (!booking.property.id || !booking.property.locationId) {
-        return null;
+        return <>no bookings found</>;
       }
       const reviews = await getAllReviewsById(booking.property.id);
       const amenities = await getAllAmenitiesForProperty(booking.property.id);
@@ -36,7 +38,7 @@ const Bookings = async ({ params }: { params: { kindeId: string } }) => {
 
       return (
         <PropertyCard
-          key={booking.property.id}
+          // key={booking.property.id}
           property={booking.property}
           location={location}
           reviews={reviews}

@@ -36,15 +36,17 @@ export default function DateRangePicker({
 }: DateRangePickerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [date, setDate] = useState<DateRange | undefined>();
-
   const isDateBooked = (date: Date) => {
     if (!bookings) {
       return false;
     }
+
     return bookings.some((booking) =>
-      isWithinInterval(startOfDay(date), {
-        start: startOfDay(booking.checkInOut?.checkInDate ?? ''),
-        end: startOfDay(booking.checkInOut?.checkOutDate ?? ''),
+    isWithinInterval(startOfDay(date), {
+        //@ts-ignore
+        start: startOfDay(booking.checkInDate ?? ''),
+        //@ts-ignore
+        end: startOfDay(booking.checkOutDate ?? ''),
       })
     );
   };

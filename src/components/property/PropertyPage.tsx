@@ -160,10 +160,10 @@ export default function PropertyListingPage({
         totalPrice: property.pricePerNight * totalDays,
       };
       setreservationDetails(bookingValues)
-      const booking = await createBooking(bookingValues);
-      if (!booking) {
-        throw new Error("Error in creating the ");
-      }
+      // const booking = await createBooking(bookingValues);
+      // if (!booking) {
+      //   throw new Error("Error in creating the ");
+      // }
       setisReserved(true);
       setShowDialog(true);
 
@@ -315,7 +315,7 @@ export default function PropertyListingPage({
                   const averageRating = findAverageRating(reviews);
                   return averageRating === -1
                     ? "Be the first one to review"
-                    : averageRating;
+                    : averageRating.toFixed(1);
                 })()}
               </span>
               <span className="text-muted-foreground ml-1">

@@ -38,6 +38,7 @@ const page = async ({ params }: { params: { propertyId: string } }) => {
       await getListing(property.userId, property.id),
       await getAllBookingsForProperty(property.id),
     ]);
+  console.log("3",host ,"2",location,"1", listing)
   if (!host || !location || !listing) {
     return <>Sorry couldn't get all details about the property</>;
   }

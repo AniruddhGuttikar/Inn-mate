@@ -57,6 +57,7 @@ export async function getAllListedProperties(): Promise<TProperty[] | null> {
 //============================================================================================================================================
 import { Prisma } from "@prisma/client";
 import cuid from "cuid";
+import { redirect } from "next/dist/server/api-utils";
 
 export async function getFilteredListings(
   destination?: string,
@@ -273,7 +274,7 @@ export async function updateProperty(
     const imagesSchemaArray = z.array(imageSchema);
     const validatedLocation = locationSchema.parse(propertyData);
     const validatedProperty = propertySchema.parse(propertyData);
-    const validatedImages = imagesSchemaArray.parse(propertyData.image);
+    const validatedImages = imagesSchemaArray.parse(propertyData.images);
 
     // Check if the property exists
     const existingProperty = await prisma.$queryRaw<TProperty>`
@@ -285,13 +286,14 @@ export async function updateProperty(
 
     // Check if the location already exists
 
-    let location= await prisma.$queryRaw<TLocation>`
+    let locations = await prisma.$queryRaw<TLocation[]>`
       SELECT * FROM location WHERE
         city = ${validatedLocation.city} AND
         country= ${validatedLocation.country} AND 
         state = ${validatedLocation.state}
     `
-    
+    let location= locations[0]
+    console.log('Location',location)
     if (!location) {
       location = await prisma.location.create({
         data: {
@@ -299,7 +301,7 @@ export async function updateProperty(
         },
       });
     }
-
+    console.log('Location',location)
     const isHotel = validatedProperty.propertyType === "Hotel";
 
     // Update the property in the database'5
@@ -334,17 +336,21 @@ export async function updateProperty(
           PropertyType = ${validatedProperty.propertyType},
           UpdatedAt = ${new Date()},
           locationId = ${location.id},
-          isHotel = ${isHotel}
-          ${isHotel ? `, RoomType = ${validatedProperty.RoomType}` : ''}
-      WHERE id = ${validatedProperty.id}
+          isHotel = ${isHotel},
+          RoomType = ${isHotel ? `${validatedProperty.RoomType}` : 'N/A'}
+      WHERE id = ${propertyId}
     `;
 
+    await prisma.$queryRaw`
+    DELETE FROM image WHERE propertyId = ${propertyId};
+    `
     // Insert new images
     for (const image of validatedImages) {
       await prisma.$queryRaw`
-        INSERT INTO Image (id,propertyId, link) VALUES (${cuid()},${validatedProperty.id}, ${image.link})
+        INSERT INTO Image (id, propertyId, link) VALUES (${cuid()}, ${propertyId}, ${image.link})
       `;
     }
+    
 
     // Fetch and return the updated property
       const property: any = await prisma.$queryRaw<TProperty[]>`
@@ -357,7 +363,7 @@ export async function updateProperty(
       FROM property p
         JOIN location l ON p.locationId = l.id 
         LEFT JOIN image i ON i.propertyId = p.id
-      WHERE p.id = ${validatedProperty.id}
+      WHERE p.id = ${propertyId}
       GROUP BY p.id, l.city, l.country, l.state
     `;
     
@@ -365,7 +371,7 @@ export async function updateProperty(
     const formattedProperty : TProperty= property.map((prop: any) => ({
       ...prop,
       images: prop.image_links ? prop.image_links.split(',').map((link: string) => ({ link })) : []
-    }))[0]; // Assuming only one property is fetched
+    })); // Assuming only one property is fetched
     
     console.log(formattedProperty);
   

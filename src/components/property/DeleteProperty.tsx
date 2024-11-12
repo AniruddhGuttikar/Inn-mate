@@ -24,6 +24,7 @@ export default function DeleteProperty({ bookings, userId, kindeId, propertyId }
     const [open, setOpen] = useState(false);
     const [delType, setDel] = useState('');
     const [captchaShow, setcs] = useState(false);
+    const router = useRouter()
 
     const handleClickOpen = () => {
         setOpen(true);
@@ -81,6 +82,7 @@ export default function DeleteProperty({ bookings, userId, kindeId, propertyId }
                         return null;
 
                     }
+
                     const result = await SendMailToUsers(bookings);
                     if (!result) {
                         toast({
@@ -101,6 +103,7 @@ export default function DeleteProperty({ bookings, userId, kindeId, propertyId }
                     }
 
                 }
+                router.push('/')
             } else {
                 console.log("here");
                 //Handle scheduled delete

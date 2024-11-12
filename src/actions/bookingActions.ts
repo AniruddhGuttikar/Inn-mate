@@ -125,17 +125,20 @@ export async function getAllBookingsForProperty(
   propertyId?: string
 ): Promise<TBooking[] | null> {
   try {
+
     if (!propertyId) {
       throw new Error("propertyId doesn't exist");
     }
-    const bookings = await prisma.$queryRaw<TBooking[]>`
+    const bookings = await prisma.$queryRaw`
       SELECT b.* , c.checkInDate , c.checkOutDate  FROM booking as b JOIN 
         checkincheckout as c ON b.id=c.bookingId
         WHERE b.propertyId = ${propertyId}
     `
-    const bookingSchemaArray = z.array(bookingSchema);
-    const validatedBookings = bookingSchemaArray.parse(bookings);
-    return validatedBookings;
+    console.log("bookings" , bookings)
+    // const bookingSchemaArray = z.array(bookingSchema);
+    // const validatedBookings = bookingSchemaArray.parse(bookings);
+    // @ts-ignore
+    return bookings;
   } catch (error) {
     console.error("Error in getting all the bookings: ", error);
     return null;
@@ -165,7 +168,7 @@ export async function DeleteBookingsbyIds(bookingIds: string[] | undefined) {
 //=================================================================================================================================
 export async function getAllBookedProperties(
   kindeId?: string
-): Promise<TBooking[] | null> {
+): Promise<(TBooking & {property: TProperty} | null)[]  | null> {
   try {
     if (!kindeId) {
       throw new Error("userId doesn't exist");
@@ -176,7 +179,7 @@ export async function getAllBookedProperties(
     }
     const bookings: any = await prisma.$queryRaw`
     SELECT 
-          b.*, 
+          b.*, p.userId AS propUser,
           p.name, p.description, p.Pricepernight, p.maxGuests, 
           p.propertytype, p.isHotel, p.isDeleted, p.RoomType, 
           p.locationId, 
@@ -188,7 +191,7 @@ export async function getAllBookedProperties(
       WHERE b.status IN ('ACTIVE', 'CONFIRMED') 
       AND b.userId = ${user.id}
   `;
-      const formattedBookings : TBooking[]= bookings.map((rawBooking: any) => ({ 
+      const formattedBookings : (TBooking & {property: TProperty} )[] = bookings.map((rawBooking: any) => ({ 
         status: rawBooking.status as "ACTIVE" | "CONFIRMED" | "COMPLETED",
           totalPrice: rawBooking.totalPrice ?? 0, // Default to 0 if null
           userId: rawBooking.userId ?? "", // Default to empty string if null
@@ -201,6 +204,20 @@ export async function getAllBookedProperties(
               }
               : null, // Handle checkInOut as null if dates are missing
               id: rawBooking.id, // Include the id if available
+          property: {
+            id: rawBooking.propertyId,
+            name: rawBooking.name,
+            description: rawBooking.description,
+            pricePerNight: rawBooking.Pricepernight, 
+            maxGuests: rawBooking.maxGuests, 
+            propertytype : rawBooking.propertytype,
+            isHotel : rawBooking.isHotel, 
+            isDeleted: rawBooking.isDeleted, 
+            RoomType :rawBooking.RoomType, 
+            locationId: rawBooking.locationId,
+            userId: rawBooking.propUser 
+
+          }
               
         }));
         // console.log(formattedBookings)
