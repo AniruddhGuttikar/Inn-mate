@@ -4,31 +4,73 @@ import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { TReview } from "@/lib/definitions";
+import { TKindeUser, TReview } from "@/lib/definitions";
+import cuid from "cuid";
+import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
+import { getUserByKindeId } from "@/actions/userActions";
+import { AddReviews, getAllReviewsById } from "@/actions/reviewActions";
+import { useToast } from "@/hooks/use-toast";
 
-const ReviewCard = ({reviews}: {reviews: TReview[] | null} ) => {
+
+const ReviewCard = async ({reviews}: {reviews: TReview[] | null} , propertyId: string) => {
+
+  const {toast}= useToast()
+  const { getUser, isAuthenticated } = getKindeServerSession();
+  const kindeUser = (await getUser()) as TKindeUser;
+
+  if (!isAuthenticated){
+    console.log('user Not Authenticated')
+    return null
+  }
+
+  if(!kindeUser){
+    return <h1>OOps!! Some thing Went wrong !!</h1>
+  }
+
+  const user = await getUserByKindeId(kindeUser.id)
+  if (!user?.id){
+    return null
+  }
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
 
+  const existingReviews= await getAllReviewsById(propertyId)
   // Assume we have these existing reviews
-  const existingReviews = [
-    {
-      id: "1",
-      rating: 5,
-      comment: "Amazing property, loved the location!",
-      createdAt: new Date(),
-      user: { name: "John Doe" },
-    },
-    // ... more reviews
-  ];
+  
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     // Handle review submission here
+
+
+    const ratingData : TReview ={
+      id: cuid(),
+      rating: rating,
+      comment : comment,
+      userId : user?.id || '' ,
+      propertyId : propertyId,
+      createdAt : new Date()
+    }
+
+    const result= await AddReviews(ratingData)
+
     console.log({ rating, comment });
     // Reset form
     setRating(0);
     setComment("");
+
+    if (result){
+      toast({
+        title: 'Successful',
+        description: 'Review Added'
+      })
+    }
+    else{
+      toast({
+        title: 'Failed',
+        description: 'Review Failed please Try Again'
+      })
+    }
   };
 
   return (
@@ -80,11 +122,11 @@ const ReviewCard = ({reviews}: {reviews: TReview[] | null} ) => {
 
       <div className="space-y-4">
         <h2 className="text-xl font-bold">Recent Reviews</h2>
-        {existingReviews.slice(0, 5).map((review) => (
+        {existingReviews?.slice(0, 5).map((review) => (
           <Card key={review.id}>
             <CardContent className="pt-6">
               <div className="flex items-center justify-between mb-2">
-                <span className="font-medium">{review.user.name}</span>
+                <span className="font-medium">{review.name}</span>
                 <div className="flex">
                   {[...Array(5)].map((_, index) => (
                     <Star

@@ -120,6 +120,7 @@ export const reviewSchema = z.object({
   comment: z.string(),
   userId: z.string().cuid(),
   propertyId: z.string().cuid(),
+  createdAt : z.date()
 });
 
 // favourite Schema

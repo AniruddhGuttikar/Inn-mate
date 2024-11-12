@@ -24,8 +24,8 @@ export async function createListing(
 
     // Raw SQL query to insert a new listing, including the generated 'id'
     await prisma.$queryRaw`
-      INSERT INTO listing (id, availabilityStart, availabilityEnd, userId, propertyId)
-      VALUES (${newListingId}, ${validatedListing.availabilityStart}, ${validatedListing.availabilityEnd}, ${validatedListing.userId}, ${validatedListing.propertyId})`
+      INSERT INTO listing (id, availabilityStart, availabilityEnd,updatedAt ,userId, propertyId)
+      VALUES (${newListingId}, ${validatedListing.availabilityStart}, ${validatedListing.availabilityEnd}, ${new Date()},${validatedListing.userId}, ${validatedListing.propertyId})`
 
     const newListing = await prisma.$queryRaw<TListing[]>`
         SELECT * FROM listing as l WHERE l.id=${newListingId}

@@ -1,19 +1,17 @@
-"use server";
 
+"use server";
 import {
-  amenitySchema,
   imageSchema,
   locationSchema,
   propertySchema,
   TAddPropertyFormvaluesSchema,
-  TBooking,
   TImage,
+  TLocation,
   TProperty,
 } from "@/lib/definitions";
 import { getUserByKindeId, isAuthenticatedUserInDb } from "./userActions";
 import prisma from "@/lib/db";
 import { z } from "zod";
-import { getLocationById } from "./locationActions";
 import { revalidatePath } from "next/cache";
 
 const UPLOADCARE_PUBLIC_KEY = 'ecc593f3433cbf4e6114'; // Replace with your Uploadcare public key
@@ -35,15 +33,16 @@ const uploadcareSimpleAuthSchema = new UploadcareSimpleAuthSchema({
 export async function getAllListedProperties(): Promise<TProperty[] | null> {
   try {
     // Ensure correct JOIN condition (assuming `l.propertyId` exists in `listing` table)
+    console.log("I here debugging")
     const listings = await prisma.$queryRaw<TProperty[]>`
       SELECT p.*, l.availabilityStart, l.availabilityEnd 
       FROM listing AS l
       JOIN property AS p ON p.id = l.propertyId
       LIMIT 20
     `;
+    console.log("listings",listings)
 
     const propertiesSchemaArray = z.array(propertySchema);
-    console.log("listings",listings)
     const validatedProperties = propertiesSchemaArray.parse(
       listings.map((listing) => listing)
     );
@@ -104,6 +103,7 @@ export async function getFilteredListings(
 
 //============================================================================================================================================
 
+
 export async function getAllPropertiesByUserId(
   userId: string
 ): Promise<TProperty[] | null> {
@@ -127,6 +127,7 @@ export async function getAllPropertiesByUserId(
         // user: true,
       },
     });
+    console.log("ho")
     const propertiesSchemaArray = z.array(propertySchema);
     const validatedProperties = propertiesSchemaArray.parse(properties);
     return validatedProperties;
@@ -140,18 +141,28 @@ export async function getPropertyById(
   propertyId: string
 ): Promise<TProperty | null> {
   try {
-    const property = await prisma.property.findUnique({
-      where: {
-        id: propertyId,
-      },
-    });
+    const properties = await prisma.$queryRaw<TProperty[]>`
+      SELECT * FROM property WHERE id = ${propertyId}
+    `;
+
+    // Check if there's at least one property in the result array
+    if (properties.length === 0) {
+      return null; // Return null if no property is found
+    }
+
+    // Extract the single property object from the array
+    const property = properties[0];
+
+    // Validate the single property object
     const validatedProperty = propertySchema.parse(property);
+    
     return validatedProperty;
   } catch (error) {
-    console.error("Error in getting properties: ", error);
+    console.error("Error in getting property by ID: ", error);
     return null;
   }
 }
+
 
 
 
@@ -265,22 +276,22 @@ export async function updateProperty(
     const validatedImages = imagesSchemaArray.parse(propertyData.image);
 
     // Check if the property exists
-    const existingProperty = await prisma.property.findUnique({
-      where: { id: propertyId },
-    });
+    const existingProperty = await prisma.$queryRaw<TProperty>`
+      SELECT * FROM property WHERE id=${propertyId}
+    `
     if (!existingProperty) {
       throw new Error(`Property with ID ${propertyId} not found`);
     }
 
     // Check if the location already exists
-    let location = await prisma.location.findFirst({
-      where: {
-        city: validatedLocation.city,
-        country: validatedLocation.country,
-        state: validatedLocation.state,
-      },
-    });
 
+    let location= await prisma.$queryRaw<TLocation>`
+      SELECT * FROM location WHERE
+        city = ${validatedLocation.city} AND
+        country= ${validatedLocation.country} AND 
+        state = ${validatedLocation.state}
+    `
+    
     if (!location) {
       location = await prisma.location.create({
         data: {
@@ -293,26 +304,74 @@ export async function updateProperty(
 
     // Update the property in the database'5
     console.log("Validated images: ",validatedImages)
-    const property = await prisma.property.update({
-      where: { id: propertyId },
-      data: {
-        ...validatedProperty,
-        isHotel,
-        locationId: location.id,
-        images: {
-          deleteMany: {}, // Optionally delete old images if necessary
-          create: validatedImages.map((image) => ({
-            link: image.link,
-          })),
-        },
-        ...(isHotel && {
-          RoomType: validatedProperty.RoomType
-        })
-        ,
-      },
-    });
+    // const property = await prisma.property.update({
+    //   where: { id: propertyId },
+    //   data: {
+    //     ...validatedProperty,
+    //     isHotel,
+    //     locationId: location.id,
+    //     images: {
+    //       deleteMany: {}, // Optionally delete old images if necessary
+    //       create: validatedImages.map((image) => ({
+    //         link: image.link,
+    //       })),
+    //     },
+    //     ...(isHotel && {
+    //       RoomType: validatedProperty.RoomType
+    //     })
+    //     ,
+    //   },
+    // });
 
-    return property;
+// Update property information, trigger will delete old images
+    await prisma.$queryRaw`
+      UPDATE property 
+      SET 
+          name = ${validatedProperty.name},
+          description = ${validatedProperty.description},
+          pricePerNight = ${validatedProperty.pricePerNight},
+          maxGuests = ${validatedProperty.maxGuests},
+          PropertyType = ${validatedProperty.propertyType},
+          UpdatedAt = ${new Date()},
+          locationId = ${location.id},
+          isHotel = ${isHotel}
+          ${isHotel ? `, RoomType = ${validatedProperty.RoomType}` : ''}
+      WHERE id = ${validatedProperty.id}
+    `;
+
+    // Insert new images
+    for (const image of validatedImages) {
+      await prisma.$queryRaw`
+        INSERT INTO Image (id,propertyId, link) VALUES (${cuid()},${validatedProperty.id}, ${image.link})
+      `;
+    }
+
+    // Fetch and return the updated property
+      const property: any = await prisma.$queryRaw<TProperty[]>`
+      SELECT 
+        p.*, 
+        l.city, 
+        l.country, 
+        l.state, 
+        GROUP_CONCAT(i.link) AS image_links
+      FROM property p
+        JOIN location l ON p.locationId = l.id 
+        LEFT JOIN image i ON i.propertyId = p.id
+      WHERE p.id = ${validatedProperty.id}
+      GROUP BY p.id, l.city, l.country, l.state
+    `;
+    
+    // After fetching, format the `image_links` field into an array
+    const formattedProperty : TProperty= property.map((prop: any) => ({
+      ...prop,
+      images: prop.image_links ? prop.image_links.split(',').map((link: string) => ({ link })) : []
+    }))[0]; // Assuming only one property is fetched
+    
+    console.log(formattedProperty);
+  
+
+
+    return formattedProperty;
   } catch (error) {
     console.error("Error in updating the property: ", error);
     return null;
