@@ -24,12 +24,6 @@ export default async  function Deleteprops({ params }: Props){
     }
     
     const bookings=await getBookingDetailsByPropertyId(propertyId)
-
-    if(!bookings){
-        return(
-            <h1>hi</h1>
-        )
-    }
     return(
         <>
         <DeleteProperty bookings={bookings} userId={user.id}  kindeId={kindeUserId} propertyId={propertyId}/>

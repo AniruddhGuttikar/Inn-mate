@@ -6,7 +6,6 @@ import { format } from "date-fns";
 import { Button } from "../ui/button";
 import DeleteModal, { DeleteModalCnf } from "../modals/ConfirmationModal";
 import { useRouter } from "next/navigation";
-import Captcha from '../verification/captcha';
 import ReCAPTCHA from "react-google-recaptcha";
 import { toast } from "@/hooks/use-toast";
 import SendMailToUsers from "@/actions/userActions";
@@ -14,7 +13,7 @@ import { DeleteBookingsbyIds } from "@/actions/bookingActions";
 import { DeletePropertyByIdAdmin, updateProperty, updatePropertyDelete } from "@/actions/propertyActions";
 
 interface DeletePropertyProps {
-    bookings: TBooking[];
+    bookings: TBooking[] | null;
     userId?: string;
     kindeId?: string;
     propertyId: string;
@@ -55,7 +54,7 @@ export default function DeleteProperty({ bookings, userId, kindeId, propertyId }
             console.log(`deleting: by ${delType}`);
 
             if (delType === 'delete') {
-                if (bookings.length > 0) {
+                if (bookings?.length && bookings?.length > 0) {
                     const bookingIds = bookings.map((booking) => booking.id).filter((id): id is string => id !== undefined);
                     const bookingData = bookings.map((booking) => ({
                         userId: booking.userId,
@@ -69,7 +68,7 @@ export default function DeleteProperty({ bookings, userId, kindeId, propertyId }
                             title: 'error',
                             description: 'could delete bookings try again',
                         });
-                        return null;
+                        // return null;
                     }
 
                     //
@@ -79,7 +78,7 @@ export default function DeleteProperty({ bookings, userId, kindeId, propertyId }
                             title: 'error',
                             description: 'could delete property try again',
                         });
-                        return null;
+                        // return null;
 
                     }
 
@@ -90,7 +89,7 @@ export default function DeleteProperty({ bookings, userId, kindeId, propertyId }
                             description: 'could not send mail try again',
                         });
 
-                        return null;
+                        // return null;
                     }
                 } else {
                     const result_prop = await DeletePropertyByIdAdmin(propertyId);
@@ -99,7 +98,7 @@ export default function DeleteProperty({ bookings, userId, kindeId, propertyId }
                             title: 'error',
                             description: 'could delete property try again',
                         });
-                        return null;
+                        // return null;
                     }
 
                 }
@@ -107,12 +106,12 @@ export default function DeleteProperty({ bookings, userId, kindeId, propertyId }
             } else {
                 console.log("here");
                 //Handle scheduled delete
-                const bookingIds = bookings.map((booking) => booking.id).filter((id): id is string => id !== undefined);
+                const bookingIds = bookings?.map((booking) => booking.id).filter((id): id is string => id !== undefined);
 
                 const today = new Date();
                 const oneMonthLater = new Date(today.setMonth(today.getMonth() + 1)); // Today's date + 1 month
               
-                bookings.forEach(async (booking) => {
+                bookings?.forEach(async (booking) => {
                   if (booking.checkInOut?.checkInDate && booking.checkInOut?.checkInDate  > oneMonthLater) {
                     console.log(`Deleting 1 month booking with ID: ${booking.id}`);
                     const result_prop = await DeletePropertyByIdAdmin(propertyId);
@@ -174,7 +173,7 @@ export default function DeleteProperty({ bookings, userId, kindeId, propertyId }
             <div className="container mx-auto p-6">
                 <h2 className="text-2xl font-bold text-center mb-6">Current Bookings</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {bookings.map((booking) => (
+                    {bookings?.map((booking) => (
                         <Card key={booking.id} className="bg-white shadow-md rounded-lg p-4">
                             <CardHeader>
                                 <CardTitle className="text-lg font-semibold text-gray-900">

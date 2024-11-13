@@ -22,6 +22,3 @@ If you want to test the event and see if it updates the status correctly:
 
 Manually set a checkinDate or checkoutDate in the booking table to today or a past/future date.
 Wait for the event to execute at the next scheduled interval (within the hour), or temporarily modify the interval to EVERY 5 MINUTE to see results sooner.
-
-
-
