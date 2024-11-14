@@ -35,6 +35,7 @@ export default async function Home({
     destination || checkIn || checkOut || type
       ? await getFilteredListings(destination, checkIn, checkOut, type)
       : await getAllListedProperties();
+  console.log("Properties: ",properties)
 
   if (destination || checkIn || checkOut) {
     console.log("Called getFilteredListings with:", {
@@ -58,8 +59,8 @@ export default async function Home({
   }
 
   const propertyCards = await Promise.all(
-    properties.map(async (property) => {
-      if (!property.id || !property.locationId) {
+    properties?.map(async (property) => {
+      if (!property?.id || !property?.locationId) {
         console.log("could'nt get props")
         return null;
       }
@@ -68,7 +69,7 @@ export default async function Home({
       const images = await getAllImagesbyId(property.id);
       const location = await getLocationById(property.locationId);
       const user = await getUserById(property.userId);
-
+      console.log("Amenities",amenities)
       if (!amenities || !location || !user) {
         console.error("couldn't get all the props for property: ", property);
         return null;

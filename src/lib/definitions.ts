@@ -146,7 +146,7 @@ export const listingSchema = z
 
 // Amenity Schema
 export const amenitySchema = z.object({
-  id: z.string().cuid().optional(),
+  id: z.string().uuid().optional(),
   name: AmenityTypeEnum,
   propertyId: z.string().cuid().optional(),
 });

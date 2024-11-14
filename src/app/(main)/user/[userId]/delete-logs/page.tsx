@@ -11,13 +11,13 @@ export default async function AllBookingsdelLogs({ params }: Props) {
   const { userId } = params;
   const user = await getUserByKindeId(userId);
 
-  if (!user) {
+  if (!user || !user.id) {
     return <h1>User Not Found</h1>;
   }
 
   // Fetch delete logs sorted in ascending and descending order
-  const deleteLogsAsc = await getDeleteProplogs(user?.id?? '', "asc");
-  const deleteLogsDesc = await getDeleteProplogs(user?.id?? '', "desc");
+  const deleteLogsAsc = await getDeleteProplogs(user?.id, "asc");
+  const deleteLogsDesc = await getDeleteProplogs(user?.id, "desc");
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">

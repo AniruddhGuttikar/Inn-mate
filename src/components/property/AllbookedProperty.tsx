@@ -35,10 +35,10 @@ const AllBookingsProp: FC<AllBookingsPropProps> = ({ bookingData }) => {
     setSortedData(sorted);
     setSortAscending(!sortAscending);
   };
-
+  console.log("Booking Data",bookingData)
   // Filter booking data by max price
   const handleFilter = (value: number) => {
-    const filtered = bookingData.filter(b => b.totalprice <= value);
+    const filtered = bookingData?.filter(b => b.totalprice <= value);
     setSortedData(filtered);
     setMaxPrice(value);
   };

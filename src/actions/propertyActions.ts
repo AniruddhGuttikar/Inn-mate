@@ -182,7 +182,7 @@ export async function addProperty(
     if (!isAuthenticatedUser) {
       throw new Error("User not authenticated, please register before proceeding");
     }
-
+    console.log("PropData:",propertyData)
     // Normalize and validate input data
     const normalizedPropertyData = {
       ...propertyData,
@@ -192,7 +192,7 @@ export async function addProperty(
       images: propertyData.images || [],  // Default to empty array if no images
       amenities: propertyData.amenities || [],  // Default to empty array if no amenities
     };
-
+    console.log("PropData.amenities:",propertyData.amenities)
     // Validate data with schemas
     const validatedLocation = locationSchema.parse(normalizedPropertyData);
     const validatedProperty = propertySchema.parse(normalizedPropertyData);
@@ -212,7 +212,7 @@ export async function addProperty(
     const imageId = await cuid();
     const amenityId = await cuid();
     const locationId = await cuid();
-    
+    console.log("PropDataJON:",validatedAmenitiesJson)
     const result = await prisma.$queryRaw<TProperty>`
       CALL AddProperty(
         ${propertyId},
@@ -231,8 +231,6 @@ export async function addProperty(
         ${validatedProperty.propertyType === 'Hotel'},
         ${validatedImagesJson},
         ${validatedAmenitiesJson},
-        ${imageId},
-        ${amenityId},
         ${locationId}  -- Pass generated ID here
       )
     `;
@@ -576,12 +574,11 @@ export async function AllBookingPropertyDetails(userId: string){
 
 export async function getDeleteProplogs(userId: string, sortOrder: "asc" | "desc" = "asc") {
   const res: any[] = await prisma.$queryRaw`
-    SELECT dl.*, p.name, p.pricePerNight as price
-    FROM deletion_log dl
-    JOIN property p 
-      ON dl.propertyId = p.id
-    WHERE p.userId = ${userId} COLLATE utf8mb4_unicode_ci
+    SELECT *
+    FROM deletion_log as dl
+    WHERE dl.userId = ${userId} COLLATE utf8mb4_unicode_ci
   `;
+  console.log("Result:Deleted",res)
   
   return res.length > 0 ? res : null;
 }

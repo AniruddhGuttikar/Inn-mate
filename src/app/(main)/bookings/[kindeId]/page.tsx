@@ -28,6 +28,9 @@ const Bookings = async ({ params }: { params: { kindeId: string } }) => {
     type: string
   ) => {
     const relevantStatuses = type === "current" ? ["CONFIRMED", "ACTIVE"] : ["COMPLETED"];
+    if(!bookings){
+      return <>No bookings found</>;
+    }
     const filteredBookings = bookings.filter((booking) =>
       relevantStatuses.includes(booking.status)
     );

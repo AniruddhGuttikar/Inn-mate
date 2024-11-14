@@ -83,6 +83,7 @@ const Favorites = async ({ params: { userid } }: FavoritesProps) => {
             hostName={user.name}
             hostKindeId={property.userId}
             favorites=""
+            status= {null}
           />
         );
       })
