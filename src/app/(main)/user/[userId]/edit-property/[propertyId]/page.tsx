@@ -13,7 +13,7 @@ type Props = {
 
 export default async function AddPropertyPage({ params }: Props) {
   const { kindeUserId, propertyId } = params; // Access both parameters here
-
+  console.log(kindeUserId+'sdkncdsbbvh445@#$54f')
   const { getUser } = getKindeServerSession();
   const kindeUser = (await getUser()) as TKindeUser;
   const user = await mapKindeUserToUser(kindeUser);

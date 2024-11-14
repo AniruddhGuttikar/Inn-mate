@@ -82,8 +82,11 @@ export const propertySchema = z.object({
   propertyType: PropertyTypeEnum,
   locationId: z.string().cuid().optional(),
   RoomType: z.string().optional(),
+  Current_Space : z.number().optional(),
+  
+
   images: z.array(imageSchema).optional(),
-  isHotel: z
+  isHotel:z
     .union([z.boolean(), z.number()])
     .transform((val) => Boolean(val))
     .default(false), // Default to false if missing
@@ -110,7 +113,10 @@ export const bookingSchema = z.object({
   userId: z.string().cuid(),
   propertyId: z.string().cuid(),
   status: BookingStatusEnum,
-  checkInOut : checkInCheckOutSchema.nullable()
+  checkInOut : checkInCheckOutSchema.nullable(),
+  Adult: z.number().positive(),
+  Child: z.number().optional(),
+  isShared: z.union([z.boolean(), z.number().refine(val => val === 0 || val === 1)]).optional(),
 });
 
 // Review Schema

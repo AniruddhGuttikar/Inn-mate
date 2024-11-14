@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Heart } from "lucide-react";
-import addliked, { deleteLiked, getIsFavorite } from "@/actions/favouritesAction";
+import addliked, { deleteLiked, getIsfavourite } from "@/actions/favouritesAction";
 import { useForm } from "react-hook-form";
 import { favouriteSchema, TFavourite } from "@/lib/definitions";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -46,7 +46,7 @@ export default function FavoriteButton({ propertyId }: FavoriteButtonProps) {
   if(favorites.getValues().userId){
     //user exists now check if the field is favorited or not then set isFavorite
     if(propertyId){
-      const isRed=await getIsFavorite(favorites.getValues().userId,propertyId)
+      const isRed=await getIsfavourite(favorites.getValues().userId,propertyId)
       if(isRed){
         //the property is in Favorites
         setIsFavorited(true)

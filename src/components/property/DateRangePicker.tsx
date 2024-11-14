@@ -25,41 +25,53 @@ interface DateRangePickerProps {
   bookings: TBooking[] | null;
   onSave: (dates: DateRange | undefined) => void;
   onClose: () => void;
+  type: boolean;
+  max: number;
 }
 
 export default function DateRangePicker({
   availabilityStart,
   availabilityEnd,
   bookings,
+  type,
+  max,
   onSave,
   onClose,
 }: DateRangePickerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [date, setDate] = useState<DateRange | undefined>();
+
   const isDateBooked = (date: Date) => {
     if (!bookings) {
       return false;
     }
 
     return bookings.some((booking) =>
-    isWithinInterval(startOfDay(date), {
-        //@ts-ignore
+      isWithinInterval(startOfDay(date), {
+        //@ts-expect-error
         start: startOfDay(booking.checkInDate ?? ''),
-        //@ts-ignore
+        //@ts-expect-error
         end: startOfDay(booking.checkOutDate ?? ''),
       })
     );
   };
 
   const isDateDisabled = (date: Date) => {
-    if (
-      date < startOfDay(availabilityStart) ||
-      date > startOfDay(availabilityEnd)
-    ) {
+    // If the date is outside the availability range, disable it
+    if (date < startOfDay(availabilityStart) || date > startOfDay(availabilityEnd)) {
       return true;
     }
 
-    return isDateBooked(date);
+    // Check if the date is booked
+    const dateIsBooked = isDateBooked(date);
+
+    // If it's booked, check the `type` and `max` to decide availability
+    if (dateIsBooked && !(type && max > 0)) {
+      return true;
+    }
+
+    // If the conditions for availability are met, return false (not disabled)
+    return false;
   };
 
   const handleSelect = (newDate: DateRange | undefined) => {
@@ -75,7 +87,8 @@ export default function DateRangePicker({
 
     const hasDisabledDate = datesInRange.some(isDateDisabled);
 
-    if (hasDisabledDate) {
+    // If only one day is selected or there are disabled dates
+    if (newDate.from === newDate.to || hasDisabledDate) {
       setDate({ from: newDate.from, to: undefined });
     } else {
       setDate(newDate);

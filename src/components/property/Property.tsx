@@ -1,12 +1,12 @@
+'use client'
 import Image from "next/image";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+// import { Button } from "@/components/ui/button";
 import {
   Bed,
   Users,
   Star,
-  Heart,
   Wifi,
   CarFront,
   AirVent,
@@ -31,6 +31,9 @@ import BookPropertyButton from "./BookPropertyButton";
 import ListPropertyButton, { EditProperty } from "./ListNowButton";
 import FavoriteButton from './FavoritesButton';
 import ViewPropertyButton from "./ViewPropertyButton";
+import { useState } from "react";
+import { Button } from "../ui/button";
+import { Switch } from "../ui/switch";
 
 interface PropertyCardProps {
   property: TProperty;
@@ -55,13 +58,12 @@ export default function PropertyCard({
   type,
   hostKindeId,
   hostName,
-  favorites,
   checkInCheckOutDetail,
   status,
 }: PropertyCardProps) {
 
   // If favorites is an empty string, show all properties
-
+  
   let averageRating;
   let imageLink;
   
@@ -140,6 +142,7 @@ export default function PropertyCard({
           </div>
           )
             }
+
         </div>
         <p className="text-sm line-clamp-2 mb-2">{property.description}</p>
         <div className="flex items-center gap-4 text-sm text-muted-foreground mb-2">

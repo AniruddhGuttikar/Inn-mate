@@ -1,4 +1,3 @@
-import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
 import { getAllfavourite } from "@/actions/favouritesAction";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { TKindeUser } from "@/lib/definitions";
@@ -8,18 +7,13 @@ import { getAllImagesbyId, getPropertyById } from "@/actions/propertyActions";
 import { getAllReviewsById } from "@/actions/reviewActions";
 import { getUserById } from "@/actions/userActions";
 import PropertyCard from "@/components/property/Property";
-import { Button } from "react-day-picker";
 import PrimaryButton from "@/components/ui/simple_buttion";
 import DynamicMarks from "@/components/ui/dynamicMarks";
 
 // Define the Props interface
-interface FavoritesProps {
-  params: {
-    userid: string; // The userid should be a string
-  };
-}
 
-const Favorites = async ({ params: { userid } }: FavoritesProps) => {
+
+const Favorites = async () => {
   const { getUser, isAuthenticated } = getKindeServerSession();
   const kindeUser = (await getUser()) as TKindeUser;
 

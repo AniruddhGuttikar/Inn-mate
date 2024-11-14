@@ -11,7 +11,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -99,6 +98,7 @@ export default function ListProperty({
       const userKindeId = getUser()?.id;
       router.push(`/user/${userKindeId}/properties`);
     } catch (error) {
+      console.log(error)
       toast({
         title: "Couldn't create the Listing",
         description: "Sorry, we were unable to add your listing.",

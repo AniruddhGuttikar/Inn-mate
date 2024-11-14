@@ -6,7 +6,7 @@ import {
   getFilteredListings,
 } from "@/actions/propertyActions";
 import { getAllReviewsById } from "@/actions/reviewActions";
-import { getUserById, getUserByKindeId } from "@/actions/userActions";
+import { getUserById} from "@/actions/userActions";
 import PropertyCard from "@/components/property/Property";
 import { TKindeUser } from "@/lib/definitions";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
@@ -20,7 +20,7 @@ export default async function Home({
 }: {
   searchParams: { [key: string]: string | undefined };
 }) {
-  const { getUser, isAuthenticated } = getKindeServerSession();
+  const { getUser} = getKindeServerSession();
   const kindeUser = (await getUser()) as TKindeUser;
   console.log(kindeUser);
 
@@ -48,7 +48,7 @@ export default async function Home({
     // console.log("Called getAllListedProperties, properties:", properties);
     console.log("Called getAllListedProperties")
   }
-
+  console.log(properties)
   // Check if properties is null or undefined before proceeding
   if (!properties) {
     return (

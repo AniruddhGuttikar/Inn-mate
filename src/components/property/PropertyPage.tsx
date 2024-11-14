@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import DateRangePicker from "@/components/property/DateRangePicker";
 import { DateRange } from "react-day-picker";
 import {
@@ -35,12 +35,21 @@ import {
   TUser,
 } from "@/lib/definitions";
 
-import { createBooking } from "@/actions/bookingActions";
+// import { createBooking } from "@/actions/bookingActions";
 import { useToast } from "@/hooks/use-toast";
 import ReviewCard from "./ReviewCard";
 import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
 import { useRouter } from "next/navigation";
 import { loadStripe } from "@stripe/stripe-js";
+import GuestPicker from "./GuestPicker";
+import SharePropertyModal from "../ui/sharePropertymodal";
+import { Label } from "@radix-ui/react-label";
+import { boolean } from "zod";
+import { Input } from "../ui/input";
+import { Switch } from "@radix-ui/react-switch";
+interface HotelBookingFormProps {
+  onSubmit: (rooms: number) => void;
+}
 
 export default function PropertyListingPage({
   property,
@@ -64,7 +73,7 @@ export default function PropertyListingPage({
   bookings: TBooking[] | null;
   userId: string;
 }) {
-  const router = useRouter()
+  // const router = useRouter()
   const [loading, setLoading] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [selectedDates, setSelectedDates] = useState<DateRange>();
@@ -72,7 +81,15 @@ export default function PropertyListingPage({
   const [isReserved, setisReserved] = useState(false)
   const [reservationDetails, setreservationDetails] = useState<TBooking>();
   const [showDialog, setShowDialog] = useState(false);
+  const [getAdult, setAdults] = useState(1)
+  const [getChild, setChild] = useState(0)
+  const [isShared, setIsShared] = useState<boolean>(false); // Track if the property is shared
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false); // Modal visibility
+  const [confirmShare, setConfirmShare] = useState<boolean>(false); // Confirm share action
+  const [totalRooms, setTotalRooms] = useState<number>(1);
+  const [isSharedToggle, setIsSharedToggle] = useState<boolean>(false);
 
+  console.log(isReserved)
   const { toast } = useToast();
 
   const { user: kindeUser } = useKindeBrowserClient();
@@ -149,7 +166,7 @@ export default function PropertyListingPage({
       const totalDays = Math.ceil(
         (selectedDates.to.getTime() - selectedDates.from.getTime()) / msInDay
       );
-      const bookingValues: TBooking = {
+      const bookingValues: TBooking & { isShared: boolean } = {
         userId,
         propertyId: property.id,
         checkInOut: {
@@ -158,6 +175,9 @@ export default function PropertyListingPage({
         },
         status: "CONFIRMED",
         totalPrice: property.pricePerNight * totalDays,
+        Adult: getAdult,
+        Child: getChild,
+        isShared: isShared // Ensure isShared is assigned properly
       };
       setreservationDetails(bookingValues)
       // const booking = await createBooking(bookingValues);
@@ -169,6 +189,7 @@ export default function PropertyListingPage({
 
 
     } catch (error) {
+      console.log(error)
       toast({
         title: "Error in Creating the Booking",
         variant: "destructive",
@@ -226,6 +247,43 @@ export default function PropertyListingPage({
 
   };
 
+  const handleGuestChange = (adults: number, children: number) => {
+    console.log('Number of adults:', adults);
+    setAdults(adults)
+    console.log('Number of children:', children);
+    setChild(children)
+  };
+  const handleShareChange = (value: boolean) => {
+    setConfirmShare(value)
+    setIsModalOpen(true); // Open modal to confirm
+  };
+
+  // Confirm share change logic
+  const handleConfirmShare = () => {
+    console.log("Property shared status confirmed:", isShared);
+    setIsShared(confirmShare);
+    setIsModalOpen(false); // Close modal after confirmation
+  };
+
+  // Handle modal close
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  };
+  const handleRoomsChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setTotalRooms(Number(event.target.value));
+  };
+  const handleToggle = () => {
+    setIsShared(!isShared);
+  };
+
+  const isPropMadeShared=()=>{
+    bookings?.map((booking:TBooking)=>{
+      if((booking.propertyId === property.id)&& booking.isShared)
+        return true
+    })
+    return false
+  }
+  console.log("In propertypage:",property.Current_Space)
   return (
     <div className="min-h-screen bg-background">
       <div className="relative h-[50vh] md:h-[60vh] lg:h-[70vh]">
@@ -342,7 +400,19 @@ export default function PropertyListingPage({
                     <span>
                       {property.isHotel
                         ? (property.maxGuests !== 0 ? 'Rooms Available' : 'No Rooms Available')
-                        : `Up to ${property.maxGuests} guests`}
+                        : (
+                          property.maxGuests !== 0 ?
+                            `Up to ${property.maxGuests} guests` : 'NO ROOMS LEFT'
+                        )
+                      }
+                      {
+                        isShared && (
+                          <div>
+                          <h3 className="font-semibold">Shared Space</h3>
+                          <h4>UP to {property.Current_Space? property.Current_Space-getAdult-getChild+1 : property.maxGuests-getAdult-getChild}</h4>
+                          </div>
+                        )
+                      }
                     </span>
                   </div>
                   <div>
@@ -353,6 +423,10 @@ export default function PropertyListingPage({
                     <h3 className="font-semibold">Hotel</h3>
                     <p>{property.isHotel ? "Yes" : "No"}</p>
                   </div>
+                  <div>
+
+
+                  </div>
                   {property.isHotel && property.RoomType && (
                     <div className="flex items-center">
                       <Bed className="h-4 w-4 mr-1 text-blue-500" /> {/* Bed icon with custom color */}
@@ -362,9 +436,47 @@ export default function PropertyListingPage({
                     </div>
                   )
                   }
+
                 </div>
               </CardContent>
             </Card>
+            {(!property.isHotel&& isPropMadeShared()) && (
+  <div className="space-y-4">
+    <h2 className="text-lg font-semibold">Select Property Type</h2>
+
+    {/* Toggle switch */}
+    <div className="flex items-center space-x-2">
+      <span className="text-sm">Personal</span>
+      
+      <Switch
+        checked={isShared}
+        onCheckedChange={handleToggle}
+        className={`w-10 h-5 bg-gray-200 rounded-full relative border ${
+          isShared ? "bg-green-500" : "bg-gray-300"
+        }`}
+      >
+        {/* Toggle indicator */}
+        <span
+          className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full transition-transform ${
+            isShared ? "translate-x-5 bg-white" : "bg-white"
+          }`}
+        />
+      </Switch>
+
+      <span className="text-sm">Shared</span>
+    </div>
+
+    <div className="mt-2">
+      <p className="text-sm font-medium">
+        Property is:{" "}
+        <span className={isShared ? "text-green-500" : "text-red-500"}>
+          {isShared ? "Shared" : "Personal"}
+        </span>
+      </p>
+    </div>
+  </div>
+)}
+
             <Card className="mb-6">
               <CardHeader>
                 <CardTitle>Amenities</CardTitle>
@@ -384,7 +496,7 @@ export default function PropertyListingPage({
                 </div>
               </CardContent>
             </Card>
-            <ReviewCard reviews={reviews}  propertyId={property.id} user={host} />
+            <ReviewCard reviews={reviews} propertyId={property.id} user={host} />
           </div>
           <div>
             <Card>
@@ -396,13 +508,90 @@ export default function PropertyListingPage({
                   availabilityStart={listing.availabilityStart}
                   availabilityEnd={listing.availabilityEnd}
                   bookings={bookings}
+                  type={isShared}
+                  max={Math.min(property.maxGuests, property.Current_Space?? 0)}
                   onSave={handleDateSave}
                   onClose={handleClose}
                 />
+
+{!property.isHotel ? (
+  <div>
+    <GuestPicker onChange={handleGuestChange} max={Math.min(property.maxGuests, property.Current_Space??property.maxGuests)}
+ />
+
+    <div className="space-y-6">
+      <h2 className="text-xl font-semibold">Property Settings</h2>
+
+      <div className="space-y-2">
+        <Label>Is this property shared?</Label>
+
+        <div className="space-x-4">
+          <Button variant="outline" onClick={() => handleShareChange(true)}>
+            Yes
+          </Button>
+          <Button variant="outline" onClick={() => handleShareChange(false)}>
+            No
+          </Button>
+        </div>
+
+        <h3 className="font-semibold">PropertySharing?</h3>
+        <p className={isShared ? "text-green-500" : "text-red-500"}>
+          {isShared ? "Shared Property" : "Individual Property Book"}
+        </p>
+      </div>
+
+      {/* Modal for confirmation */}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogTrigger asChild>
+          {/* Trigger is hidden, the button will trigger the modal */}
+          <Button className="hidden" />
+        </DialogTrigger>
+
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Property Sharing</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p>
+              Are you sure you want to {isShared ? "share" : "not share"} this
+              property? If you choose to share, other users may book the
+              remaining space.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={handleCloseModal}
+              className="mr-4"
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleConfirmShare}>Confirm</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  </div>
+):(
+  <div className="space-y-2">
+  <Label htmlFor="total-rooms">Total Number of Rooms</Label>
+  <Input
+    id="total-rooms"
+    type="number"
+    min="1" // Minimum value for rooms is 1
+    value={totalRooms}
+    onChange={handleRoomsChange}
+    className="w-full"
+  />
+</div>
+)
+}
+
                 <Button
                   className="w-full mt-4"
                   onClick={handleSubmit}
-                  disabled={!isSelectedDates}
+                  disabled={Boolean(!isSelectedDates && property.maxGuests === 0)}
+
                 >
                   Reserve
                 </Button>

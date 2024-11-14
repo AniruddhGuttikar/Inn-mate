@@ -1,16 +1,16 @@
 'use client';
-import React, { useState, useEffect } from "react";
+import React, { useState} from "react";
 import { TBooking } from "@/lib/definitions";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { format } from "date-fns";
 import { Button } from "../ui/button";
-import DeleteModal, { DeleteModalCnf } from "../modals/ConfirmationModal";
+import { DeleteModalCnf } from "../modals/ConfirmationModal";
 import { useRouter } from "next/navigation";
 import ReCAPTCHA from "react-google-recaptcha";
 import { toast } from "@/hooks/use-toast";
 import SendMailToUsers from "@/actions/userActions";
 import { DeleteBookingsbyIds } from "@/actions/bookingActions";
-import { DeletePropertyByIdAdmin, updateProperty, updatePropertyDelete } from "@/actions/propertyActions";
+import { DeletePropertyByIdAdmin,updatePropertyDelete } from "@/actions/propertyActions";
 
 interface DeletePropertyProps {
     bookings: TBooking[] | null;
@@ -20,6 +20,7 @@ interface DeletePropertyProps {
 }
 
 export default function DeleteProperty({ bookings, userId, kindeId, propertyId }: DeletePropertyProps) {
+    console.log("uysghdvf67877"+userId)
     const [open, setOpen] = useState(false);
     const [delType, setDel] = useState('');
     const [captchaShow, setcs] = useState(false);
@@ -56,7 +57,7 @@ export default function DeleteProperty({ bookings, userId, kindeId, propertyId }
             if (delType === 'delete') {
                 if (bookings?.length && bookings?.length > 0) {
                     const bookingIds = bookings.map((booking) => booking.id).filter((id): id is string => id !== undefined);
-                    const bookingData = bookings.map((booking) => ({
+                    bookings.map((booking) => ({
                         userId: booking.userId,
                         price: booking.totalPrice,
                     }));

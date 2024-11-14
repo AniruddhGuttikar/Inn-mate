@@ -40,7 +40,7 @@ const page = async ({ params }: { params: { propertyId: string } }) => {
     ]);
   console.log("3",host ,"2",location,"1", listing)
   if (!host || !location || !listing) {
-    return <>Sorry couldn't get all details about the property</>;
+    return (<div>Sorry couldn't get all details about the property</div>);
   }
   return (
     <PropertyListingPage

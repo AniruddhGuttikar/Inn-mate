@@ -7,7 +7,7 @@ import cuid from "cuid";
 export default async function addliked(
   user_id: string,
   likedData: TFavourite
-): Promise<TFavourite | null> {
+): Promise<string | null> {
   try {
     const isAuthenticatedUser = await isAuthenticatedUserInDb(user_id);
     if (!isAuthenticatedUser) {
@@ -15,32 +15,20 @@ export default async function addliked(
     }
     const validatedFavorites = favouriteSchema.parse(likedData);
 
-    // Insert the favorite using raw SQL
-// Insert query
-const id = cuid();  // or use Prisma's cuid() if it's available
-await prisma.$queryRaw`
-  INSERT INTO favourite (id, userId, propertyId)
-  VALUES (${id}, ${validatedFavorites.userId}, ${validatedFavorites.propertyId});
-`;
+  const id = cuid();  
 
-// Select the inserted record using a separate query
-const result: TFavourite= await prisma.$queryRaw`
-  SELECT * FROM favourite
-  WHERE userId = ${validatedFavorites.userId} AND propertyId = ${validatedFavorites.propertyId}
-  ORDER BY id DESC LIMIT 1;
-`;
+//! CALLED  add_to_favourites {FUNCTIONS}
+  const result: any= prisma.$queryRawUnsafe(
+          `SELECT add_to_favourites(?,?,?)`,
+          id,
+          user_id,
+          validatedFavorites.propertyId
+  )
 
-console.log(result); // This will return the inserted record
-
-  
-
-    // Fetch the newly added favorite using raw SQL
-    // const result = await prisma.$queryRaw<TFavourite[]>`
-    //   SELECT * FROM favourite
-    //   WHERE userId = ${validatedFavorites.userId} AND propertyId = ${validatedFavorites.propertyId};
-    // `;
-
-    return result ? result : null;
+    if (result || result.length > 0)
+      return result[0]
+    else
+      return null
   } catch (error) {
     console.log('Error in adding favorites :)', error);
     return null;
@@ -78,19 +66,6 @@ export async function deleteLiked(likedData: TFavourite) {
 }
 
 
-
-
-export async function getIsFavorite(userId: string, propertyId: string | undefined) {
-  const favorite = await prisma.$queryRaw<TFavourite[]>`
-    SELECT * FROM favourite
-    WHERE userId = ${userId} AND propertyId = ${propertyId};`;
-
-  if (favorite.length > 0) {
-    return favorite;
-  } else {
-    return null;
-  }
-}
 
 export async function getIsfavourite(userId: string, propertyId: string) {
   const favourite = await prisma.$queryRaw<TFavourite[]>`

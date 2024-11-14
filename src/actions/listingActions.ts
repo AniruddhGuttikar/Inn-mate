@@ -9,7 +9,7 @@ export async function createListing(
   listingValues: TListing
 ): Promise<TListing | null> {
   try {
-    console.log("listing values: ", listingValues);
+
     const validatedListing = listingSchema.parse(listingValues);
 
     // Check if user exists
@@ -22,33 +22,34 @@ export async function createListing(
     const result = await prisma.$queryRaw<TListing[]>`
       SELECT * FROM listing WHERE userId = ${listingValues.userId} AND propertyId = ${listingValues.propertyId}
     `
+
     if (result.length > 0){
       throw new Error('Listing Already exists!!')
     }
-    // Generate a unique 'id' using cuid
     const newListingId = cuid(); 
 
-    // Raw SQL query to insert a new listing, including the generated 'id'
-    await prisma.$queryRaw`
-      INSERT INTO listing (id, availabilityStart, availabilityEnd,updatedAt ,userId, propertyId)
-      VALUES (${newListingId}, ${validatedListing.availabilityStart}, ${validatedListing.availabilityEnd}, ${new Date()},${validatedListing.userId}, ${validatedListing.propertyId})`
 
-    const newListing = await prisma.$queryRaw<TListing[]>`
-        SELECT * FROM listing as l WHERE l.id=${newListingId}
-    `
+  console.log(newListingId)
+  const newListing : any= await prisma.$queryRaw`
+    CALL insert_new_listing(${newListingId}, ${validatedListing.availabilityStart}, ${validatedListing.availabilityEnd}, ${validatedListing.userId}, ${validatedListing.propertyId});
+  `;
+    
     if (!newListing || newListing.length === 0) {
       throw new Error("couldn't create the listing");
     }
 
     // Revalidate path after insertion
     revalidatePath(`/user/${user.kindeId}/properties`);
-    
-    return newListing[0]; // Return the newly created listing
+    return newListing[0]; 
   } catch (error) {
     console.error("Error in creating the listing: ", error);
     return null;
   }
 }
+
+
+
+
 export async function getListing(
   userId?: string,
   propertyId?: string

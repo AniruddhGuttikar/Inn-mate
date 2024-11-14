@@ -10,7 +10,7 @@ import { useRouter } from "next/navigation";
 
 const BookPropertyButton = ({ propertyId }: { propertyId: string | undefined }) => {
   const router = useRouter();
-  const { user, isAuthenticated } = useKindeBrowserClient();
+  const { user} = useKindeBrowserClient();
 
   async function HandleBook() {
     console.log("User",user)

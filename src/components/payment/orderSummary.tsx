@@ -11,7 +11,7 @@ interface ReservationSummaryProps {
 export default function ReservationSummary({ bookingDetails }: ReservationSummaryProps) {
     const { toast } = useToast();
     const { user, isAuthenticated } = useKindeBrowserClient();
-
+    console.log(user+"buyuw247819881666^^&*(^")
     if (!isAuthenticated) {
         toast({
             title: "Error !!",

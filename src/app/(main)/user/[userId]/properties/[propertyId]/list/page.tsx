@@ -2,7 +2,7 @@ import { getAllAmenitiesForProperty } from "@/actions/amenitiesAction";
 import { getLocationById } from "@/actions/locationActions";
 import { getAllImagesbyId, getPropertyById } from "@/actions/propertyActions";
 import { getAllReviewsById } from "@/actions/reviewActions";
-import { getUserById, getUserByKindeId } from "@/actions/userActions";
+import { getUserById} from "@/actions/userActions";
 import ListProperty from "@/components/property/ListProperty";
 import React from "react";
 
@@ -13,21 +13,21 @@ const page = async ({
 }) => {
   const property = await getPropertyById(params.propertyId);
   if (!property || !property.id || !property.locationId) {
-    return <>Invalid property Id</>;
+    return (<div>Invalid property Id</div>);
   }
 
-  const [amenities, images, location, reviews, user] = await Promise.all([
-    await getAllAmenitiesForProperty(property.id),
+  const [images, location ,user] = await Promise.all([
+    // await getAllAmenitiesForProperty(property.id),
     await getAllImagesbyId(property.id),
     await getLocationById(property.locationId),
-    await getAllReviewsById(property.id),
+    // await getAllReviewsById(property.id),
     await getUserById(property.userId),
   ]);
   if (!user || !location) {
-    return <>Sorry couldn't get all details about the propery</>;
+    return (<div>Sorry couldn't get all details about the propery</div>);
   }
   if (!property || !user || !location) {
-    return <>Sorry, you're probably looking for something else?</>;
+    return (<div>Sorry, you're probably looking for something else?</div>);
   }
   return (
     <ListProperty

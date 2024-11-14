@@ -5,13 +5,13 @@ import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { TKindeUser, TReview, TUser } from "@/lib/definitions";
+import { TReview, TUser } from "@/lib/definitions";
 import cuid from "cuid";
-import { getUserByKindeId } from "@/actions/userActions";
+// import { getUserByKindeId } from "@/actions/userActions";
 import { AddReviews, getAllReviewsById } from "@/actions/reviewActions";
 import { useToast } from "@/hooks/use-toast";
-import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
-import { revalidatePath } from "next/cache";
+// import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
+// import { revalidatePath } from "next/cache";
 
 
 const ReviewCard =  ({
@@ -23,7 +23,7 @@ const ReviewCard =  ({
   propertyId: string;
   user: TUser | null;
 }) => {
-
+  console.log("bus"+reviews+"fyufbyu")
   const {toast}= useToast()
 
 
@@ -43,7 +43,7 @@ const ReviewCard =  ({
     };
   
     fetchReviews();
-  },[rating]);
+  },[rating,propertyId]);
   
   
   // Assume we have these existing reviews

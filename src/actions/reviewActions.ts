@@ -1,4 +1,3 @@
-import { User } from 'lucide-react';
 "use server";
 
 import prisma from "@/lib/db";
@@ -54,7 +53,7 @@ export async function AddReviews(
     revalidatePath(`/properties/${data.propertyId}`)
     return 200
   }catch(error){
-    console.log('Error Something went wrong.. :(')
+    console.log('Error Something went wrong.. :(',error)
     return null
   }
 }

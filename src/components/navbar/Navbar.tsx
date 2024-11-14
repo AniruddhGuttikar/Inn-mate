@@ -4,8 +4,6 @@ import { ListPropertyButton } from "./ListPropertyButton";
 import SearchBox from "./SearchBox";
 import ProfileButton from "./ProfileButton";
 import RegisterButton from "./RegisterButton";
-
-import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
 import Link from "next/link";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { isUserHasProperties } from "@/actions/propertyActions";

@@ -6,7 +6,7 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 // Queue to store properties for deletion with FIFO round-robin processing
-let deletionQueue: { id: string; deleteDate: Date }[] = [];
+const deletionQueue: { id: string; deleteDate: Date }[] = [];
 
 // Function to process the deletion queue in round-robin
 async function processDeletionQueue() {

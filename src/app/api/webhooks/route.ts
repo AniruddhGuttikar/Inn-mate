@@ -25,16 +25,12 @@ export async function POST(req: Request) {
       if (session.metadata?.propertyDetails) {
         try {
           const propertyDetailsData = JSON.parse(session.metadata?.propertyDetails);
-          console.log("prop",propertyDetailsData);
+          console.log("prop:>",propertyDetailsData);
           const res = await createBooking(propertyDetailsData)
           if (!res) {
             return NextResponse.json({ status: "Failed", message: "Failed to add to database" });
         }
-          const resM=await BookingCnfMail(propertyDetailsData,sig ||' ')
-          
-
-
-
+          await BookingCnfMail(propertyDetailsData,sig ||' ')
         } catch (error) {
           console.error("Error parsing propertyDetails JSON:", error);
         }

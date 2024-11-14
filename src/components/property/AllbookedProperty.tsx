@@ -3,7 +3,7 @@ import { FC, useState } from "react";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils"; // Assuming you have a utility for conditional classes
+// import { cn } from "@/lib/utils"; // Assuming you have a utility for conditional classes
 
 type BookingDetails = {
   propertyId: string;

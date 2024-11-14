@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
 import { LogoutLink } from "@kinde-oss/kinde-auth-nextjs/components";
 
@@ -13,7 +13,7 @@ import {
 import { User } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { isUserHasProperties } from "@/actions/propertyActions";
+// import { isUserHasProperties } from "@/actions/propertyActions";
 
 interface ProfileButtonProps {
   isOwner: boolean;
@@ -25,8 +25,7 @@ const ProfileButton = ({isOwner} : ProfileButtonProps) => {
   }
   console.log(isOwner)
   
-  // Check if current user has listed any properties or not 
-  
+
   const links = [
     { label: "My Bookings", link: `/bookings/${user.id}` },
     { label: "Edit Profile", link: `/additional-details` },

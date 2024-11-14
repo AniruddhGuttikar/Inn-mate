@@ -3,7 +3,6 @@
 import prisma from "@/lib/db";
 import {
   kindeUserSchema,
-  TAddress,
   TBooking,
   TKindeUser,
   TUser,
@@ -154,8 +153,8 @@ export async function updateUser(user: TUser): Promise<TUser | null> {
     // If the user already exists, return the existing user
       throw new Error("User Not exists, try Creating");
   }
-  // Update the address
-// Fetch the addressId for the specified user
+
+  
 const addressResult: { addressId: string }[] = await prisma.$queryRaw`
   SELECT addressId FROM user WHERE id = ${id}
 `;
@@ -244,11 +243,13 @@ export async function mapKindeUserToUser(user: TKindeUser): Promise<TUser | null
     try {
       const validatedKindeUser = kindeUserSchema.parse(kindeUser);
   
+//! MAP KINDE USER TO USER
       const alreadyUser: TUser[] = await prisma.$queryRaw`
         SELECT u.*, city , state, country FROM user as u
         JOIN address as ad ON u.addressId=ad.id
         WHERE u.kindeId=${user.id}
       `
+
       const mappeduser=alreadyUser[0]
       if (alreadyUser && alreadyUser.length > 0) {
         return mappeduser;
