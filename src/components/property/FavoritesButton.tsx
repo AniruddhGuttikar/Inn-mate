@@ -83,6 +83,7 @@ export default function FavoriteButton({ propertyId }: FavoriteButtonProps) {
       } else {
         result = await addliked(favorites.getValues().userId, { ...favorites.getValues(), propertyId });
         if (!result) {
+          console.log("Favorite result",result)
           throw new Error("Couldn't add to favorites");
         }
         setIsFavorited(true);  // Update state after successful add

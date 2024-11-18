@@ -47,6 +47,8 @@ import { Label } from "@radix-ui/react-label";
 import { boolean } from "zod";
 import { Input } from "../ui/input";
 import { Switch } from "@radix-ui/react-switch";
+import { error } from "console";
+import { is_available } from "@/actions/bookingActions";
 interface HotelBookingFormProps {
   onSubmit: (rooms: number) => void;
 }
@@ -90,6 +92,7 @@ export default function PropertyListingPage({
   const [isSharedToggle, setIsSharedToggle] = useState<boolean>(false);
 
   console.log(isReserved)
+  console.log("isShared: ",isShared)
   const { toast } = useToast();
 
   const { user: kindeUser } = useKindeBrowserClient();
@@ -150,6 +153,15 @@ export default function PropertyListingPage({
     LAUNDRY: WashingMachine,
     PET_FRIENDLY: Dog,
   };
+  const check_availability= async()=>{
+     const from=selectedDates?.from ?? new Date()
+     const to=selectedDates?.to ?? new Date()
+     const isavailabe=await is_available(from,to,property.id??"")
+     if (isavailabe){
+      return true
+     }
+     return false
+  }
 
   const handleSubmit = async () => {
 
@@ -166,7 +178,7 @@ export default function PropertyListingPage({
       const totalDays = Math.ceil(
         (selectedDates.to.getTime() - selectedDates.from.getTime()) / msInDay
       );
-      const bookingValues: TBooking & { isShared: boolean } = {
+      const bookingValues: TBooking & { isShared: boolean ,Numberofrooms: Number | null } = {
         userId,
         propertyId: property.id,
         checkInOut: {
@@ -177,15 +189,31 @@ export default function PropertyListingPage({
         totalPrice: property.pricePerNight * totalDays,
         Adult: getAdult,
         Child: getChild,
-        isShared: isShared // Ensure isShared is assigned properly
+        isShared: isShared, // Ensure isShared is assigned properly
+        Numberofrooms:totalRooms
       };
+
+      if(selectedDates.from && selectedDates.to){
+        if (property.isHotel && (!check_availability())) {
+          throw new Error('No rooms available for the selected dates. Please change the dates.');
+        } 
+      }
+      else{
+        throw new Error('Please select more than one day.');
+      }
+        
+
       setreservationDetails(bookingValues)
       // const booking = await createBooking(bookingValues);
       // if (!booking) {
       //   throw new Error("Error in creating the ");
       // }
+
+
+
       setisReserved(true);
       setShowDialog(true);
+
 
 
     } catch (error) {
@@ -193,7 +221,7 @@ export default function PropertyListingPage({
       toast({
         title: "Error in Creating the Booking",
         variant: "destructive",
-        description: "Sorry we couldn't create the booking",
+        description: `Sorry we couldn't create the booking ${error}`,
       });
     }
   };
@@ -283,7 +311,35 @@ export default function PropertyListingPage({
     })
     return false
   }
-  console.log("In propertypage:",property.Current_Space)
+  const checkDateRangeOverlap = (
+    range1: DateRange,
+    range2: { from: Date; to: Date }
+  ) => {
+    if (!range1.from || !range1.to) return false; // If range1 is incomplete, no overlap
+  
+    return range1.from <= range2.to && range1.to >= range2.from;
+  };
+  
+  const isdateInrange = () => {
+    
+    return bookings?.some((booking) => {
+      console.log("CheckinDateBooked:",booking.id,"\ ",booking.checkInOut?.checkInDate," | ",booking.checkInOut?.checkOutDate)
+      console.log("Selected range:",selectedDates)
+      if (booking.propertyId === property.id && selectedDates) {
+        const { checkInDate, checkOutDate } = booking?.checkInOut || {};
+        if (!checkInDate || !checkOutDate) return false;
+  
+        const isOverlap = checkDateRangeOverlap(selectedDates, {
+          from: checkInDate,
+          to: checkOutDate,
+        });
+        return isOverlap;
+      }
+      return false;
+    });
+  };
+
+  console.log("In propertypage:",property.Current_space)
   return (
     <div className="min-h-screen bg-background">
       <div className="relative h-[50vh] md:h-[60vh] lg:h-[70vh]">
@@ -406,10 +462,10 @@ export default function PropertyListingPage({
                         )
                       }
                       {
-                        isShared && (
+                        (isShared && (isdateInrange()??false)) && (
                           <div>
                           <h3 className="font-semibold">Shared Space</h3>
-                          <h4>UP to {property.Current_Space? property.Current_Space-getAdult-getChild+1 : property.maxGuests-getAdult-getChild}</h4>
+                          <h4>UP to {property.Current_space? property.Current_space-getAdult-getChild+1 : property.maxGuests-getAdult-getChild}</h4>
                           </div>
                         )
                       }
@@ -509,14 +565,14 @@ export default function PropertyListingPage({
                   availabilityEnd={listing.availabilityEnd}
                   bookings={bookings}
                   type={isShared}
-                  max={Math.min(property.maxGuests, property.Current_Space?? 0)}
+                  max={Math.min(property.maxGuests, property.Current_space?? 0)}
                   onSave={handleDateSave}
                   onClose={handleClose}
                 />
 
 {!property.isHotel ? (
   <div>
-    <GuestPicker onChange={handleGuestChange} max={Math.min(property.maxGuests, property.Current_Space??property.maxGuests)}
+    <GuestPicker onChange={handleGuestChange} max={(isShared && isdateInrange()) ? Math.min(property.maxGuests, property.Current_space??property.maxGuests): property.maxGuests}
  />
 
     <div className="space-y-6">

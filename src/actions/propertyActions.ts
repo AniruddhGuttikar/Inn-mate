@@ -41,11 +41,11 @@ export async function getAllListedProperties(): Promise<TProperty[] | null> {
     `;
 
 
+console.log("Validated props: ",listings)
     const propertiesSchemaArray = z.array(propertySchema);
     const validatedProperties = propertiesSchemaArray.parse(
       listings.map((listing) => listing)
     );
-    console.log("Validated props: ",validatedProperties)
     return validatedProperties;
   } catch (error) {
     console.error("Error in getting properties: ", error);
@@ -66,12 +66,27 @@ export async function getFilteredListings(
       ? PropertyType[type.charAt(0).toUpperCase() + type.slice(1).toLowerCase() as keyof typeof PropertyType]
       : undefined;
 
-
-    const filteredListings = await prisma.$queryRaw<TProperty[]>`
-        CALL get_filtered_listings(${destination}, ${checkIn}, ${checkOut}, ${propertyTypeValue});
-    `;
-
-
+    // Build the query string and dynamically add parameters
+    const query = `
+    SELECT p.*, l.availabilityStart, l.availabilityEnd
+    FROM listing AS l
+    JOIN property AS p ON p.id = l.propertyId
+    JOIN location as loc ON loc.id= p.locationId
+    WHERE 1=1
+    ${destination ? "AND CONCAT_WS(' ', p.name, p.description, loc.city, loc.state, loc.country) LIKE ?" : ""}
+    ${checkIn && checkOut ? "AND l.availabilityStart <= ? AND l.availabilityEnd >= ?" : ""}
+    ${propertyTypeValue ? "AND p.propertyType = ?" : ""}
+    LIMIT 20;
+  `;
+  
+  const queryParams = [
+    ...(destination ? [`%${destination}%`] : []),
+    ...(checkIn && checkOut ? [new Date(checkIn), new Date(checkOut)] : []),
+    ...(propertyTypeValue ? [propertyTypeValue] : [])
+  ];
+  
+  const filteredListings = await prisma.$queryRawUnsafe<TProperty[]>(query, ...queryParams);
+  
     const propertiesSchemaArray = z.array(propertySchema);
     const validatedProperties = propertiesSchemaArray.parse(
       filteredListings.map((listing) => listing)
@@ -89,7 +104,6 @@ export async function getFilteredListings(
 }
 
 
-
 //============================================================================================================================================
 
 
@@ -102,11 +116,11 @@ export async function getAllPropertiesByUserId(
     //   return null;
     // }
 
-    const properties = await prisma.property.findMany({
-      where: { userId },
+    const properties = await prisma.$queryRaw`
+      SELECT * from property where userId=${userId}
+`
 
-    });
-    console.log("ho")
+    console.log("ho",properties)
     const propertiesSchemaArray = z.array(propertySchema);
     const validatedProperties = propertiesSchemaArray.parse(properties);
     return validatedProperties;
@@ -128,8 +142,10 @@ export async function getPropertyById(
     if (properties.length === 0) {
       return null;
     }
+    console.log("IngetProp",properties)
     const property = properties[0];
     const validatedProperty = propertySchema.parse(property);
+    console.log("IngetPropValidated",properties)
     return validatedProperty;
   } catch (error) {
     console.error("Error in getting property by ID: ", error);
@@ -193,11 +209,11 @@ export async function addProperty(
         ${validatedLocation.state},
         ${validatedLocation.city},
         ${validatedProperty.propertyType},
-        ${validatedProperty.RoomType ?? 'N/A'},
-        ${validatedProperty.propertyType === 'Hotel'},
+        ${RoomType},
+        ${isHotel},
         ${validatedImagesJson},
         ${validatedAmenitiesJson},
-        ${locationId}  -- Pass generated ID here
+        ${locationId}
       )
     `;
 /*
@@ -453,11 +469,9 @@ export async function updatePropertyDelete(
 
     if (updatedProperty) {
       // Optionally, query the property after update to return the full record
-      const property = await prisma.property.findUnique({
-        where: {
-          id: propertyId,
-        },
-      });
+      const property : TProperty = await prisma.$queryRaw`
+        SELECT * FROM property WHERE id=${propertyId}
+      `
 
       return property;
     }

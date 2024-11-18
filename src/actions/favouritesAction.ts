@@ -4,7 +4,7 @@ import { getUserByKindeId, isAuthenticatedUserInDb } from "./userActions";
 import prisma from "@/lib/db";
 import cuid from "cuid";
 
-export default async function addliked(
+export default async function addLiked(
   user_id: string,
   likedData: TFavourite
 ): Promise<string | null> {
@@ -14,26 +14,29 @@ export default async function addliked(
       throw new Error("User not authenticated, please register before proceeding");
     }
     const validatedFavorites = favouriteSchema.parse(likedData);
+    const id = cuid();
 
-  const id = cuid();  
+    // Call add_to_favourites function
+    const result = await prisma.$queryRaw<any[]>`
+      SELECT add_to_favourites(
+          ${id},
+          ${user_id},
+          ${validatedFavorites.propertyId}
+      )
+    `;
+    console.log("Favorites result:", result);
 
-//! CALLED  add_to_favourites {FUNCTIONS}
-  const result: any= prisma.$queryRawUnsafe(
-          `SELECT add_to_favourites(?,?,?)`,
-          id,
-          user_id,
-          validatedFavorites.propertyId
-  )
-
-    if (result || result.length > 0)
-      return result[0]
-    else
-      return null
-  } catch (error) {
-    console.log('Error in adding favorites :)', error);
+    if (result?.length > 0) {
+      return result[0];
+    } else {
+      return null;
+    }
+  } catch (error: any) {
+    console.error('Error in adding favorites:', error.message);
     return null;
   }
 }
+
 
 
 
@@ -47,6 +50,7 @@ export async function deleteLiked(likedData: TFavourite) {
       WHERE userId = ${validatedFavorites.userId}
         AND propertyId = ${validatedFavorites.propertyId};
     `;
+    console.log("liked deleted")
 
     if (favorite.length === 0) {
       return null; // No favorite found to delete
@@ -71,7 +75,7 @@ export async function getIsfavourite(userId: string, propertyId: string) {
   const favourite = await prisma.$queryRaw<TFavourite[]>`
     SELECT * FROM favourite
     WHERE userId = ${userId} AND propertyId = ${propertyId}
-    LIMIT 1;`;
+    `;
 
   if (favourite.length > 0) {
     return favourite[0];

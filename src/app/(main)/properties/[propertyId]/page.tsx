@@ -17,7 +17,7 @@ const page = async ({ params }: { params: { propertyId: string } }) => {
   const property = await getPropertyById(params.propertyId);
   const { getUser } = getKindeServerSession();
   const kindeUser = await getUser();
-
+  console.log("Propp:",property)
   if(!kindeUser){
     return <>No User Found</>
     

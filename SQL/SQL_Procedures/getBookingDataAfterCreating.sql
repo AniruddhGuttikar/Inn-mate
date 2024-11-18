@@ -9,8 +9,8 @@ CREATE PROCEDURE InsertCheckInCheckOutAndFetchBooking(
     IN p_checkInDate DATE,
     IN p_checkOutDate DATE,
     IN checkinoutID VARCHAR(225) , -- Corrected with comma
-    IN Adult NUMBER,
-    IN Child NUMBER
+    IN Adult INT,
+    IN Child INT
 )
 BEGIN
     DECLARE bookingExists BOOLEAN DEFAULT FALSE;
@@ -21,7 +21,7 @@ BEGIN
         INSERT INTO checkIncheckOut (id, checkInDate, checkOutDate, bookingId)
         VALUES (checkinoutID, p_checkInDate, p_checkOutDate, p_bookingId);
     END IF;
-
+    
     -- Fetch and return the full booking data with checkInOut included
     SELECT b.*, c.checkInDate, c.checkOutDate
     FROM booking AS b

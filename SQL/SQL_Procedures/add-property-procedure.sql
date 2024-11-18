@@ -37,8 +37,8 @@ BEGIN
   END IF;
 
   -- Insert property
-  INSERT INTO property (id, userId, name, description, isDeleted, pricePerNight, maxGuests, updatedAt, locationId, propertyType, roomType, isHotel)
-  VALUES (propertyId, userId, name, description, isDeleted, pricePerNight, maxGuests, updatedAt, locationId, propertyType, roomType, isHotel);
+  INSERT INTO property (id, userId, name, description, isDeleted, pricePerNight, maxGuests, updatedAt, locationId, propertyType, roomType, isHotel,Current_Space)
+  VALUES (propertyId, userId, name, description, isDeleted, pricePerNight, maxGuests, updatedAt, locationId, propertyType, roomType, isHotel,maxGuests);
 
   -- Insert images if provided
   IF JSON_LENGTH(images) > 0 THEN

@@ -3,6 +3,7 @@ import prisma from "@/lib/db";
 import { bookingSchema, TBooking, TProperty } from "@/lib/definitions";
 import { getUserByKindeId} from "./userActions";
 import cuid from "cuid";
+import { log } from "console";
 
 
 //=================================================================================================================================
@@ -41,12 +42,13 @@ const bookings: any = await prisma.$queryRaw`
 }
 //=================================================================================================================================
 export async function createBooking(
-  booking: TBooking & {isShared:boolean}
+  booking: TBooking & {isShared:boolean,Numberofrooms: Number | null}
 ): Promise<TBooking | null> {
   try {
     const validatedBooking = bookingSchema.parse(booking);
     const bookingid = validatedBooking.id || cuid();
     console.log("InBooking",validatedBooking)
+    const checkiniutid=cuid()
 //! procedure CALL for Inserting Booking and Payment {PROCEDURE}
 /*
   await prisma.$executeRawUnsafe(
@@ -62,14 +64,15 @@ export async function createBooking(
   */
   await prisma.$queryRaw`
     CALL InsertBookingAndPayment(
-      '${bookingid}', 
+      ${bookingid}, 
       ${validatedBooking.totalPrice}, 
-      '${validatedBooking.userId}', 
-      '${validatedBooking.propertyId}', 
-      '${validatedBooking.status}', 
+      ${validatedBooking.userId}, 
+      ${validatedBooking.propertyId}, 
+      ${validatedBooking.status}, 
       ${validatedBooking.Adult}, 
       ${validatedBooking.Child},
       ${booking.isShared}
+      ${booking.Numberofrooms}
     );
   `
   
@@ -87,6 +90,7 @@ export async function createBooking(
       ${validatedBooking.status},
       ${validatedBooking.checkInOut?.checkInDate || null},
       ${validatedBooking.checkInOut?.checkOutDate || null},
+      ${checkiniutid},
       ${validatedBooking.Adult},
       ${validatedBooking.Child}
     );
@@ -142,13 +146,31 @@ export async function getAllBookingsForProperty(
     }
 
     //! Get All bookings for properties
-    const bookings = await prisma.$queryRaw`
-      SELECT b.* , c.checkInDate , c.checkOutDate  FROM booking as b JOIN 
-        checkincheckout as c ON b.id=c.bookingId
-        WHERE b.propertyId = ${propertyId}
-    `
-    //@ts-expect-error
-    return bookings;
+    const bookingsRaw :any= await prisma.$queryRaw`
+    SELECT b.* , c.checkInDate , c.checkOutDate 
+    FROM booking as b 
+    JOIN checkincheckout as c ON b.id = c.bookingId
+    WHERE b.propertyId = ${propertyId}
+  `;
+  
+  // Transform the raw bookings data to match TBooking format
+  const bookings: TBooking[] = bookingsRaw.map((booking:any) => ({
+    propertyId: booking.propertyId,
+    userId: booking.userId,
+    status: booking.status,
+    totalPrice: booking.totalPrice,
+    checkInOut: {
+      checkInDate: booking.checkInDate,
+      checkOutDate: booking.checkOutDate,
+      id: booking.id,
+      bookingId: booking.id,
+    },
+    Adult: booking.Adult,
+    id: booking.id,
+  }));
+  
+  console.log("inAllprop:", bookings);
+  return bookings;
   } catch (error) {
     console.error("Error in getting all the bookings: ", error);
     return null;
@@ -254,3 +276,22 @@ export async function getAllBookedProperties(
 }
 }
 //=================================================================================================================================
+
+export async function is_available(from: Date, to: Date, propertyId: string) {
+  const query = `
+    SELECT p.maxGuests
+    FROM property AS p
+    LEFT JOIN booking AS b ON b.propertyId = p.propertyId
+    LEFT JOIN checkincheckout AS c ON c.bookingId = b.bookingId
+    WHERE p.propertyId = ${propertyId}
+    AND NOT (
+      '${from.toISOString()}' >= c.checkoutDate OR 
+      '${to.toISOString()}' <= c.checkinDate
+    )
+  `;
+
+  const res:any = await prisma.$queryRaw`
+    ${query}
+  `;
+  return res.length === 0;  // If no overlapping bookings, return true (available), else false (not available)
+}

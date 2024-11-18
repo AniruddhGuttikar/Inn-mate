@@ -1,3 +1,4 @@
+// Import necessary hooks and libraries
 "use client";
 
 import { useState } from "react";
@@ -41,53 +42,55 @@ export default function DateRangePicker({
   const [isOpen, setIsOpen] = useState(false);
   const [date, setDate] = useState<DateRange | undefined>();
 
+  // Check if a date is booked
   const isDateBooked = (date: Date) => {
-    if (!bookings) {
-      return false;
-    }
+    if (!bookings) return false;
 
     return bookings.some((booking) =>
       isWithinInterval(startOfDay(date), {
-        //@ts-expect-error
-        start: startOfDay(booking.checkInDate ?? ''),
-        //@ts-expect-error
-        end: startOfDay(booking.checkOutDate ?? ''),
+        start: startOfDay(booking.checkInOut?.checkInDate ?? ""),
+        end: startOfDay(booking.checkInOut?.checkOutDate ?? ""),
       })
     );
   };
 
+  // Check if a date is in any booking range for highlighting
+  const isDateInBookingRange = (date: Date) => {
+    if (!bookings) return false;
+
+    return bookings.some((booking) =>
+      isWithinInterval(startOfDay(date), {
+        start: startOfDay(new Date(booking.checkInOut?.checkInDate ?? "")),
+        end: startOfDay(new Date(booking.checkInOut?.checkOutDate ?? "")),
+      })
+    );
+  };
+
+  // Disable unavailable dates
   const isDateDisabled = (date: Date) => {
-    // If the date is outside the availability range, disable it
     if (date < startOfDay(availabilityStart) || date > startOfDay(availabilityEnd)) {
       return true;
     }
 
-    // Check if the date is booked
     const dateIsBooked = isDateBooked(date);
-
-    // If it's booked, check the `type` and `max` to decide availability
-    if (dateIsBooked && !(type && max > 0)) {
-      return true;
-    }
-
-    // If the conditions for availability are met, return false (not disabled)
-    return false;
+    return dateIsBooked && !(type && max > 0);
   };
 
+  // Handle date selection
   const handleSelect = (newDate: DateRange | undefined) => {
     if (!newDate?.from || !newDate?.to) {
       setDate(newDate);
       return;
     }
 
+    // Check if any date in the selected range is disabled
     const datesInRange = eachDayOfInterval({
       start: newDate.from,
       end: newDate.to,
     });
-
     const hasDisabledDate = datesInRange.some(isDateDisabled);
 
-    // If only one day is selected or there are disabled dates
+    // If single-day or disabled dates exist, reset selection
     if (newDate.from === newDate.to || hasDisabledDate) {
       setDate({ from: newDate.from, to: undefined });
     } else {
@@ -110,8 +113,7 @@ export default function DateRangePicker({
             {date?.from ? (
               date.to ? (
                 <>
-                  {format(date.from, "LLL dd, y")} -{" "}
-                  {format(date.to, "LLL dd, y")}
+                  {format(date.from, "LLL dd, y")} - {format(date.to, "LLL dd, y")}
                 </>
               ) : (
                 format(date.from, "LLL dd, y")
@@ -129,8 +131,16 @@ export default function DateRangePicker({
             selected={date}
             onSelect={handleSelect}
             numberOfMonths={2}
-            disabled={(date) => isDateDisabled(date)}
+            disabled={(day) => isDateDisabled(day)}
+            className={cn(
+              "base-calendar-class",
+              date && isDateInBookingRange(date.from) ? "booking-range-highlight" : ""
+            )}
+            dayClassName={(day) =>
+              isDateInBookingRange(day) ? "bg-orange-200" : ""
+            }
           />
+
           <div className="flex justify-end gap-2 p-4">
             <Button
               variant="outline"
@@ -145,9 +155,9 @@ export default function DateRangePicker({
             <Button
               variant="outline"
               onClick={() => {
-                onClose();
                 setDate(undefined);
                 setIsOpen(false);
+                onClose();
               }}
             >
               Close

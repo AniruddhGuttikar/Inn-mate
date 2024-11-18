@@ -9,7 +9,7 @@ export const PropertyTypeEnum = z.enum([
   "Cottage",
   "Apartment",
 ]);
-export const BookingStatusEnum = z.enum(["CONFIRMED", "ACTIVE", "COMPLETED"]);
+export const BookingStatusEnum = z.enum(["CONFIRMED", "ACTIVE", " "]);
 export const AmenityTypeEnum = z.enum([
   "WIFI",
   "PARKING",
@@ -82,7 +82,7 @@ export const propertySchema = z.object({
   propertyType: PropertyTypeEnum,
   locationId: z.string().cuid().optional(),
   RoomType: z.string().optional(),
-  Current_Space : z.number().optional(),
+  Current_space : z.number().int().optional(),
   
 
   images: z.array(imageSchema).optional(),
