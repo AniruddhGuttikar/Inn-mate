@@ -71,7 +71,7 @@ export async function createBooking(
       ${validatedBooking.status}, 
       ${validatedBooking.Adult}, 
       ${validatedBooking.Child},
-      ${booking.isShared}
+      ${booking.isShared},
       ${booking.Numberofrooms}
     );
   `
@@ -124,7 +124,7 @@ prisma.$queryRawUnsafe
         : null,
       id: rawBooking.id,
     }));
-
+    console.log('Booking done sussessfully')
     // Return the first booking or null if empty
     return formattedBookings.length > 0 ? formattedBookings[0] : null;
   } catch (error) {
@@ -278,20 +278,20 @@ export async function getAllBookedProperties(
 //=================================================================================================================================
 
 export async function is_available(from: Date, to: Date, propertyId: string) {
-  const query = `
-    SELECT p.maxGuests
-    FROM property AS p
-    LEFT JOIN booking AS b ON b.propertyId = p.propertyId
-    LEFT JOIN checkincheckout AS c ON c.bookingId = b.bookingId
-    WHERE p.propertyId = ${propertyId}
-    AND NOT (
-      '${from.toISOString()}' >= c.checkoutDate OR 
-      '${to.toISOString()}' <= c.checkinDate
-    )
-  `;
+
 
   const res:any = await prisma.$queryRaw`
-    ${query}
+      SELECT p.maxGuests
+    FROM property AS p
+    LEFT JOIN booking AS b ON b.propertyId = p.id
+    LEFT JOIN checkincheckout AS c ON c.bookingId = b.id
+    WHERE p.id = ${propertyId}
+    AND NOT (
+      ${from} >= c.checkoutDate OR 
+      ${to} <= c.checkinDate
+    )
+    
   `;
+  console.log('maxGuestsHere: ',res)
   return res.length === 0;  // If no overlapping bookings, return true (available), else false (not available)
 }

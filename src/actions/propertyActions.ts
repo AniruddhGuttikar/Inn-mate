@@ -216,6 +216,7 @@ export async function addProperty(
         ${locationId}
       )
     `;
+    // querry= ' CALL AddProperty(%s,%s,%s),vales)
 /*
     const result : TProperty = await prisma.$queryRawUnsafe(`
         CALL AddProperty(

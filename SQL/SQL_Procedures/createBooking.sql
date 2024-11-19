@@ -13,10 +13,13 @@ CREATE PROCEDURE InsertBookingAndPayment(
 )
 BEGIN
     DECLARE currentTime DATETIME;
+    DECLARE isHotels TINYINT(1) DEFAULT 0; -- Default to 0 (not a hotel)
+    DECLARE totalRooms INT DEFAULT 0;
+
+    -- Get the current time
     SET currentTime = NOW();
-    DECLARE isHotels TINYINT(1);
-    DECLARE totalRooms INT;
-    
+
+    SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
     -- Start transaction
     START TRANSACTION;
 
@@ -29,10 +32,13 @@ BEGIN
     VALUES (UUID(), totalPrice, currentTime, bookingId);
 
     -- Get the property type (hotel or not)
-    SELECT isHotel INTO isHotels FROM property WHERE propertyId = propertyId LIMIT 1;
+    SELECT isHotel INTO isHotels 
+    FROM property 
+    WHERE propertyId = propertyId
+    LIMIT 1;
 
     -- Check if the property is a hotel and if the number of rooms is greater than 0
-    IF isHotels AND Numberofrooms > 0 THEN
+    IF isHotels = 1 AND Numberofrooms > 0 THEN
         -- Update the current space in the property for hotel properties
         UPDATE property 
         SET Current_Space = Current_Space - Numberofrooms 

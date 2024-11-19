@@ -1,4 +1,3 @@
-// Import necessary hooks and libraries
 "use client";
 
 import { useState } from "react";
@@ -48,8 +47,8 @@ export default function DateRangePicker({
 
     return bookings.some((booking) =>
       isWithinInterval(startOfDay(date), {
-        start: startOfDay(booking.checkInOut?.checkInDate ?? ""),
-        end: startOfDay(booking.checkInOut?.checkOutDate ?? ""),
+        start: startOfDay(new Date(booking.checkInOut?.checkInDate ?? "")),
+        end: startOfDay(new Date(booking.checkInOut?.checkOutDate ?? "")),
       })
     );
   };
@@ -66,14 +65,20 @@ export default function DateRangePicker({
     );
   };
 
-  // Disable unavailable dates
+  // Modified disable logic to only check for booked dates and availability range
   const isDateDisabled = (date: Date) => {
+    // Check if date is within the allowed availability range
     if (date < startOfDay(availabilityStart) || date > startOfDay(availabilityEnd)) {
       return true;
     }
 
-    const dateIsBooked = isDateBooked(date);
-    return dateIsBooked && !(type && max > 0);
+    // If type is true and max > 0, don't disable any dates except those outside availability range
+    if (type && max > 0) {
+      return false;
+    }
+
+    // If type is false, only disable dates that are actually booked
+    return isDateBooked(date);
   };
 
   // Handle date selection

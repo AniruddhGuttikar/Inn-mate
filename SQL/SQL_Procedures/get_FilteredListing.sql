@@ -26,7 +26,7 @@ BEGIN
         AND (p_checkIn IS NULL OR p_checkOut IS NULL OR 
              (l.availabilityStart <= p_checkIn AND l.availabilityEnd >= p_checkOut))
         -- Property type filter
-        AND (p_propertyType IS NULL OR p.propertyType = p_propertyType)
+        AND (p_propertyType IS NULL OR p.propertyType = p_propertyType);
 END //
 
 DELIMITER ;

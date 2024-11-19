@@ -177,7 +177,18 @@ export default function PropertyListingPage({
       const msInDay = 1000 * 60 * 60 * 24;
       const totalDays = Math.ceil(
         (selectedDates.to.getTime() - selectedDates.from.getTime()) / msInDay
-      );
+      )
+
+      const total_price_ = isShared
+  ? (
+      ((getAdult / property.maxGuests) +
+      (0.5 * getChild / property.maxGuests)) *
+      1.2 // Add 20% surcharge for shared spaces
+    ) * totalDays*property.pricePerNight
+  : property.isHotel
+    ? property.pricePerNight * totalDays * totalRooms
+    : property.pricePerNight * totalDays;
+
       const bookingValues: TBooking & { isShared: boolean ,Numberofrooms: Number | null } = {
         userId,
         propertyId: property.id,
@@ -186,7 +197,7 @@ export default function PropertyListingPage({
           checkOutDate: selectedDates?.to
         },
         status: "CONFIRMED",
-        totalPrice: property.pricePerNight * totalDays,
+        totalPrice: total_price_,
         Adult: getAdult,
         Child: getChild,
         isShared: isShared, // Ensure isShared is assigned properly
@@ -319,7 +330,6 @@ export default function PropertyListingPage({
   
     return range1.from <= range2.to && range1.to >= range2.from;
   };
-  
   const isdateInrange = () => {
     
     return bookings?.some((booking) => {
@@ -339,7 +349,6 @@ export default function PropertyListingPage({
     });
   };
 
-  console.log("In propertypage:",property.Current_space)
   return (
     <div className="min-h-screen bg-background">
       <div className="relative h-[50vh] md:h-[60vh] lg:h-[70vh]">
@@ -565,13 +574,14 @@ export default function PropertyListingPage({
                   availabilityEnd={listing.availabilityEnd}
                   bookings={bookings}
                   type={isShared}
-                  max={Math.min(property.maxGuests, property.Current_space?? 0)}
+                  max={Math.min(property.maxGuests, property.Current_space)}
                   onSave={handleDateSave}
                   onClose={handleClose}
                 />
 
 {!property.isHotel ? (
   <div>
+
     <GuestPicker onChange={handleGuestChange} max={(isShared && isdateInrange()) ? Math.min(property.maxGuests, property.Current_space??property.maxGuests): property.maxGuests}
  />
 

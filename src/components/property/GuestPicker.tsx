@@ -9,7 +9,7 @@ interface GuestPickerProps {
 const GuestPicker: React.FC<GuestPickerProps> = ({ onChange, max }) => {
   const [adults, setAdults] = useState(1); // Default value for adults
   const [children, setChildren] = useState(0); // Default value for children
-
+  console.log("Adults+chilid",adults + children,max)
   const totalGuests = adults + children; // Total number of guests
 
   const incrementAdults = () => {
